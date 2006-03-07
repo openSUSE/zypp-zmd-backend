@@ -59,9 +59,17 @@ fi
 
 dnl ==================================================
 dnl checks for libraries
+dnl libzypp
+AC_CHECK_HEADER([zypp/ZYpp.h],
+        [:],
+        AC_MSG_ERROR([ZYpp.h not found. please install libzypp-devel]))
+
+dnl libz
 AC_CHECK_LIB([z], [gzopen],
         [:],
         AC_MSG_ERROR([libz not found. please install zlib-devel]))
+
+dnl libxml2
 AC_CHECK_LIB([xml2], [xmlNewTextReader],
         [:],
         AC_MSG_ERROR([libxml2 not found. please install libxml2-devel]))
