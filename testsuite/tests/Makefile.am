@@ -7,8 +7,8 @@ noinst_PROGRAMS =	\
 
 ## ##################################################
 
-LDADD = $(top_srcdir)/zmd/backend/dbsource/lib@PACKAGE@_dbsource.la \
-	$(top_srcdir)/zypp/lib@PACKAGE@.la			    \
+LDADD = $(top_srcdir)/src/dbsource/lib@PACKAGE@_dbsource.la \
+	-lzypp			\
 	$(SQLITE_LIBS)
 	
 CFLAGS = $(SQLITE_CFLAGS)

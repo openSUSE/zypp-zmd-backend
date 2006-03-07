@@ -6,10 +6,10 @@
 
 #include <iostream>
 
-#include "zypp/base/Logger.h"
-#include "zypp/ResStore.h"
-#include "zmd/backend/dbsource/DbSources.h"
-#include "zmd/backend/dbsource/DbAccess.h"
+#include <zypp/base/Logger.h>
+#include <zypp/ResStore.h>
+#include "src/dbsource/DbSources.h"
+#include "src/dbsource/DbAccess.h"
 
 
 using std::endl;
