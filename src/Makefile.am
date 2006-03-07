@@ -3,11 +3,11 @@
 #
 SUBDIRS = dbsource
 
-PKG_MANAGEMENT_LIBS = dbsource/lib@PACKAGE@_dbsource.la $(top_srcdir)/zypp/lib@PACKAGE@.la
+PKG_MANAGEMENT_LIBS = dbsource/lib@PACKAGE@_dbsource.la
 PKG_MANAGEMENT_CFLAGS = -I$(top_srcdir)
 
 CFLAGS = $(PKG_MANAGEMENT_CFLAGS) $(SQLITE_CFLAGS)
-LDADD = $(PKG_MANAGEMENT_LIBS) $(SQLITE_LIBS)
+LDADD = $(PKG_MANAGEMENT_LIBS) $(SQLITE_LIBS) -lzypp
 
 noinst_HEADERS = zmd-backend.h
 
