@@ -109,6 +109,7 @@ echo "
 Configuration:
 
   PACKAGE:              ${PACKAGE}
+  VERSION:              ${VERSION}
 
   COMPILER:             ${CXX}
   CXXFLAGS:          	${CXXFLAGS}
