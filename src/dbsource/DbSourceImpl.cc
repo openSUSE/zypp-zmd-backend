@@ -91,15 +91,15 @@ create_dependency_handle (sqlite3 *db)
 
     query =
 	//	0         1     2        3        4      5     6         7
-        "SELECT dep_type, name, version, release, epoch, arch, relation, dep_target "
-        "FROM dependencies "
-        "WHERE resolvable_id = ?";
+	"SELECT dep_type, name, version, release, epoch, arch, relation, dep_target "
+	"FROM dependencies "
+	"WHERE resolvable_id = ?";
 
     rc = sqlite3_prepare (db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare dependency selection clause: " << sqlite3_errmsg (db) << endl;
-        sqlite3_finalize (handle);
-        return NULL;
+	sqlite3_finalize (handle);
+	return NULL;
     }
 
     return handle;
@@ -114,23 +114,23 @@ create_package_handle (sqlite3 *db)
 
     query =
 	//      0   1     2        3        4      5
-        "SELECT id, name, version, release, epoch, arch, "
+	"SELECT id, name, version, release, epoch, arch, "
 	//      6               7
-        "       installed_size, catalog,"
+	"       installed_size, catalog,"
 	//      8          9      10         11
-        "       installed, local, rpm_group, file_size,"
+	"       installed, local, rpm_group, file_size,"
 	//      12       13           14
-        "       summary, description, package_filename,"
+	"       summary, description, package_filename,"
 	//      15
-        "       install_only "
-        "FROM packages "
-        "WHERE catalog = ?";
+	"       install_only "
+	"FROM packages "
+	"WHERE catalog = ?";
 
     rc = sqlite3_prepare (db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare package_details selection clause: " << sqlite3_errmsg (db) << endl;
-        sqlite3_finalize (handle);
-        return NULL;
+	sqlite3_finalize (handle);
+	return NULL;
     }
 
     return handle;
@@ -228,7 +228,13 @@ target2kind( RCDependencyTarget dep_target )
 	case RC_DEP_TARGET_PATTERN:	kind = ResTraits<Pattern>::kind;
 	break;
 	case RC_DEP_TARGET_PRODUCT:	kind = ResTraits<Product>::kind;
-        break;
+	break;
+	case RC_DEP_TARGET_LANGUAGE:	kind = ResTraits<Language>::kind;
+	break;
+	case RC_DEP_TARGET_ATOM:	kind = ResTraits<Atom>::kind;
+	break;
+	case RC_DEP_TARGET_SRC:		kind = ResTraits<SrcPackage>::kind;
+	break;
 	default:			WAR << "Unknown dep_target " << dep_target << endl;
 					kind = ResTraits<Package>::kind;
 	break;
