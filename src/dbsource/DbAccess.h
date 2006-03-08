@@ -182,6 +182,8 @@ public:
     bool insertCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
     /** remove catalog, remove all resolvables of this catalog */
     bool removeCatalog( const std::string & catalog );
+    /** update catalog, update all non-empty parameters (name, alias, description) */
+    bool updateCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
 
     /** write resolvables from store to db */
     void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL );

@@ -806,6 +806,89 @@ DbAccess::insertCatalog( const std::string & catalog, const string & name, const
 }
 
 
+/** update catalog */
+bool
+DbAccess::updateCatalog( const std::string & catalog, const string & name, const string & alias, const string & description )
+{
+    //                    0    1     2
+    string query ("SELECT name,alias,description FROM catalogs WHERE id = ? ");
+
+    sqlite3_stmt *sel_handle = prepare_handle( _db, query );
+    if (sel_handle == NULL) {
+	return false;
+    }
+
+    sqlite3_bind_text( sel_handle, 1, catalog.c_str(), -1, SQLITE_STATIC );
+
+    int rc = sqlite3_step( sel_handle);
+    if (rc == SQLITE_ROW) {
+	DBG << "Found catalog" << endl;
+    }
+    else if (rc != SQLITE_DONE) {
+	ERR << "rc " << rc << ": " << sqlite3_errmsg (_db) << endl;
+    }
+
+    if (rc != SQLITE_ROW) {
+	sqlite3_reset( sel_handle );
+	return false;
+    }
+
+    string c_name, c_alias, c_description;
+
+    // now set the c_* string to either the original or the updated (if non-empty) values
+
+    const char *text;
+    if (name.empty()) {
+	text = (const char *) sqlite3_column_text( sel_handle, 0 );
+	if (text != NULL)
+	    c_name = text;
+    }
+    else {
+	c_name = name;
+    }
+
+    if (alias.empty()) {
+	text = (const char *) sqlite3_column_text( sel_handle, 1 );
+	if (text != NULL)
+	    c_alias = text;
+    }
+    else {
+	c_alias = alias;
+    }
+
+    if (description.empty()) {
+	text = (const char *) sqlite3_column_text( sel_handle, 2 );
+	if (text != NULL)
+	    c_description = text;
+    }
+    else {
+	c_description = description;
+    }
+
+    //                                  1          2                3            4
+    query = "UPDATE catalogs SET name = ?, alias = ?, description = ? WHERE id = ?";
+    sqlite3_stmt *upd_handle = prepare_handle( _db, query );
+    if (upd_handle == NULL) {
+	return false;
+    }
+
+    sqlite3_bind_text( upd_handle, 1, c_name.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( upd_handle, 2, c_alias.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( upd_handle, 3, c_description.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( upd_handle, 4, catalog.c_str(), -1, SQLITE_STATIC );
+
+    rc = sqlite3_step( upd_handle );
+    if (rc != SQLITE_DONE) {
+	ERR << "rc " << rc << "Error writing catalog: " << sqlite3_errmsg (_db) << endl;
+    }
+
+    sqlite3_reset( sel_handle );
+    sqlite3_reset( upd_handle );
+
+    return (rc == SQLITE_DONE);
+}
+
+
 /** remove catalog, remove all resolvables of this catalog */
 bool
 DbAccess::removeCatalog( const std::string & catalog )
