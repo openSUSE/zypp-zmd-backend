@@ -28,7 +28,7 @@
 #include "zypp/base/Logger.h"
 #include "zypp/base/Exception.h"
 
-using std::endl;
+using namespace std;
 using namespace zypp;
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
@@ -49,33 +49,45 @@ sync_source( DbAccess & db, Source_Ref source )
 {
     DBG << "sync_source, alias '" << source.alias() << "'" << endl;
 
-    std::string catalog = source.alias();
+    string catalog = source.alias();
 
+#if 0	// ZMD does this
     if (db.haveCatalog( catalog ) ) {
 	db.removeCatalog( catalog );		// clean old entries first
     }
+#endif
 
-    std::string name = source.zmdName();
+    string name = source.zmdName();
     if (name.empty()) name = source.url().asString();
-    std::string desc = source.zmdDescription();
+    string desc = source.zmdDescription();
     if (desc.empty()) desc = source.vendor();
 
+#if 0	// ZMD does this
     if (db.insertCatalog( catalog, name, catalog, desc )) {		// create catalog
+#endif
 
 	ResStore store = source.resolvables();
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
 	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str() );	// store all resolvables
-
+#if 0
     }
+#endif
 
     return;
 }
 
+
+//
+// find matching source and write its resolvables to the catalog
+//
+
 static void
-sync_catalogs( DbAccess & db )
+sync_catalog( DbAccess & db, const string & path, const string & catalog )
 {
+    MIL << "sync_catalog(..., " << path << ", " << catalog << ")" << endl;
+
     SourceManager_Ptr manager = SourceManager::sourceManager();
 
     try {
@@ -87,30 +99,39 @@ sync_catalogs( DbAccess & db )
 	return;
     }
 
-    std::list<unsigned int> sources = manager->allSources();
+    list<unsigned int> sources = manager->allSources();
     MIL << "Found " << sources.size() << " sources" << endl;
 
-    for (std::list<unsigned int>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
+    for (list<unsigned int>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
 	Source_Ref source = manager->findSource( *it );
 	if (!source) {
 	    ERR << "SourceManager can't find source " << *it << endl;
 	    continue;
 	}
-	sync_source( db, source );
+	if (!source.enabled())
+	    continue;
+
+	if ((path == "/installation") 		// just sync the first source
+	    || (catalog == source.alias()))	// or the matching one
+	{ 
+	    sync_source( db, source );
+	    break;
+	}
     }
     return;
 }
 
 //----------------------------------------------------------------------------
 
-#define SOURCES "installation"
+// metadata types
+#define ZYPP "zypp"
 #define YUM "yum"
 
 int
 main (int argc, char **argv)
 {
     if (argc != 5) {
-	std::cerr << "usage: " << argv[0] << " <database> <type> <path> <catalog id>" << endl;
+	cerr << "usage: " << argv[0] << " <database> <type> <path> <catalog id>" << endl;
 	return 1;
     }
 
@@ -121,6 +142,7 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
+    //				      database		type		  path/uri	    catalog/alias
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << endl;
 
     ZYpp::Ptr God = zypp::getZYpp();
@@ -129,15 +151,15 @@ main (int argc, char **argv)
 
     db.openDb( true );		// open for writing
 
-    if (strcmp( argv[2], SOURCES ) == 0) {
+    if (strcmp( argv[2], ZYPP) == 0) {
 	MIL << "Doing a catalog sync" << endl;
-	sync_catalogs( db );
+	sync_catalog( db, argv[3], argv[4] );
     }
-    else if (strcmp( argv[2], YUM ) == 0) {
+    else if (strcmp( argv[2], YUM) == 0) {
 	MIL << "Doing a cached source sync" << endl;
 	Pathname p;
-	Url url( std::string("file:") + argv[3] );
-	std::string alias( argv[4] );
+	Url url( string("file:") + argv[3] );
+	string alias( argv[4] );
 	Locale lang( "en" );
 
 	Pathname cache_dir("");
@@ -146,7 +168,7 @@ main (int argc, char **argv)
 	sync_source ( db, source );
     }
     else {
-	ERR << "Invalid option " << argv[2] << ", expecting '" << SOURCES << "' or '" << YUM << "'" << endl;
+	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << YUM << "'" << endl;
     }
 
     db.closeDb();
