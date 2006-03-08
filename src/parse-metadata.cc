@@ -68,7 +68,7 @@ sync_source( DbAccess & db, Source_Ref source, string catalog )
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str() );	// store all resolvables
+	db.writeStore( store, ResStatus::uninstalled, catalog.c_str() );	// store all resolvables
 #if 0
     }
 #endif
