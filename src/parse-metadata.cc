@@ -45,11 +45,9 @@ using namespace zypp;
 // upload all zypp sources as catalogs to the database
 
 static void
-sync_source( DbAccess & db, Source_Ref source )
+sync_source( DbAccess & db, Source_Ref source, string catalog )
 {
-    DBG << "sync_source, alias '" << source.alias() << "'" << endl;
-
-    string catalog = source.alias();
+    DBG << "sync_source, catalog '" << catalog << "', alias '" << source.alias() << "'" << endl;
 
 #if 0	// ZMD does this
     if (db.haveCatalog( catalog ) ) {
@@ -114,7 +112,7 @@ sync_catalog( DbAccess & db, const string & path, const string & catalog )
 	if ((path == "/installation") 		// just sync the first source
 	    || (catalog == source.alias()))	// or the matching one
 	{ 
-	    sync_source( db, source );
+	    sync_source( db, source, catalog );
 	    break;
 	}
     }
@@ -165,7 +163,7 @@ main (int argc, char **argv)
 	Pathname cache_dir("");
 	Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
 
-	sync_source ( db, source );
+	sync_source ( db, source, alias );
     }
     else {
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << YUM << "'" << endl;
