@@ -12,5 +12,5 @@ package: dist
 #ACLOCAL_AMFLAGS = -I m4
 ACLOCAL_AMFLAGS =
 
-EXTRA_DIST = mkinstalldirs
+EXTRA_DIST = mkinstalldirs logrotate_zmd_backend
 #config.rpath
