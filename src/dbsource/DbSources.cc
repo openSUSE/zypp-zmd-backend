@@ -78,6 +78,7 @@ DbSources::sources (bool refresh)
     _sources.clear();
 
     const char *query =
+	//      0   1     2      3            4         5
 	"SELECT id, name, alias, description, priority, priority_unsubd "
 	"FROM catalogs";
 
