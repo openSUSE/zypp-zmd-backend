@@ -55,12 +55,18 @@ sync_source( DbAccess & db, Source_Ref source, string catalog )
     }
 #endif
 
+#if 0 // catalogs table is locked
+    DBG << "Updating catalog '" << catalog << "', setting description to '" << source.url().asString() << "'" << endl;
+    // save the URL in the description attribute
+    db.updateCatalog( catalog, "", "", source.url().asString() );
+#endif
+
+#if 0	// ZMD does this
     string name = source.zmdName();
     if (name.empty()) name = source.url().asString();
     string desc = source.zmdDescription();
     if (desc.empty()) desc = source.vendor();
 
-#if 0	// ZMD does this
     if (db.insertCatalog( catalog, name, catalog, desc )) {		// create catalog
 #endif
 
@@ -68,7 +74,7 @@ sync_source( DbAccess & db, Source_Ref source, string catalog )
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-	db.writeStore( store, ResStatus::uninstalled, catalog.c_str() );	// store all resolvables
+	db.writeStore( store, ResStatus::uninstalled, catalog.c_str() );	// store all resolvables as 'uninstalled'
 #if 0
     }
 #endif
