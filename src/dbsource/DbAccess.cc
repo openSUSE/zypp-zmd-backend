@@ -14,6 +14,7 @@
 
 #include "zypp/base/Logger.h"
 #include "zypp/ZYppFactory.h"
+#include "zypp/Source.h"
 #include "DbAccess.h"
 
 IMPL_PTR_TYPE(DbAccess);
@@ -557,7 +558,20 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
     sqlite3_bind_text( handle, 2, pkg->group().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 3, pkg->summary().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );
+    Source_Ref src( pkg->source() );
+    string scheme = src.url().getScheme();
+//    DBG << "Source url '" << src.url() << "', scheme '" << scheme << "'" << endl;
+    if (scheme == "cd"
+	|| scheme == "dvd"
+	|| scheme == "iso"
+	|| scheme == "smb"
+	|| scheme == "nfs")
+    {
+	sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// zypp knows how to get the package
+    }
+    else {
+	sqlite3_bind_text( handle, 5, NULL, -1, SQLITE_STATIC );				// zmd knows how to get the package
+    }
     sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );
     sqlite3_bind_int( handle, 7, pkg->size() );
     sqlite3_bind_int( handle, 8, pkg->installOnly() ? 1 : 0 );
