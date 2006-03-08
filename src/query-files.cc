@@ -240,8 +240,9 @@ DBG << "extract_packages_from_directory(.., " << path << ", " << alias << ", " <
 	    }
         }
     }
-
+    return 0;
 }
+
 
 static ResStore
 query_directory (const Pathname & path, bool recursive)
