@@ -253,8 +253,8 @@ prepare_pkg_insert (sqlite3 *db)
         "INSERT INTO package_details (resolvable_id, rpm_group, summary, "
 	//			      4            5		     6
         "                             description, package_filename, signature_filename,"
- 	//			      7          8
-        "                             file_size, install_only) "
+ 	//			      7          8	       9
+        "                             file_size, install_only, media_nr) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 	"");
 
@@ -559,8 +559,9 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );
-    sqlite3_bind_int( handle, 7, pkg->size());
-    sqlite3_bind_int( handle, 8, pkg->installOnly() ? 1 : 0);
+    sqlite3_bind_int( handle, 7, pkg->size() );
+    sqlite3_bind_int( handle, 8, pkg->installOnly() ? 1 : 0 );
+    sqlite3_bind_int( handle, 9, pkg->mediaId() );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
