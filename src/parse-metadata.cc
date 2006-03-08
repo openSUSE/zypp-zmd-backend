@@ -120,6 +120,7 @@ main (int argc, char **argv)
     else
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
+    MIL << "-------------------------------------" << endl;
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << endl;
 
     ZYpp::Ptr God = zypp::getZYpp();

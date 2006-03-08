@@ -226,6 +226,7 @@ main (int argc, char **argv)
     else
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
+    MIL << "-------------------------------------" << endl;
     MIL << "START package-files " << argv[1] << " " << argv[2] << endl;
 
     ZYpp::Ptr God = zypp::getZYpp();

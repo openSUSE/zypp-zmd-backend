@@ -75,6 +75,7 @@ main (int argc, char **argv)
     else
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
+    MIL << "-------------------------------------" << endl;
     MIL << "START transact " << argv[1] << endl;
 
     // access the sqlite db

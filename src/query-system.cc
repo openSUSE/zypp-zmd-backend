@@ -32,6 +32,7 @@ main (int argc, char **argv)
     else
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
+    MIL << "-------------------------------------" << endl;
     MIL << "START query-system " << argv[1] << endl;
 
     ZYpp::Ptr God = zypp::getZYpp();

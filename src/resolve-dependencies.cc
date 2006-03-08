@@ -68,6 +68,7 @@ main (int argc, char **argv)
     else
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
+    MIL << "-------------------------------------" << endl;
     MIL << "START resolve-dependencies " << argv[1] << endl;
 
     // access the sqlite db
