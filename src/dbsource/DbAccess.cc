@@ -810,11 +810,15 @@ DbAccess::insertCatalog( const std::string & catalog, const string & name, const
 bool
 DbAccess::updateCatalog( const std::string & catalog, const string & name, const string & alias, const string & description )
 {
+
+    DBG << "updateCatalog(" << catalog << ", " << name << ", " << alias << ", " << description << ")" << endl;
+
     //                    0    1     2
     string query ("SELECT name,alias,description FROM catalogs WHERE id = ? ");
 
     sqlite3_stmt *sel_handle = prepare_handle( _db, query );
     if (sel_handle == NULL) {
+	ERR << "Can't prepare SELECT query: " << sqlite3_errmsg (_db) << endl;
 	return false;
     }
 
@@ -869,6 +873,7 @@ DbAccess::updateCatalog( const std::string & catalog, const string & name, const
     query = "UPDATE catalogs SET name = ?, alias = ?, description = ? WHERE id = ?";
     sqlite3_stmt *upd_handle = prepare_handle( _db, query );
     if (upd_handle == NULL) {
+	ERR << "Can't prepare UPDATE query: " << sqlite3_errmsg (_db) << endl;
 	return false;
     }
 
@@ -944,6 +949,9 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 	    if (rowid < 0)
 		break;
 	    ++count;
+	}
+	else {
+	    DBG << "Not writing " << *obj << endl;
 	}
     }
 
