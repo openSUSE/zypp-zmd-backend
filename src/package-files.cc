@@ -204,7 +204,6 @@ MIL << "RpmHeader @" << header << endl;
 
     sqlite3_exec (db, "COMMIT", NULL, NULL, NULL);
 
-cleanup:
     sqlite3_finalize (handle);
 
     return result;
