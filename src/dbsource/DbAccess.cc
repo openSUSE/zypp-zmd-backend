@@ -255,7 +255,7 @@ prepare_pkg_insert (sqlite3 *db)
         "                             description, package_filename, signature_filename,"
  	//			      7          8	       9
         "                             file_size, install_only, media_nr) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
