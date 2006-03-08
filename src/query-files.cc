@@ -82,7 +82,7 @@ parse_query (const string & query, bool *recursive)
     std::vector<std::string> tokens;
     str::split( query, std::back_inserter( tokens ), ";" );
 
-    for (int pos = 0; pos < tokens.size(); ++pos) {
+    for (unsigned int pos = 0; pos < tokens.size(); ++pos) {
 	string tok = str::toLower( tokens[pos] );
 	if (strncmp (tok.c_str(), "recursive", 9) == 0) {
 	    string val = extract_value( tok );
