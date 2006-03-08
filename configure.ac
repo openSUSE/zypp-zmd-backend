@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl ==================================================
 
-AC_INIT(zmd-backend,0.0.0)
+AC_INIT(zmd-backend,7.1.1)
 AC_CONFIG_SRCDIR(src/Makefile.am)
 
 AC_PREFIX_DEFAULT(/usr)
