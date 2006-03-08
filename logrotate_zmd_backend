@@ -1,0 +1,10 @@
+/var/log/zmd-backend.log {
+    compress
+    dateext
+    maxage 365
+    rotate 9
+    size=+4096k
+    notifempty
+    missingok
+    copytruncate
+}
