@@ -29,10 +29,11 @@ namespace ZyppRecipients {
     ///////////////////////////////////////////////////////////////////
     struct MediaChangeReceive : public zypp::callback::ReceiveReport<zypp::media::MediaChangeReport>
     {
-	zypp::Resolvable::constPtr _last;
-	int last_reported;
+	int _media_nr;
+	std::string _description;
 
 	MediaChangeReceive( )
+	    : _media_nr( 0 )
 	{
 	}
 
@@ -40,26 +41,30 @@ namespace ZyppRecipients {
 	{
 	}
 
-	virtual Action requestMedia(zypp::Source_Ref source, unsigned mediumNr, zypp::media::MediaChangeReport::Error error, std::string description)
+	virtual Action requestMedia( zypp::Source_Ref source, unsigned mediumNr, zypp::media::MediaChangeReport::Error error, std::string description )
 	{
+	    _media_nr = mediumNr;
+	    _description = description;
+
+	    DBG << "requestMedia(" << source << ", " << mediumNr << ", " << error << ", " << description << ")" << endl;
+
 	    // request media via stdout
 
-	    std::cout << "10|" << mediumNr << "|" << description << std::endl;
+	    std::cout << "10|" << mediumNr;
 
-#if 0	// maybe 'description' is not sufficient
-		std::string product_name;
+	    std::string product_name;
 
-		// get name of the product
-		for (zypp::ResStore::iterator it = source.resolvables().begin(); it != source.resolvables().end(); it++)
+	    // get name of the product
+	    for (zypp::ResStore::iterator it = source.resolvables().begin(); it != source.resolvables().end(); it++)
+	    {
+		// is it a product object?
+		if (zypp::isKind<zypp::Product>( *it ))
 		{
-		    // is it a product object?
-		    if (zypp::isKind<zypp::Product>(*it))
-		    {
-			product_name = (*it)->name();
-			break;
-		    }	
-		}
-#endif
+		    product_name = (*it)->name();
+		    break;
+		}	
+	    }
+	    std::cout << "|" << product_name << std::endl;
 
 	    // and abort here.
 	    // This will end the 'transact' helper and its up to ZMD to evaluate the
@@ -89,6 +94,12 @@ class MediaChangeCallback {
     {
 	_changeReceiver.disconnect();
     }
+
+    int mediaNr() const
+    { return _changeReceiver._media_nr; }
+
+    std::string description() const
+    { return _changeReceiver._description; }
 
 };
 

@@ -7,12 +7,13 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
+#include <zypp/media/MediaException.h>
 
-#include "zypp/ExternalProgram.h"
+#include <zypp/ExternalProgram.h>
 
 using namespace std;
 using namespace zypp;
@@ -22,7 +23,7 @@ using namespace zypp;
 #include "dbsource/DbSources.h"
 
 #include "transactions.h"
-#include "zypp/solver/detail/ResolverInfo.h"
+#include <zypp/solver/detail/ResolverInfo.h>
 
 #include "RpmCallbacks.h"
 #include "MediaChangeCallback.h"
@@ -103,31 +104,59 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
-    if (!read_transactions (God->pool(), db.db(), dbs))
+    if (!read_transactions (God->pool(), db.db(), dbs)) {
+	cerr << "Reading transactions failed." << endl;
 	return 1;
+    }
 
     try {
-	God->initTarget("/", true);
+	God->initTarget( "/", true );
+    }
+    catch ( Exception & expt_r ) {
+	ZYPP_CAUGHT( expt_r );
+	cout << "3|" << expt_r.asUserString() << endl;
+	cerr << expt_r.asString() << endl;
+	return 1;
+    }
+
+    RpmCallbacks r_callbacks;		// init and connect rpm progress callbacks
+    MediaChangeCallback m_callback;	// init and connect media change callback
+
+    int result = 0;
+
+    try {
 	PoolItemList x,y,z;
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
-
-	RpmCallbacks r_callbacks;		// init and connect rpm progress callbacks
-	MediaChangeCallback m_callback;		// init and connect media change callback
 
 	God->target()->commit( God->pool(), 0, x, y, z );
 
 	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
 	suseconfig.close();		// discard exit code
     }
+    catch ( media::MediaException & expt_r ) {
+	ZYPP_CAUGHT( expt_r );
+	result = 1;
+	if (m_callback.mediaNr() != 0			// exception due to MediaChange callback ?
+	    || !m_callback.description().empty())
+	{
+	    cerr << "Need media " << m_callback.mediaNr() << ": " << m_callback.description() << endl;
+	}
+	else {
+	    cout << "3|" << expt_r.asUserString() << endl;
+	    cerr << expt_r.asString() << endl;
+	}
+    }
     catch ( Exception & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
-	return 1;
+	result = 1;
+	cout << "3|" << expt_r.asUserString() << endl;
+	cerr << expt_r.asString() << endl;
     }
 
     db.closeDb();
 
     MIL << "END transact" << endl;
 
-    return 0;
+    return result;
 }

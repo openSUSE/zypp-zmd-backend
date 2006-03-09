@@ -99,12 +99,13 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
         PackageOpType action;
 	ResObject::constPtr obj;
 
-        action = (PackageOpType) sqlite3_column_int (handle, 0);
-        id = sqlite3_column_int (handle, 1);
+        action = (PackageOpType) sqlite3_column_int( handle, 0 );
+        id = sqlite3_column_int( handle, 1 );
 
-	obj = sources.getById (id);
+	obj = sources.getById( id );
 	if (obj == NULL) {
-	    ERR << "Can't find resolvable id " << id << endl;
+	    ERR << "Can't find res object id " << id << endl;
+	    cout << "3|Resolvable id " << id << " does not exist." << endl;
 	    break;
 	}
 
