@@ -52,6 +52,8 @@ public:
 	virtual Source_Ref source() const;
         /** */
 	virtual ZmdId zmdid() const;
+        /** */
+	virtual unsigned mediaId() const;
 
 protected:
 	Source_Ref _source;
@@ -61,6 +63,7 @@ protected:
 	Pathname _location;
 	bool _install_only;
 	ZmdId _zmdid;
+	unsigned _media_nr;
 
 	ByteCount _size_installed;
 	ByteCount _size_archive;

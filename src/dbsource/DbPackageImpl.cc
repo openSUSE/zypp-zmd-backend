@@ -68,6 +68,7 @@ DbPackageImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
     if (text != NULL)
 	_location = Pathname( text );
     _install_only = (sqlite3_column_int( handle, 15 ) != 0);
+    _media_nr = sqlite3_column_int( handle, 16 );
 
     return;
 }
@@ -103,6 +104,9 @@ ByteCount DbPackageImpl::archivesize() const
 
 bool DbPackageImpl::installOnly() const
 { return _install_only; }
+
+unsigned DbPackageImpl::mediaId() const
+{ return _media_nr; }
 
   /////////////////////////////////////////////////////////////////
 } // namespace zypp

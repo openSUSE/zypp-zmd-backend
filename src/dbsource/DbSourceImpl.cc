@@ -56,8 +56,8 @@ DbSourceImpl::factoryInit()
 	media::MediaManager media_mgr;
 	MIL << "Adding no media verifier" << endl;
 	media::MediaAccessId _media = _media_set->getMediaAccessId(1);
-	media_mgr.delVerifier(_media);
-	media_mgr.addVerifier(_media, media::MediaVerifierRef(new media::NoVerifier()));
+	media_mgr.delVerifier( _media);
+	media_mgr.addVerifier( _media, media::MediaVerifierRef( new media::NoVerifier()));
     }
     catch (const Exception & excpt_r)
     {
@@ -95,9 +95,9 @@ create_dependency_handle (sqlite3 *db)
 	"FROM dependencies "
 	"WHERE resolvable_id = ?";
 
-    rc = sqlite3_prepare (db, query, -1, &handle, NULL);
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare dependency selection clause: " << sqlite3_errmsg (db) << endl;
+	ERR << "Can not prepare dependency selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -121,14 +121,14 @@ create_package_handle (sqlite3 *db)
 	"       installed, local, rpm_group, file_size,"
 	//      12       13           14
 	"       summary, description, package_filename,"
-	//      15
-	"       install_only "
+	//      15            16
+	"       install_only, media_nr "
 	"FROM packages "
 	"WHERE catalog = ?";
 
-    rc = sqlite3_prepare (db, query, -1, &handle, NULL);
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare package_details selection clause: " << sqlite3_errmsg (db) << endl;
+	ERR << "Can not prepare package_details selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -142,13 +142,13 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
 {
     MIL << "DbSourceImpl::createResolvables(" << source_r.id() << ")" << endl;
     _source = source_r;
-    if (_db == NULL) {
+    if ( _db == NULL) {
 	ERR << "Must call attachDatabase() first" << endl;
 	return;
     }
 
-    _dependency_handle = create_dependency_handle (_db);
-    if (_dependency_handle == NULL) return;
+    _dependency_handle = create_dependency_handle ( _db);
+    if ( _dependency_handle == NULL) return;
 
     createPackages();
 
@@ -159,7 +159,7 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
 void
 DbSourceImpl::createPackages(void)
 {
-    sqlite3_stmt *handle = create_package_handle (_db);
+    sqlite3_stmt *handle = create_package_handle ( _db);
     if (handle == NULL) return;
 
     sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
@@ -186,11 +186,11 @@ DbSourceImpl::createPackages(void)
 	    NVRAD dataCollect( name,
 			Edition( version, release, epoch ),
 			arch,
-			createDependencies (id));
+			createDependencies (id ) );
 
 	    Package::Ptr package = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( package );
-	    if (_idmap != 0)
+	    if ( _idmap != 0)
 		(*_idmap)[id] = package;
 	}
 	catch (const Exception & excpt_r)
@@ -213,7 +213,7 @@ target2kind( RCDependencyTarget dep_target )
 {
     Resolvable::Kind kind;
 
-    switch (dep_target)
+    switch ( dep_target)
     {
 	case RC_DEP_TARGET_PACKAGE:	kind = ResTraits<Package>::kind;
 	break;
@@ -249,7 +249,7 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
     Dependencies deps;
     CapFactory factory;
 
-    sqlite3_bind_int64 (_dependency_handle, 1, resolvable_id);
+    sqlite3_bind_int64 ( _dependency_handle, 1, resolvable_id);
 
     RCDependencyType dep_type;
     string name, version, release;
@@ -285,7 +285,7 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
 		cap = factory.parse( dkind, name, rel, Edition( version, release, epoch ) );
 	    }
 
-	    switch (dep_type) {
+	    switch ( dep_type) {
 		case RC_DEP_TYPE_REQUIRE:
 		    deps[Dep::REQUIRES].insert( cap );
 		break;
@@ -327,25 +327,24 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
 	}
     }
 
-    sqlite3_reset (_dependency_handle);
+    sqlite3_reset ( _dependency_handle);
     return deps;
 }
 
 #if 0
-
 Message::Ptr
 DbSourceImpl::createMessage (const DbReader & parsed)
 {
     try
     {
-	detail::ResImplTraits<DbMessageImpl>::Ptr impl(new DbMessageImpl(_source, parsed));
+	detail::ResImplTraits<DbMessageImpl>::Ptr impl( new DbMessageImpl( _source, parsed ) );
 
 	// Collect basic Resolvable data
 	NVRAD dataCollect( parsed.name,
 			Edition( parsed.version, parsed.release, parsed.epoch ),
 			Arch( parsed.arch ),
-			createDependencies (parsed));
-	Message::Ptr message = detail::makeResolvableFromImpl(dataCollect, impl);
+			createDependencies (parsed ) );
+	Message::Ptr message = detail::makeResolvableFromImpl( dataCollect, impl );
 	return message;
     }
     catch (const Exception & excpt_r)
@@ -362,14 +361,14 @@ DbSourceImpl::createScript (const DbReader & parsed)
 {
     try
     {
-	detail::ResImplTraits<DbScriptImpl>::Ptr impl(new DbScriptImpl(_source, parsed));
+	detail::ResImplTraits<DbScriptImpl>::Ptr impl( new DbScriptImpl( _source, parsed ) );
 
 	// Collect basic Resolvable data
 	NVRAD dataCollect( parsed.name,
 			Edition( parsed.version, parsed.release, parsed.epoch ),
 			Arch( parsed.arch ),
-			createDependencies (parsed));
-	Script::Ptr script = detail::makeResolvableFromImpl(dataCollect, impl);
+			createDependencies (parsed ) );
+	Script::Ptr script = detail::makeResolvableFromImpl( dataCollect, impl );
 	return script;
     }
     catch (const Exception & excpt_r)
@@ -386,14 +385,14 @@ DbSourceImpl::createPatch (const DbReader & parsed)
 {
     try
     {
-	detail::ResImplTraits<DbPatchImpl>::Ptr impl(new DbPatchImpl(_source, parsed));
+	detail::ResImplTraits<DbPatchImpl>::Ptr impl( new DbPatchImpl( _source, parsed ) );
 
 	// Collect basic Resolvable data
 	NVRAD dataCollect( parsed.name,
 			Edition( parsed.version, parsed.release, parsed.epoch ),
 			Arch( parsed.arch ),
-			createDependencies (parsed));
-	Patch::Ptr patch = detail::makeResolvableFromImpl(dataCollect, impl);
+			createDependencies (parsed ) );
+	Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
 	return patch;
     }
     catch (const Exception & excpt_r)
@@ -410,14 +409,14 @@ DbSourceImpl::createPattern (const DbReader & parsed)
 {
     try
     {
-	detail::ResImplTraits<DbPatternImpl>::Ptr impl(new DbPatternImpl(_source, parsed));
+	detail::ResImplTraits<DbPatternImpl>::Ptr impl( new DbPatternImpl( _source, parsed ) );
 
 	// Collect basic Resolvable data
 	NVRAD dataCollect( parsed.name,
 			Edition( parsed.version, parsed.release, parsed.epoch ),
 			Arch( parsed.arch ),
-			createDependencies (parsed));
-	Pattern::Ptr pattern = detail::makeResolvableFromImpl(dataCollect, impl);
+			createDependencies (parsed ) );
+	Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
 	return pattern;
     }
     catch (const Exception & excpt_r)
@@ -434,14 +433,14 @@ DbSourceImpl::createProduct (const DbReader & parsed)
 {
     try
     {
-	detail::ResImplTraits<DbProductImpl>::Ptr impl(new DbProductImpl(_source, parsed));
+	detail::ResImplTraits<DbProductImpl>::Ptr impl( new DbProductImpl( _source, parsed ) );
 
 	// Collect basic Resolvable data
 	NVRAD dataCollect( parsed.name,
 			Edition( parsed.version, parsed.release, parsed.epoch ),
 			Arch( parsed.arch ),
-			createDependencies (parsed));
-	Product::Ptr product = detail::makeResolvableFromImpl(dataCollect, impl);
+			createDependencies (parsed ) );
+	Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
 	return product;
     }
     catch (const Exception & excpt_r)
@@ -455,7 +454,7 @@ DbSourceImpl::createProduct (const DbReader & parsed)
 //-----------------------------------------------------------------------------
 
 void
-DbSourceImpl::parserCallback (const DbReader & parsed)
+DbSourceImpl::parserCallback( const DbReader & parsed )
 {
   try {
     if (parsed.kind == ResTraits<Package>::kind) {
@@ -470,6 +469,10 @@ DbSourceImpl::parserCallback (const DbReader & parsed)
 	Script::Ptr s = createScript (parsed);
 	_store.insert (s);
     }
+    else if (parsed.kind == ResTraits<Atom>::kind) {
+	Atom::Ptr a = createAtom (parsed);
+	_store.insert (a);
+    }
     else if (parsed.kind == ResTraits<Patch>::kind) {
 	Patch::Ptr p = createPatch (parsed);
 	_store.insert (p);
@@ -482,6 +485,10 @@ DbSourceImpl::parserCallback (const DbReader & parsed)
 	Product::Ptr p = createProduct (parsed);
 	_store.insert (p);
     }
+    else if (parsed.kind == ResTraits<SrcPackage>::kind) {
+	SrcPackage::Ptr s = createSrcPackage (parsed);
+	_store.insert (s);
+    }
     else {
 	ERR << "Unsupported kind " << parsed.kind << endl;
     }
@@ -491,6 +498,7 @@ DbSourceImpl::parserCallback (const DbReader & parsed)
     ZYPP_CAUGHT (excpt_r);
   }
 }
+
 #endif
 
 //-----------------------------------------------------------------------------
