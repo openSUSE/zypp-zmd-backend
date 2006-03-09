@@ -25,6 +25,7 @@ using namespace zypp;
 #include "zypp/solver/detail/ResolverInfo.h"
 
 #include "RpmCallbacks.h"
+#include "MediaChangeCallback.h"
 
 using solver::detail::ResolverInfo_Ptr;
 
@@ -111,7 +112,8 @@ main (int argc, char **argv)
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
 
-	RpmCallbacks callbacks;
+	RpmCallbacks r_callbacks;		// init and connect rpm progress callbacks
+	MediaChangeCallback m_callback;		// init and connect media change callback
 
 	God->target()->commit( God->pool(), 0, x, y, z );
 
