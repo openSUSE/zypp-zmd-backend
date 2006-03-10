@@ -252,11 +252,11 @@ prepare_pkg_insert (sqlite3 *db)
     string query (
 	//			      1              2          3
         "INSERT INTO package_details (resolvable_id, rpm_group, summary, "
-	//			      4            5		     6
-        "                             description, package_filename, signature_filename,"
- 	//			      7          8	       9
+	//			      4            5		6                 7
+        "                             description, package_url, package_filename, signature_filename,"
+ 	//			      8	         9             10
         "                             file_size, install_only, media_nr) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
@@ -558,6 +558,8 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
     sqlite3_bind_text( handle, 2, pkg->group().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 3, pkg->summary().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// package_url
+
     Source_Ref src( pkg->source() );
     string scheme = src.url().getScheme();
 //    DBG << "Source url '" << src.url() << "', scheme '" << scheme << "'" << endl;
@@ -567,15 +569,15 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
 	|| scheme == "smb"
 	|| scheme == "nfs")
     {
-	sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// zypp knows how to get the package
+	sqlite3_bind_text( handle, 6, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// zypp knows how to get the package
     }
     else {
-	sqlite3_bind_text( handle, 5, NULL, -1, SQLITE_STATIC );				// zmd knows how to get the package
+	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );				// zmd knows how to get the package
     }
-    sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );
-    sqlite3_bind_int( handle, 7, pkg->size() );
-    sqlite3_bind_int( handle, 8, pkg->installOnly() ? 1 : 0 );
-    sqlite3_bind_int( handle, 9, pkg->mediaId() );
+    sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
+    sqlite3_bind_int( handle, 8, pkg->size() );
+    sqlite3_bind_int( handle, 9, pkg->installOnly() ? 1 : 0 );
+    sqlite3_bind_int( handle, 10, pkg->mediaId() );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);

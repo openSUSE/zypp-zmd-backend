@@ -134,7 +134,7 @@ main (int argc, char **argv)
 	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
 	suseconfig.close();		// discard exit code
     }
-    catch ( media::MediaException & expt_r ) {
+    catch ( const media::MediaException & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
 	if (m_callback.mediaNr() != 0			// exception due to MediaChange callback ?
@@ -147,7 +147,7 @@ main (int argc, char **argv)
 	    cerr << expt_r.asString() << endl;
 	}
     }
-    catch ( Exception & expt_r ) {
+    catch ( const Exception & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
 	cout << "3|" << expt_r.asUserString() << endl;

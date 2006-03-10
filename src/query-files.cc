@@ -364,10 +364,10 @@ sync_catalogs( DbAccess & db )
 	return;
     }
 
-    std::list<unsigned int> sources = manager->allSources();
+    std::list<SourceManager::SourceId> sources = manager->allSources();
     MIL << "Found " << sources.size() << " sources" << endl;
 
-    for (std::list<unsigned int>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
+    for (std::list<SourceManager::SourceId>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
 	Source_Ref source = manager->findSource( *it );
 	if (!source) {
 	    ERR << "SourceManager can't find source " << *it << endl;
