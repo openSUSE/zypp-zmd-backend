@@ -20,6 +20,7 @@ bin_PROGRAMS =	\
 	package-files		\
 	parse-metadata		\
 	find-file		\
+	update-status		\
 	transact
 
 query_system_SOURCES = query-system.cc
@@ -29,3 +30,5 @@ transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h Med
 parse_metadata_SOURCES = parse-metadata.cc
 package_files_SOURCES = package-files.cc
 find_file_SOURCES = find-file.cc
+update_status_SOURCES = update-status.cc
+
