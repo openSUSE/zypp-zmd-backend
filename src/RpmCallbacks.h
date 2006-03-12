@@ -30,9 +30,11 @@ namespace ZyppRecipients {
     struct InstallPkgReceive : public zypp::callback::ReceiveReport<zypp::target::rpm::InstallResolvableReport>
     {
 	zypp::Resolvable::constPtr _last;
+	int & _step;				// step counter for install & receive steps
 	int last_reported;
 
-	InstallPkgReceive( )
+	InstallPkgReceive( int step )
+	    : _step( step )
 	{
 	}
 
@@ -46,6 +48,7 @@ namespace ZyppRecipients {
 
 	virtual void reportend()
 	{
+	    ++_step;
 	}
 
 	virtual void start(zypp::Resolvable::constPtr resolvable)
@@ -58,7 +61,7 @@ DBG << "start(" << *resolvable << ")" << std::endl;
 	  if( _last == resolvable )
 	    return;
 
-	  std::cout << "1|" << "1|" << "Installing " << *resolvable << std::endl;
+	  std::cout << "1|" << _step << "|" << "Installing " << *resolvable << std::endl;
 	  _last = resolvable;
 	}
 
@@ -116,7 +119,10 @@ DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
     ///////////////////////////////////////////////////////////////////
     struct RemovePkgReceive : public zypp::callback::ReceiveReport<zypp::target::rpm::RemoveResolvableReport>
     {
-	RemovePkgReceive( )
+	int & _step;				// step counter for install & receive steps
+
+	RemovePkgReceive( int & step )
+	    : _step( step )
 	{
 	}
 
@@ -126,11 +132,12 @@ DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
 
 	virtual void reportend()
 	{
+	    ++_step;
 	}
 
 	virtual void start(zypp::Resolvable::constPtr resolvable)
 	{
-	  std::cout << "1|" << "1|" << "Removing " << *resolvable << std::endl;
+	  std::cout << "1|" << _step << "|" << "Removing " << *resolvable << std::endl;
 	}
 
 	virtual bool progress(int value, zypp::Resolvable::constPtr resolvable)
@@ -161,8 +168,13 @@ class RpmCallbacks {
     ZyppRecipients::InstallPkgReceive _installReceiver;
     ZyppRecipients::RemovePkgReceive _removeReceiver;
 
+    int _step_counter;
+
   public:
     RpmCallbacks()
+	: _installReceiver( _step_counter )
+	, _removeReceiver( _step_counter )
+	, _step_counter( 1 )
     {
 	_installReceiver.connect();
 	_removeReceiver.connect();

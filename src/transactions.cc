@@ -81,7 +81,14 @@ struct CopyTransaction
 };
 
 
-bool
+
+//
+// read all transactions from the transactions table and
+//  set the appropriate status in the pool
+// return -1 on error
+//  else the number of transactions
+
+int
 read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
 {
     MIL << "read_transactions" << endl;
@@ -91,8 +98,10 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
     int rc = sqlite3_prepare (db, sql, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare transaction selection clause: " << sqlite3_errmsg (db) << endl;
-        return false;
+        return -1;
     }
+
+    int count = 0;
 
     while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
         int id;
@@ -100,30 +109,37 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
 	ResObject::constPtr obj;
 
         action = (PackageOpType) sqlite3_column_int( handle, 0 );
-        id = sqlite3_column_int( handle, 1 );
+        id = sqlite3_column_int( handle, 1 );					// get the id
 
-	obj = sources.getById( id );
+	obj = sources.getById( id );						// get the ResObject by Id
 	if (obj == NULL) {
 	    ERR << "Can't find res object id " << id << endl;
 	    cout << "3|Resolvable id " << id << " does not exist." << endl;
 	    break;
 	}
 
+	// now we have the ResObject, but for setting the status we need
+	//  the corresponding PoolItem
+	// So loop over the pool (over items with the same name)
+	//  and find the PoolItem which refers to the ResObject
+
 	CopyTransaction info( obj, action );
 
 	invokeOnEach( pool.byNameBegin( obj->name() ),
 		      pool.byNameEnd( obj->name() ),
 		      functor::functorRef<bool,PoolItem> (info) );
+
+	++count;
     }
 
     sqlite3_finalize (handle);
 
     if (rc != SQLITE_DONE) {
 	ERR << "Error reading transaction packages: " << sqlite3_errmsg (db) << endl;
-	return false;
+	return -1;
     }
 
-    return true;
+    return count;
 }
 
 //-----------------------------------------------------------------------------

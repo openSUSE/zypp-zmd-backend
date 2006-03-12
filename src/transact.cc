@@ -104,9 +104,19 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
-    if (!read_transactions (God->pool(), db.db(), dbs)) {
+    int count = read_transactions (God->pool(), db.db(), dbs);
+    if (count < 0) {
 	cerr << "Reading transactions failed." << endl;
 	return 1;
+    }
+
+    // total number of steps
+    cout << "0|" << count << endl;
+
+    if (count == 0) {
+	MIL << "No transactions found" << endl;
+	cout << "4" << endl;
+	return 0;
     }
 
     try {
