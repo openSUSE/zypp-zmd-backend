@@ -105,6 +105,7 @@ create_dependency_handle (sqlite3 *db)
     return handle;
 }
 
+
 static sqlite3_stmt *
 create_package_handle (sqlite3 *db)
 {
@@ -129,6 +130,38 @@ create_package_handle (sqlite3 *db)
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare package_details selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+static sqlite3_stmt *
+create_patch_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7
+	"       installed_size, catalog,"
+	//      8          9      10        11
+	"       installed, local, patch_id, status,"
+	//      12             13        14
+	"       creation_time, category, reboot,"
+	//      15       16
+	"       restart, interactive"
+	"FROM patches "
+	"WHERE catalog = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare patch_details selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }

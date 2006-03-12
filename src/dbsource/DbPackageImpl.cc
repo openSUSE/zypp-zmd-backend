@@ -41,6 +41,7 @@ DbPackageImpl::DbPackageImpl (Source_Ref source_r)
 
 /**
  * read package specific data from handle
+ * (see DbSourceImpl, create_package_handle(), the handle is for the package_details table)
  * throw() on error
  */
 

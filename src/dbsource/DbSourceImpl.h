@@ -62,6 +62,8 @@ class DbSourceImpl : public zypp::source::SourceImpl {
     sqlite3_stmt *_product_handle;
 
     void createPackages(void);
+    void createAtoms(void);
+    void createPatches(void);
 
     zypp::Dependencies createDependencies (sqlite_int64 resolvable_id);
 
