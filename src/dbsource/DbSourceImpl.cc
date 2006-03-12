@@ -22,10 +22,11 @@
 #include "DbSourceImpl.h"
 
 #include "DbPackageImpl.h"
+#include "DbAtomImpl.h"
+#include "DbPatchImpl.h"
 #if 0
 #include "DbScriptImpl.h"
 #include "DbMessageImpl.h"
-#include "DbPatchImpl.h"
 #include "DbPatternImpl.h"
 #include "DbProductImpl.h"
 #endif
@@ -98,6 +99,32 @@ create_dependency_handle (sqlite3 *db)
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare dependency selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+static sqlite3_stmt *
+create_resolvables_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7        8          9      10
+	"       installed_size, catalog, installed, local, kind "
+	"FROM patches "
+	"WHERE catalog = ? AND kind = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare resolvables selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -184,6 +211,8 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
     if ( _dependency_handle == NULL) return;
 
     createPackages();
+    createAtoms();
+    createPackages();
 
     return;
 }
@@ -237,6 +266,106 @@ DbSourceImpl::createPackages(void)
     sqlite3_reset (handle);
     return;
 }
+
+
+void
+DbSourceImpl::createAtoms(void)
+{
+    sqlite3_stmt *handle = create_resolvables_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int (handle, 2, RC_DEP_TARGET_ATOM);
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    detail::ResImplTraits<DbAtomImpl>::Ptr impl( new DbAtomImpl( _source ) );
+
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Atom::Ptr atom = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( atom );
+	    if ( _idmap != 0)
+		(*_idmap)[id] = atom;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create atom object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createPatches(void)
+{
+    sqlite3_stmt *handle = create_patch_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text( handle, 1, _source.id().c_str(), -1, SQLITE_STATIC );
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    detail::ResImplTraits<DbPatchImpl>::Ptr impl( new DbPatchImpl( _source ) );
+
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    impl->readHandle( id, handle );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( patch );
+	    if ( _idmap != 0)
+		(*_idmap)[id] = patch;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create patch object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
 
 //-----------------------------------------------------------------------------
 
@@ -364,175 +493,4 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
     return deps;
 }
 
-#if 0
-Message::Ptr
-DbSourceImpl::createMessage (const DbReader & parsed)
-{
-    try
-    {
-	detail::ResImplTraits<DbMessageImpl>::Ptr impl( new DbMessageImpl( _source, parsed ) );
-
-	// Collect basic Resolvable data
-	NVRAD dataCollect( parsed.name,
-			Edition( parsed.version, parsed.release, parsed.epoch ),
-			Arch( parsed.arch ),
-			createDependencies (parsed ) );
-	Message::Ptr message = detail::makeResolvableFromImpl( dataCollect, impl );
-	return message;
-    }
-    catch (const Exception & excpt_r)
-    {
-	ERR << excpt_r << endl;
-	throw "Cannot create message object";
-    }
-    return NULL;
-}
-
-
-Script::Ptr
-DbSourceImpl::createScript (const DbReader & parsed)
-{
-    try
-    {
-	detail::ResImplTraits<DbScriptImpl>::Ptr impl( new DbScriptImpl( _source, parsed ) );
-
-	// Collect basic Resolvable data
-	NVRAD dataCollect( parsed.name,
-			Edition( parsed.version, parsed.release, parsed.epoch ),
-			Arch( parsed.arch ),
-			createDependencies (parsed ) );
-	Script::Ptr script = detail::makeResolvableFromImpl( dataCollect, impl );
-	return script;
-    }
-    catch (const Exception & excpt_r)
-    {
-	ERR << excpt_r << endl;
-	throw "Cannot create script object";
-    }
-    return NULL;
-}
-
-
-Patch::Ptr
-DbSourceImpl::createPatch (const DbReader & parsed)
-{
-    try
-    {
-	detail::ResImplTraits<DbPatchImpl>::Ptr impl( new DbPatchImpl( _source, parsed ) );
-
-	// Collect basic Resolvable data
-	NVRAD dataCollect( parsed.name,
-			Edition( parsed.version, parsed.release, parsed.epoch ),
-			Arch( parsed.arch ),
-			createDependencies (parsed ) );
-	Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
-	return patch;
-    }
-    catch (const Exception & excpt_r)
-    {
-	ERR << excpt_r << endl;
-	throw "Cannot create patch object";
-    }
-    return NULL;
-}
-
-
-Pattern::Ptr
-DbSourceImpl::createPattern (const DbReader & parsed)
-{
-    try
-    {
-	detail::ResImplTraits<DbPatternImpl>::Ptr impl( new DbPatternImpl( _source, parsed ) );
-
-	// Collect basic Resolvable data
-	NVRAD dataCollect( parsed.name,
-			Edition( parsed.version, parsed.release, parsed.epoch ),
-			Arch( parsed.arch ),
-			createDependencies (parsed ) );
-	Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
-	return pattern;
-    }
-    catch (const Exception & excpt_r)
-    {
-	ERR << excpt_r << endl;
-	throw "Cannot create pattern object";
-    }
-    return NULL;
-}
-
-
-Product::Ptr
-DbSourceImpl::createProduct (const DbReader & parsed)
-{
-    try
-    {
-	detail::ResImplTraits<DbProductImpl>::Ptr impl( new DbProductImpl( _source, parsed ) );
-
-	// Collect basic Resolvable data
-	NVRAD dataCollect( parsed.name,
-			Edition( parsed.version, parsed.release, parsed.epoch ),
-			Arch( parsed.arch ),
-			createDependencies (parsed ) );
-	Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
-	return product;
-    }
-    catch (const Exception & excpt_r)
-    {
-	ERR << excpt_r << endl;
-	throw "Cannot create product object";
-    }
-    return NULL;
-}
-
-//-----------------------------------------------------------------------------
-
-void
-DbSourceImpl::parserCallback( const DbReader & parsed )
-{
-  try {
-    if (parsed.kind == ResTraits<Package>::kind) {
-	Package::Ptr p = createPackage (parsed);
-	_store.insert (p);
-    }
-    else if (parsed.kind == ResTraits<Message>::kind) {
-	Message::Ptr m = createMessage (parsed);
-	_store.insert (m);
-    }
-    else if (parsed.kind == ResTraits<Script>::kind) {
-	Script::Ptr s = createScript (parsed);
-	_store.insert (s);
-    }
-    else if (parsed.kind == ResTraits<Atom>::kind) {
-	Atom::Ptr a = createAtom (parsed);
-	_store.insert (a);
-    }
-    else if (parsed.kind == ResTraits<Patch>::kind) {
-	Patch::Ptr p = createPatch (parsed);
-	_store.insert (p);
-    }
-    else if (parsed.kind == ResTraits<Pattern>::kind) {
-	Pattern::Ptr p = createPattern (parsed);
-	_store.insert (p);
-    }
-    else if (parsed.kind == ResTraits<Product>::kind) {
-	Product::Ptr p = createProduct (parsed);
-	_store.insert (p);
-    }
-    else if (parsed.kind == ResTraits<SrcPackage>::kind) {
-	SrcPackage::Ptr s = createSrcPackage (parsed);
-	_store.insert (s);
-    }
-    else {
-	ERR << "Unsupported kind " << parsed.kind << endl;
-    }
-  }
-  catch (const Exception & excpt_r)
-  {
-    ZYPP_CAUGHT (excpt_r);
-  }
-}
-
-#endif
-
-//-----------------------------------------------------------------------------
-
+// EOF

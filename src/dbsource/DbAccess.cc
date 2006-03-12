@@ -238,9 +238,9 @@ prepare_res_insert (sqlite3 *db)
         "INSERT INTO resolvables (name, version, release, epoch, arch,"
 	//			  6               7
         "                         installed_size, catalog,"
-	//			  8          9
-        "                         installed, local) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	//			  8          9      10
+        "                         installed, local, kind) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     return prepare_handle( db, query );
 }
@@ -738,7 +738,17 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     else
 	sqlite3_bind_text( handle, 7, obj->source().alias().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_int( handle,  8, status.isInstalled() ? 1 : 0);
-    sqlite3_bind_int( handle, 9, 0);					//pkg->local_package
+
+    Source_Ref src( obj->source() );
+    string scheme = src.url().getScheme();
+    if (scheme == "file" || scheme == "dir" || scheme == "hd")
+    {
+	sqlite3_bind_int( handle, 9, 1 );					//local_package
+    }
+    else {
+	sqlite3_bind_int( handle, 9, 0 );
+    }
+    sqlite3_bind_int( handle, 10, kind2target( obj->kind() ) );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);

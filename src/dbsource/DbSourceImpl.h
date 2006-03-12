@@ -31,6 +31,7 @@
 #include "DbAccess.h"
 
 #include "zypp/Package.h"
+#include "zypp/Atom.h"
 #include "zypp/Message.h"
 #include "zypp/Script.h"
 #include "zypp/Patch.h"
@@ -85,7 +86,7 @@ class DbSourceImpl : public zypp::source::SourceImpl {
 
   private:
     zypp::Source_Ref _source;
-    IdMap *_idmap;
+    IdMap *_idmap;			// map sqlite resolvable.id to actual objects
     void createResolvables( zypp::Source_Ref source_r );
 };
 
