@@ -561,12 +561,24 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
     sqlite3_bind_text( handle, 5, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// package_url
 
     Source_Ref src( pkg->source() );
+#if 1	// set to 0 once Source::remote() is fixed (#157469)
+    string scheme = src.url().getScheme();
+//    DBG << "Source url '" << src.url() << "', scheme '" << scheme << "'" << endl;
+    if (scheme == "cd" || scheme == "dvd" || scheme == "iso" || scheme == "smb" || scheme == "nfs")	// source is local for zypp
+    {
+	sqlite3_bind_text( handle, 6, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// so zypp knows how to get the package
+    }
+    else {
+	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );				// else zmd knows how to get the package
+    }
+#else
     if (src.remote()) {
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );				// zmd knows how to get the package
     }
     else {
 	sqlite3_bind_text( handle, 6, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// zypp knows how to get the package
     }
+#endif
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
     sqlite3_bind_int( handle, 9, pkg->installOnly() ? 1 : 0 );
