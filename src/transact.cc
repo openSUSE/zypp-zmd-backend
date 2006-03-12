@@ -110,8 +110,8 @@ main (int argc, char **argv)
 	return 1;
     }
 
-    // total number of steps
-    cout << "0|" << count << endl;
+    // total number of steps (*2, one for start/preparing, one for install/deleting)
+    cout << "0|" << count*2 << endl;
 
     if (count == 0) {
 	MIL << "No transactions found" << endl;
@@ -163,6 +163,8 @@ main (int argc, char **argv)
 	cout << "3|" << expt_r.asUserString() << endl;
 	cerr << expt_r.asString() << endl;
     }
+
+    cout << "4" << endl;
 
     db.closeDb();
 

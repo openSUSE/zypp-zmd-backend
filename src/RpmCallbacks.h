@@ -33,7 +33,7 @@ namespace ZyppRecipients {
 	int & _step;				// step counter for install & receive steps
 	int last_reported;
 
-	InstallPkgReceive( int step )
+	InstallPkgReceive( int & step )
 	    : _step( step )
 	{
 	}
@@ -44,11 +44,12 @@ namespace ZyppRecipients {
 
 	virtual void reportbegin()
 	{
+	  //                                ! this is 'preparing'
+	  std::cout << "1|" << ++_step << "|1|" << std::endl;
 	}
 
 	virtual void reportend()
 	{
-	    ++_step;
 	}
 
 	virtual void start(zypp::Resolvable::constPtr resolvable)
@@ -60,8 +61,8 @@ DBG << "start(" << *resolvable << ")" << std::endl;
 	  // if we have started this resolvable already, don't do it again
 	  if( _last == resolvable )
 	    return;
-
-	  std::cout << "1|" << _step << "|" << "Installing " << *resolvable << std::endl;
+	  //                              ! this is 'installing' 
+	  std::cout << "1|" << ++_step << "|2|" << *resolvable << std::endl;
 	  _last = resolvable;
 	}
 
@@ -107,9 +108,6 @@ DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
 	    if (level == zypp::target::rpm::InstallResolvableReport::RPM_NODEPS_FORCE) {
 		std::cout << "3|" << reason << std::endl;
 	    }
-	    else {
-		std::cout << "4" << std::endl;
-	    }
 	}
     };
 
@@ -128,16 +126,18 @@ DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
 
 	virtual void reportbegin()
 	{
+	  //                                ! this is 'preparing'
+	  std::cout << "1|" << ++_step << "|1|" << std::endl;
 	}
 
 	virtual void reportend()
 	{
-	    ++_step;
 	}
 
 	virtual void start(zypp::Resolvable::constPtr resolvable)
 	{
-	  std::cout << "1|" << _step << "|" << "Removing " << *resolvable << std::endl;
+	  //                                ! this is 'removing' 
+	  std::cout << "1|" << ++_step << "|3|" << *resolvable << std::endl;
 	}
 
 	virtual bool progress(int value, zypp::Resolvable::constPtr resolvable)
@@ -150,9 +150,6 @@ DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
 	{
 	    if (error != NO_ERROR) {
 		std::cout << "3|" << reason << std::endl;
-	    }
-	    else {
-		std::cout << "4" << std::endl;
 	    }
 	}
     };
@@ -174,7 +171,7 @@ class RpmCallbacks {
     RpmCallbacks()
 	: _installReceiver( _step_counter )
 	, _removeReceiver( _step_counter )
-	, _step_counter( 1 )
+	, _step_counter( 0 )
     {
 	_installReceiver.connect();
 	_removeReceiver.connect();
