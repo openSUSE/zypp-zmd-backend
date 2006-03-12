@@ -3,7 +3,7 @@
     dateext
     maxage 365
     rotate 9
-    size=+4096k
+    size=+1024k
     notifempty
     missingok
     copytruncate
