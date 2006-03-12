@@ -38,6 +38,7 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 	ERR << "append_dep_info(NULL)" << endl;
 	return;
     }
+    DBG << "append_dep_info(" << *info << ")" << endl;
 
     if (getenv ("RCD_DEBUG_DEPS"))
         debug = true;
@@ -120,6 +121,7 @@ main (int argc, char **argv)
 
 	context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, &dep_failure_info );
 
+	MIL << "failure info: " << dep_failure_info << endl;
 	cout << dep_failure_info;
 	cout.flush();
     }
