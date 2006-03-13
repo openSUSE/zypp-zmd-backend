@@ -301,6 +301,7 @@ DbSourceImpl::createAtoms(void)
 
 	    Atom::Ptr atom = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( atom );
+	    DBG << "Atom[" << id << "] " << *atom << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = atom;
 	}
@@ -351,6 +352,7 @@ DbSourceImpl::createPatches(void)
 
 	    Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( patch );
+	    DBG << "Patch[" << id << "] " << *patch << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = patch;
 	}
