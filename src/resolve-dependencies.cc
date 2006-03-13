@@ -39,17 +39,20 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 	return;
     }
     DBG << "append_dep_info(" << *info << ")" << endl;
+    DBG << "append_dep_info([" << info->message() << "])" << endl;
 
     if (getenv ("RCD_DEBUG_DEPS"))
         debug = true;
 
     if (debug || info->important()) {
-	dep_failure_info->append( "\n" );
+	string s = *dep_failure_info;
+	s += "\n";
 	if (debug && info->error())
-	    dep_failure_info->append( "ERR " );
+	    s += "ERR ";
 	if (debug && info->important())
-	    dep_failure_info->append( "IMP " );
-	dep_failure_info->append( info->message() );
+	    s += "IMP ";
+	s += info->message();
+	*dep_failure_info = s;
     }
     return;
 }
