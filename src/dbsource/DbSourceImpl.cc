@@ -212,7 +212,7 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
 
     createPackages();
     createAtoms();
-    createPackages();
+    createPatches();
 
     return;
 }
