@@ -31,28 +31,22 @@ using solver::detail::ResolverInfo_Ptr;
 static void
 append_dep_info (ResolverInfo_Ptr info, void *user_data)
 {
-    string *dep_failure_info = (string *)user_data;
     bool debug = false;
 
     if (info == NULL) {
 	ERR << "append_dep_info(NULL)" << endl;
 	return;
     }
-    DBG << "append_dep_info(" << *info << ")" << endl;
-    DBG << "append_dep_info([" << info->message() << "])" << endl;
 
     if (getenv ("RCD_DEBUG_DEPS"))
         debug = true;
 
     if (debug || info->important()) {
-	string s = *dep_failure_info;
-	s += "\n";
 	if (debug && info->error())
-	    s += "ERR ";
+	    cerr << "ERR ";
 	if (debug && info->important())
-	    s += "IMP ";
-	s += info->message();
-	*dep_failure_info = s;
+	    cerr << "IMP ";
+	cerr << info->message() << endl;
     }
     return;
 }
@@ -120,13 +114,11 @@ main (int argc, char **argv)
 	success = write_transactions( God->pool(), db.db(), context );
     }
     else {
-	string dep_failure_info( "Unresolved dependencies:\n" );
+	cerr << "Unresolved dependencies:" << endl;
 
-	context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, &dep_failure_info );
+	context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, NULL );
 
-	MIL << "failure info: " << dep_failure_info << endl;
-	cout << dep_failure_info;
-	cout.flush();
+	cerr.flush();
     }
 
     db.closeDb();
