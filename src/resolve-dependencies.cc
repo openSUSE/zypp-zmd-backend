@@ -96,6 +96,8 @@ main (int argc, char **argv)
     if (!read_transactions (God->pool(), db.db(), dbs))
 	return 1;
 
+    God->resolver()->setForceResolve( true );
+
     bool success;
     if (argc == 3) {
 	success = God->resolver()->verifySystem();
