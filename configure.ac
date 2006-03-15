@@ -58,6 +58,12 @@ if test -z "$MYRUNTEST" ; then
 fi
 
 dnl ==================================================
+dnl checks for header files
+AC_CHECK_HEADERS([boost/scoped_ptr.hpp],
+        [],
+        AC_MSG_ERROR([boost header not found. please install boost-devel]))
+
+dnl ==================================================
 dnl checks for libraries
 dnl libzypp
 AC_CHECK_HEADER([zypp/ZYpp.h],
