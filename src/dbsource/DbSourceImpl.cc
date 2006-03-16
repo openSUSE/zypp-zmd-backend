@@ -119,7 +119,7 @@ create_resolvables_handle (sqlite3 *db)
 	"SELECT id, name, version, release, epoch, arch, "
 	//      6               7        8          9      10
 	"       installed_size, catalog, installed, local, kind "
-	"FROM patches "
+	"FROM resolvables "
 	"WHERE catalog = ? AND kind = ?";
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
