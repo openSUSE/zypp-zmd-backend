@@ -51,6 +51,27 @@ static struct archrc {
 
 //----------------------------------------------------------------------------
 
+// check if source is local for zypp
+
+static bool
+source_is_local( Source_Ref source )
+{
+    if (!source) return true;
+
+    string scheme = source.url().getScheme();
+//    DBG << "Source url '" << src.url() << "', scheme '" << scheme << "'" << endl;
+    return (scheme == "cd"
+	|| scheme == "dvd"
+	|| scheme == "file"
+	|| scheme == "dir"
+	|| scheme == "hd"
+	|| scheme == "iso"
+	|| scheme == "smb"
+	|| scheme == "nfs");
+}
+
+//----------------------------------------------------------------------------
+
 // Convert ZYPP relation operator to ZMD RCResolvableRelation
 
 RCResolvableRelation
@@ -564,9 +585,7 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
 
     Source_Ref src( pkg->source() );
 #if 1	// set to 0 once Source::remote() is fixed (#157469)
-    string scheme = src.url().getScheme();
-//    DBG << "Source url '" << src.url() << "', scheme '" << scheme << "'" << endl;
-    if (scheme == "cd" || scheme == "dvd" || scheme == "iso" || scheme == "smb" || scheme == "nfs")	// source is local for zypp
+    if (source_is_local( src ))
     {
 	sqlite3_bind_text( handle, 6, plainrpm, -1, SQLITE_STATIC );				// so zypp knows how to get the package
     }
@@ -742,8 +761,7 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     sqlite3_bind_int( handle,  8, status.isInstalled() ? 1 : 0);
 
     Source_Ref src( obj->source() );
-    string scheme = src.url().getScheme();
-    if (scheme == "file" || scheme == "dir" || scheme == "hd")
+    if (source_is_local( src ))
     {
 	sqlite3_bind_int( handle, 9, 1 );					//local_package
     }

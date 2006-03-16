@@ -328,25 +328,28 @@ sync_source( DbAccess & db, Source_Ref source )
 
     std::string catalog = source.alias();
 
+#if 0	// ZMD does this
     if (db.haveCatalog( catalog ) ) {
 	db.removeCatalog( catalog );		// clean old entries first
     }
+#endif
 
+#if 0	// ZMD does this
     std::string name = source.zmdName();
     if (name.empty()) name = source.url().asString();
     std::string desc = source.zmdDescription();
     if (desc.empty()) desc = source.vendor();
 
     if (db.insertCatalog( catalog, name, catalog, desc )) {		// create catalog
-
+#endif
 	ResStore store = source.resolvables();
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
 	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str() );	// store all resolvables
-
+#if 0
     }
-
+#endif
     return;
 }
 
@@ -420,7 +423,7 @@ main (int argc, char **argv)
     }
     else {
 	MIL << "Doing a file/directory query" << endl;
-	ResStore store = query( argv[2], argc == 4 ? argv[3] : "" );
+	ResStore store = query( argv[2], argc == 4 ? argv[3] : "@local" );
 	if (!store.empty()) {
 	    db.writeStore( store, ResStatus::uninstalled );
 	}
