@@ -48,13 +48,12 @@ DbProductImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
     _zmdid = id;
 
     // 1-5: nvra, see DbSourceImpl
-    const char * text;
-    text = (const char *) sqlite3_column_text( handle, 12 );
+    // 6: status (don't care, its recomputed anyways)
+    // 7: category
+    const char * text = ((const char *) sqlite3_column_text( handle, 7 ));
     if (text != NULL)
-	_summary = TranslatedText( string( text ) );
-    text = (const char *) sqlite3_column_text( handle, 13 );
-    if (text != NULL)
-	_description = TranslatedText( string( text ) );
+	_category = text;
+
     return;
 }
 

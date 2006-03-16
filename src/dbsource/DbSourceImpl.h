@@ -36,7 +36,6 @@
 #include "zypp/Script.h"
 #include "zypp/Patch.h"
 #include "zypp/Product.h"
-#include "zypp/Selection.h"
 #include "zypp/Pattern.h"
        
 ///////////////////////////////////////////////////////////////////
@@ -65,16 +64,10 @@ class DbSourceImpl : public zypp::source::SourceImpl {
     void createPackages(void);
     void createAtoms(void);
     void createPatches(void);
+    void createPatterns(void);
+    void createProducts(void);
 
     zypp::Dependencies createDependencies (sqlite_int64 resolvable_id);
-
-#if 0
-    zypp::Message::Ptr createMessage (const DbReader & data);
-    zypp::Script::Ptr  createScript (const DbReader & data);
-    zypp::Patch::Ptr   createPatch (const DbReader & data);
-    zypp::Pattern::Ptr createPattern (const DbReader & data);
-    zypp::Product::Ptr createProduct (const DbReader & data);
-#endif
 
  public:
 

@@ -24,11 +24,11 @@
 #include "DbPackageImpl.h"
 #include "DbAtomImpl.h"
 #include "DbPatchImpl.h"
+#include "DbPatternImpl.h"
+#include "DbProductImpl.h"
 #if 0
 #include "DbScriptImpl.h"
 #include "DbMessageImpl.h"
-#include "DbPatternImpl.h"
-#include "DbProductImpl.h"
 #endif
 
 #include "zypp/source/SourceImpl.h"
@@ -156,7 +156,7 @@ create_package_handle (sqlite3 *db)
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare package_details selection clause: " << sqlite3_errmsg ( db) << endl;
+	ERR << "Can not prepare packages selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -188,7 +188,7 @@ create_patch_handle (sqlite3 *db)
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare patch_details selection clause: " << sqlite3_errmsg ( db) << endl;
+	ERR << "Can not prepare patches selection clause: " << sqlite3_errmsg ( db) << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -196,6 +196,66 @@ create_patch_handle (sqlite3 *db)
     return handle;
 }
 
+
+static sqlite3_stmt *
+create_pattern_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7
+	"       installed_size, catalog,"
+	//      8          9      10        11
+	"       installed, local, patch_id, status "
+	"FROM patterns "
+	"WHERE catalog = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare patterns selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+static sqlite3_stmt *
+create_product_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7
+	"       installed_size, catalog,"
+	//      8          9      10        11
+	"       installed, local, patch_id, status,"
+	//      12
+	"       category "
+	"FROM products "
+	"WHERE catalog = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare products selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+//-----------------------------------------------------------------------------
 
 void
 DbSourceImpl::createResolvables(Source_Ref source_r)
@@ -213,6 +273,8 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
     createPackages();
     createAtoms();
     createPatches();
+    createPatterns();
+    createProducts();
 
     return;
 }
@@ -359,6 +421,108 @@ DbSourceImpl::createPatches(void)
 	catch (const Exception & excpt_r)
 	{
 	    ERR << "Cannot create patch object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createPatterns(void)
+{
+    sqlite3_stmt *handle = create_pattern_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text( handle, 1, _source.id().c_str(), -1, SQLITE_STATIC );
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    detail::ResImplTraits<DbPatternImpl>::Ptr impl( new DbPatternImpl( _source ) );
+
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    impl->readHandle( id, handle );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( pattern );
+	    DBG << "Pattern[" << id << "] " << *pattern << endl;
+	    if ( _idmap != 0)
+		(*_idmap)[id] = pattern;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create pattern object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createProducts(void)
+{
+    sqlite3_stmt *handle = create_product_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text( handle, 1, _source.id().c_str(), -1, SQLITE_STATIC );
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    detail::ResImplTraits<DbProductImpl>::Ptr impl( new DbProductImpl( _source ) );
+
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    impl->readHandle( id, handle );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( product );
+	    DBG << "Product[" << id << "] " << *product << endl;
+	    if ( _idmap != 0)
+		(*_idmap)[id] = product;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create product object '"+name+"' from catalog '"+_source.id()+"'" << endl;
 	    sqlite3_reset (handle);
 	    ZYPP_RETHROW (excpt_r);
 	}
