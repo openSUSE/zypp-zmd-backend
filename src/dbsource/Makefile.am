@@ -15,6 +15,8 @@ noinst_HEADERS =				\
 	DbPackageImpl.h				\
 	DbAtomImpl.h				\
 	DbPatchImpl.h				\
+	DbPatternImpl.h				\
+	DbProductImpl.h				\
 	DbAccess.h
 	
 noinst_LTLIBRARIES =	lib@PACKAGE@_dbsource.la
@@ -24,5 +26,7 @@ lib@PACKAGE@_dbsource_la_SOURCES =		\
 	DbPackageImpl.cc			\
 	DbAtomImpl.cc				\
 	DbPatchImpl.cc				\
+	DbPatternImpl.cc			\
+	DbProductImpl.cc			\
 	DbSources.cc				\
 	DbAccess.cc 
