@@ -210,7 +210,7 @@ create_pattern_handle (sqlite3 *db)
 	//      6               7
 	"       installed_size, catalog,"
 	//      8          9      10        11
-	"       installed, local, patch_id, status "
+	"       installed, local, pattern_id, status "
 	"FROM patterns "
 	"WHERE catalog = ?";
 
@@ -238,7 +238,7 @@ create_product_handle (sqlite3 *db)
 	//      6               7
 	"       installed_size, catalog,"
 	//      8          9      10        11
-	"       installed, local, patch_id, status,"
+	"       installed, local, product_id, status,"
 	//      12
 	"       category "
 	"FROM products "
