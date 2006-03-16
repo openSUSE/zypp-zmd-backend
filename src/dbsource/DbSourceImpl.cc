@@ -182,13 +182,14 @@ create_patch_handle (sqlite3 *db)
 	//      12             13        14
 	"       creation_time, category, reboot,"
 	//      15       16
-	"       restart, interactive"
+	"       restart, interactive "
 	"FROM patches "
 	"WHERE catalog = ?";
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare patches selection clause: " << sqlite3_errmsg ( db) << endl;
+	ERR << "Clause: [" << query << "]" << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -209,14 +210,15 @@ create_pattern_handle (sqlite3 *db)
 	"SELECT id, name, version, release, epoch, arch, "
 	//      6               7
 	"       installed_size, catalog,"
-	//      8          9      10        11
-	"       installed, local, pattern_id, status "
+	//      8          9      11
+	"       installed, local, status "
 	"FROM patterns "
 	"WHERE catalog = ?";
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare patterns selection clause: " << sqlite3_errmsg ( db) << endl;
+	ERR << "Clause: [" << query << "]" << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
@@ -237,16 +239,15 @@ create_product_handle (sqlite3 *db)
 	"SELECT id, name, version, release, epoch, arch, "
 	//      6               7
 	"       installed_size, catalog,"
-	//      8          9      10        11
-	"       installed, local, product_id, status,"
-	//      12
-	"       category "
+	//      8          9      10      11
+	"       installed, local, status, category "
 	"FROM products "
 	"WHERE catalog = ?";
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare products selection clause: " << sqlite3_errmsg ( db) << endl;
+	ERR << "Clause: [" << query << "]" << endl;
 	sqlite3_finalize (handle);
 	return NULL;
     }
