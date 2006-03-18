@@ -12,6 +12,48 @@ AM_INIT_AUTOMAKE(foreign dist-bzip2 no-dist-gzip tar-ustar)
 AM_CONFIG_HEADER(config.h)
 
 dnl ==================================================
+dnl Versioning
+dnl ==========
+dnl
+dnl CURRENT    The most recent interface number that this library implements.
+dnl
+dnl REVISION   The implementation number of the current interface.
+dnl
+dnl AGE        The difference between the newest and oldest interfaces that this
+dnl            library implements.
+dnl            In other words, the library implements all the interface numbers
+dnl            in the range from number 'CURRENT - AGE' to 'CURRENT'.
+dnl
+dnl 1) Start with version information of `0:0:0' for each libtool library.
+dnl
+dnl 2) Update the version information only immediately before a public release
+dnl    of your software. More frequent updates are unnecessary, and only guarantee
+dnl    that the current interface number gets larger faster.
+dnl
+dnl 3) If the library source code has changed at all since the last update,
+dnl    then increment revision (`c:r:a' becomes `c:r+1:a').
+dnl
+dnl 4) If any interfaces have been added, removed, or changed since the last
+dnl    update, increment current, and set revision to 0.
+dnl
+dnl 5) If any interfaces have been added since the last public release, then
+dnl    increment age.
+dnl
+dnl 6) If any interfaces have been removed since the last public release, then
+dnl    set age to 0.
+dnl
+
+BACKEND_CURRENT=0
+BACKEND_REVISION=0
+BACKEND_AGE=0
+
+BACKEND_VERSION=$BACKEND_CURRENT.$BACKEND_REVISION.$BACKEND_AGE
+AC_SUBST(BACKEND_VERSION)
+
+BACKEND_VERSION_INFO="-version-info $BACKEND_CURRENT:$BACKEND_REVISION:$BACKEND_AGE"
+AC_SUBST(BACKEND_VERSION_INFO)
+
+dnl ==================================================
 
 CXXFLAGS="${CXXFLAGS} -g -O2 -Wall -Wformat"
 AC_SYS_LARGEFILE
