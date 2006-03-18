@@ -7,7 +7,7 @@ noinst_PROGRAMS =	\
 
 ## ##################################################
 
-LDADD = $(top_srcdir)/src/dbsource/lib@PACKAGE@_dbsource.la \
+LDADD = $(top_srcdir)/src/dbsource/lib@PACKAGE@.la \
 	-lzypp			\
 	$(SQLITE_LIBS)
 	
