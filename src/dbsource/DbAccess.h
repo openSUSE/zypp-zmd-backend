@@ -17,22 +17,22 @@
 
 #include <sqlite3.h>
 
-#include "zypp/base/PtrTypes.h"
+#include <zypp/base/PtrTypes.h>
 
-#include "zypp/ResStatus.h"
-#include "zypp/ResStore.h"
-#include "zypp/Resolvable.h"
-#include "zypp/Package.h"
-#include "zypp/Patch.h"
-#include "zypp/Selection.h"
-#include "zypp/Pattern.h"
-#include "zypp/Product.h"
-#include "zypp/Pathname.h"
-#include "zypp/ResPool.h"
-#include "zypp/CapSet.h"
-#include "zypp/Dep.h"
-#include "zypp/Rel.h"
-#include "zypp/Arch.h"
+#include <zypp/ResStatus.h>
+#include <zypp/ResStore.h>
+#include <zypp/Resolvable.h>
+#include <zypp/Package.h>
+#include <zypp/Patch.h>
+#include <zypp/Selection.h>
+#include <zypp/Pattern.h>
+#include <zypp/Product.h>
+#include <zypp/Pathname.h>
+#include <zypp/ResPool.h>
+#include <zypp/CapSet.h>
+#include <zypp/Dep.h>
+#include <zypp/Rel.h>
+#include <zypp/Arch.h>
 
 DEFINE_PTR_TYPE(DbAccess);
 
