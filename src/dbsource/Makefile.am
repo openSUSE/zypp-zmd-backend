@@ -9,19 +9,21 @@ INCLUDES = 					\
 
 LDADD =	$(noinst_LTLIBRARIES) $(top_srcdir)/zypp/lib@PACKAGE@.la
 
-noinst_HEADERS =				\
+pkginclude_HEADERS =				\
 	DbSources.h				\
+	DbAccess.h
+
+noinst_HEADERS =				\
 	DbSourceImpl.h				\
 	DbPackageImpl.h				\
 	DbAtomImpl.h				\
 	DbPatchImpl.h				\
 	DbPatternImpl.h				\
-	DbProductImpl.h				\
-	DbAccess.h
-	
-noinst_LTLIBRARIES =	lib@PACKAGE@_dbsource.la
+	DbProductImpl.h
 
-lib@PACKAGE@_dbsource_la_SOURCES =		\
+lib_LTLIBRARIES =	lib@PACKAGE@.la
+
+lib@PACKAGE@_la_SOURCES =		\
 	DbSourceImpl.cc				\
 	DbPackageImpl.cc			\
 	DbAtomImpl.cc				\
@@ -30,3 +32,29 @@ lib@PACKAGE@_dbsource_la_SOURCES =		\
 	DbProductImpl.cc			\
 	DbSources.cc				\
 	DbAccess.cc 
+
+lib@PACKAGE@_la_LDFLAGS =	@BACKEND_VERSION_INFO@
+
+#<INSTALL-HEADER-TARGET>
+
+# Automatically inserted by insert_install_target
+# DO NOT REMOVE THE TAGS!
+
+# Install header files only if different to version already installed -
+# prevent unnecessary installations to keep make dependency changes
+# and thus rebuilds for dependent packages as low as possible.
+
+install-pkgincludeHEADERS: $(pkginclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(pkgincludedir)
+	@list='$(pkginclude_HEADERS)';							\
+	for p in $$list; do								\
+		if test -f "$$p"; then d= ; else d="$(srcdir)/"; fi; 			\
+		if ! cmp -s $$d$$p $(DESTDIR)$(pkgincludedir)/$$p; then			\
+			echo " $(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p";	\
+			$(INSTALL_DATA) $$d$$p $(DESTDIR)$(pkgincludedir)/$$p;		\
+	  	fi									\
+	done
+
+#</INSTALL-HEADER-TARGET>
+
