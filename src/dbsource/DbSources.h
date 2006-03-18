@@ -28,8 +28,8 @@
 #include <map>
 
 #include <sqlite3.h>
-#include "zypp/Source.h"
-#include "zypp/PoolItem.h"
+#include <zypp/Source.h>
+#include <zypp/PoolItem.h>
 
 #include "DbAccess.h"
 
@@ -42,7 +42,7 @@ typedef std::list<zypp::Source_Ref> SourcesList;
 class DbSources
 {
   private:
-     sqlite3 *_db;
+     sqlite3 *_db; 
      SourcesList _sources;
      IdMap _idmap;
 
