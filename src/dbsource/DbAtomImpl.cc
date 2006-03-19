@@ -31,14 +31,18 @@ namespace zypp
 
 /** Default ctor
 */
-DbAtomImpl::DbAtomImpl (Source_Ref source_r)
-    : _source (source_r)
+DbAtomImpl::DbAtomImpl (Source_Ref source_r, ZmdId zmdid)
+    : _source( source_r )
+    , _zmdid( zmdid )
 {
 }
 
 Source_Ref
 DbAtomImpl::source() const
 { return _source; }
+
+ZmdId DbAtomImpl::zmdid() const
+{ return _zmdid; }
 
   /////////////////////////////////////////////////////////////////
 } // namespace zypp

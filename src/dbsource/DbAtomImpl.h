@@ -31,13 +31,16 @@ public:
 
 	/** Default ctor
 	*/
-	DbAtomImpl( Source_Ref source_r );
+	DbAtomImpl( Source_Ref source_r, ZmdId zmdid );
 
 	/** */
 	virtual Source_Ref source() const;
+        /** */
+	virtual ZmdId zmdid() const;
 
 protected:
 	Source_Ref _source;
+	ZmdId _zmdid;
 
  };
   /////////////////////////////////////////////////////////////////

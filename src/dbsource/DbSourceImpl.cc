@@ -347,14 +347,14 @@ DbSourceImpl::createAtoms(void)
 
 	try
 	{
-	    detail::ResImplTraits<DbAtomImpl>::Ptr impl( new DbAtomImpl( _source ) );
-
 	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
 	    name = (const char *) sqlite3_column_text( handle, 1 );
 	    string version ((const char *) sqlite3_column_text( handle, 2 ));
 	    string release ((const char *) sqlite3_column_text( handle, 3 ));
 	    unsigned epoch = sqlite3_column_int( handle, 4 );
 	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    detail::ResImplTraits<DbAtomImpl>::Ptr impl( new DbAtomImpl( _source, id ) );
 
 	    // Collect basic Resolvable data
 	    NVRAD dataCollect( name,
