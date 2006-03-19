@@ -500,33 +500,34 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
 	return;
 
     for (zypp::CapSet::const_iterator iter = capabilities.begin(); iter != capabilities.end(); ++iter) {
-
+	XXX << "Cap " << *iter << endl;
 	RCDependencyTarget refers = kind2target( iter->refers() );
 	if (refers == RC_DEP_TARGET_UNKNOWN) continue;
 
-	sqlite3_bind_int64( handle, 1, res_id);
-	sqlite3_bind_int( handle, 2, type);
-	sqlite3_bind_text( handle, 3, iter->index().c_str(), -1, SQLITE_STATIC );
+	sqlite3_bind_int64( handle, 1, res_id);						// who issues the dependency
+	sqlite3_bind_int( handle, 2, type);						// type (provides, requires, ...)
+	sqlite3_bind_text( handle, 3, iter->index().c_str(), -1, SQLITE_STATIC );	// tag
 
 	Edition edition = iter->edition();
 
-	if (iter->op() != Rel::NONE
+	if (iter->op() != Rel::NONE							// operator and edition given ?
 	    && iter->op() != Rel::ANY
 	    && edition != Edition::noedition)
 	{
-	    sqlite3_bind_text( handle, 4, edition.version().c_str(), -1, SQLITE_STATIC );
-	    sqlite3_bind_text( handle, 5, edition.release().c_str(), -1, SQLITE_STATIC );
+	    sqlite3_bind_text( handle, 4, edition.version().c_str(), -1, SQLITE_STATIC );	// version
+	    sqlite3_bind_text( handle, 5, edition.release().c_str(), -1, SQLITE_STATIC );	// release
 	    Edition::epoch_t epoch = edition.epoch();
 	    if (epoch != Edition::noepoch) {
-		sqlite3_bind_int( handle, 6, epoch);
+		sqlite3_bind_int( handle, 6, epoch);						// epoch
 	    }
 	    else {
 		sqlite3_bind_int( handle, 6, 0);
 	    }
-	    sqlite3_bind_int( handle, 7, -1);				// arch
-	    sqlite3_bind_int( handle, 8, Rel2Rc( iter->op() ));
+	    sqlite3_bind_int( handle, 7, -1);							// arch
+	    sqlite3_bind_int( handle, 8, Rel2Rc( iter->op() ));					// operation (==, <, <=, ...)
 	}
 	else {
+	    // no operation or edition given
 	    sqlite3_bind_text( handle, 4, NULL, -1, SQLITE_STATIC );
 	    sqlite3_bind_text( handle, 5, NULL, -1, SQLITE_STATIC );
 	    sqlite3_bind_int( handle, 6, 0);
@@ -534,7 +535,7 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
 	    sqlite3_bind_int( handle, 8, RC_RELATION_NONE );
 	}
 
-	sqlite3_bind_int( handle, 9, refers );
+	sqlite3_bind_int( handle, 9, refers );					// resolvable kind the dependency refers to
 
 	rc = sqlite3_step( handle);
 	sqlite3_reset( handle);
