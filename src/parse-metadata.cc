@@ -167,9 +167,18 @@ main (int argc, char **argv)
 	Locale lang( "en" );
 
 	Pathname cache_dir("");
-	Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
+	try {
+	    Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
+	    sync_source ( db, source, alias );
+	}
+	catch( const Exception & excpt_r )
+	{
+	    cerr << "3|Cant access repository data at " << argv[3] << endl;
+	    ZYPP_CAUGHT( excpt_r );
+	    ERR << "Can't access repository at " << argv[3] << endl;
+	    return 1;
+	};
 
-	sync_source ( db, source, alias );
     }
     else {
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << YUM << "'" << endl;
