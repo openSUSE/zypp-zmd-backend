@@ -91,6 +91,10 @@ main (int argc, char **argv)
 	God->addResolvables( store, (it->id() == "@system") );
     }
 
+// update-status is supposed to do this
+// but resolvables dont have a status yet
+    God->resolver()->establishPool();
+
     // now the pool is complete, add transactions
 
     if (!read_transactions (God->pool(), db.db(), dbs))
