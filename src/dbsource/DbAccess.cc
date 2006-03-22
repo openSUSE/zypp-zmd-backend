@@ -548,7 +548,7 @@ DbAccess::writeDependencies(sqlite_int64 id, Resolvable::constPtr res)
 // package
 
 sqlite_int64
-DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status )
+DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg )
 {
     XXX <<  "DbAccess::writePackage(" << id << ", " << *pkg << ")" << endl;
     int rc;
@@ -601,7 +601,7 @@ DbAccess::writePackage (sqlite_int64 id, Package::constPtr pkg, ResStatus status
 // patch
 
 sqlite_int64
-DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch, ResStatus status )
+DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch )
 {
     XXX <<  "DbAccess::writePatch(" << id << ", " << *patch << ")" << endl;
     int rc;
@@ -609,12 +609,10 @@ DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch, ResStatus status )
 
     sqlite3_bind_int64( handle, 1, id );
     sqlite3_bind_text( handle, 2, patch->id().c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_int( handle, 3, resstatus2rcstatus( status ) );
-    sqlite3_bind_int64( handle, 4, patch->timestamp() );
-    sqlite3_bind_text( handle, 5, patch->category().c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_int( handle, 6, patch->reboot_needed() ? 1 : 0 );
-    sqlite3_bind_int( handle, 7, patch->affects_pkg_manager() ? 1 : 0 );
-    sqlite3_bind_int( handle, 8, patch->interactive() ? 1 : 0 );
+    sqlite3_bind_int64( handle, 3, patch->timestamp() );
+    sqlite3_bind_int( handle, 4, patch->reboot_needed() ? 1 : 0 );
+    sqlite3_bind_int( handle, 5, patch->affects_pkg_manager() ? 1 : 0 );
+    sqlite3_bind_int( handle, 6, patch->interactive() ? 1 : 0 );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
@@ -633,14 +631,13 @@ DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch, ResStatus status )
 // pattern
 
 sqlite_int64
-DbAccess::writePattern (sqlite_int64 id, Pattern::constPtr pattern, ResStatus status )
+DbAccess::writePattern (sqlite_int64 id, Pattern::constPtr pattern )
 {
     XXX <<  "DbAccess::writePattern(" << id << ", " << *pattern << ")" << endl;
     int rc;
     sqlite3_stmt *handle = _insert_pattern_handle;
 
     sqlite3_bind_int64( handle, 1, id);
-    sqlite3_bind_int( handle, 2, resstatus2rcstatus( status ) );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
@@ -659,15 +656,13 @@ DbAccess::writePattern (sqlite_int64 id, Pattern::constPtr pattern, ResStatus st
 // product
 
 sqlite_int64
-DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product, ResStatus status )
+DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
 {
     XXX <<  "DbAccess::writeProduct(" << id << ", " << *product << ")" << endl;
     int rc;
     sqlite3_stmt *handle = _insert_product_handle;
 
     sqlite3_bind_int64( handle, 1, id);
-    sqlite3_bind_int( handle, 2, resstatus2rcstatus( status ) );
-    sqlite3_bind_text( handle, 3, product->category().c_str(), -1, SQLITE_STATIC );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
@@ -699,6 +694,10 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
 	return 0;
 
     Resolvable::constPtr res = obj;
+    Package::constPtr pkg = asKind<Package>(res);
+    Patch::constPtr patch = asKind<Patch>(res);
+    Pattern::constPtr pattern = asKind<Pattern>(res);
+    Product::constPtr product = asKind<Product>(res);
 
     int rc;
     sqlite3_stmt *handle = _insert_res_handle;
@@ -729,10 +728,17 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     else {
 	sqlite3_bind_int( handle, 9, 0 );
     }
-    sqlite3_bind_int( handle, 10, kind2target( obj->kind() ) );
+    sqlite3_bind_int( handle, 10, resstatus2rcstatus( status ) );
 
-    rc = sqlite3_step( handle);
-    sqlite3_reset( handle);
+    if (patch != NULL)
+	sqlite3_bind_text( handle, 11, patch->category().c_str(), -1, SQLITE_STATIC );
+    else if (product != NULL)
+	sqlite3_bind_text( handle, 11, product->category().c_str(), -1, SQLITE_STATIC );
+
+    sqlite3_bind_int( handle, 12, kind2target( obj->kind() ) );
+
+    rc = sqlite3_step( handle );
+    sqlite3_reset( handle );
 
     if (rc != SQLITE_DONE) {
 	ERR << "Error adding package to SQL: " << sqlite3_errmsg (_db) << endl;
@@ -740,20 +746,12 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     }
     sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
 
-    Package::constPtr pkg = asKind<Package>(res);
-    if (pkg != NULL) writePackage (rowid, pkg, status);
-    else {
-	Patch::constPtr patch = asKind<Patch>(res);
-	if (patch != NULL) writePatch (rowid, patch, status);
-	else {
-	    Pattern::constPtr pattern = asKind<Pattern>(res);
-	    if (pattern != NULL) writePattern (rowid, pattern, status);
-	    else {
-		Product::constPtr product = asKind<Product>(res);
-		if (product != NULL) writeProduct (rowid, product, status);
-	    }
-	}
-    }
+    // now write the respective _details table
+
+    if (pkg != NULL) writePackage( rowid, pkg );
+    else if (patch != NULL) writePatch( rowid, patch );
+    else if (pattern != NULL) writePattern( rowid, pattern );
+    else if (product != NULL) writeProduct( rowid, product );
 
     writeDependencies (rowid, obj);
 

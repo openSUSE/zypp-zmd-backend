@@ -150,10 +150,10 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
 
     sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL );
 
-    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, zypp::ResStatus status );
-    sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch, zypp::ResStatus status );
-    sqlite_int64 writePattern( sqlite_int64 id, zypp::Pattern::constPtr pattern, zypp::ResStatus status );
-    sqlite_int64 writeProduct( sqlite_int64 id, zypp::Product::constPtr product, zypp::ResStatus status );
+    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package );
+    sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch );
+    sqlite_int64 writePattern( sqlite_int64 id, zypp::Pattern::constPtr pattern );
+    sqlite_int64 writeProduct( sqlite_int64 id, zypp::Product::constPtr product );
 
     void writeDependencies( sqlite_int64 id, zypp::Resolvable::constPtr res);
     void writeDependency( sqlite_int64 pkg_id, RCDependencyType type, const zypp::CapSet & capabilities);
