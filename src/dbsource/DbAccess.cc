@@ -191,11 +191,9 @@ kind2target( Resolvable::Kind kind )
 static RCResolvableStatus
 resstatus2rcstatus( ResStatus status )
 {
-    if (status.isUnneeded()) return RC_RES_STATUS_UNNEEDED;
-    else if (status.isSatisfied()
-	     || status.isComplete()) return RC_RES_STATUS_SATISFIED;
-    else if (status.isIncomplete()
-	     || status.isNeeded()) return RC_RES_STATUS_BROKEN;
+    if (status.isEstablishedUneeded()) return RC_RES_STATUS_UNNEEDED;
+    else if (status.isEstablishedSatisfied()) return RC_RES_STATUS_SATISFIED;
+    else if (status.isEstablishedIncomplete()) return RC_RES_STATUS_BROKEN;
     return RC_RES_STATUS_UNDETERMINED;
 }
 
@@ -702,6 +700,8 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     int rc;
     sqlite3_stmt *handle = _insert_res_handle;
 
+    // write NVRAD and all the rest
+
     sqlite3_bind_text( handle, 1, obj->name().c_str(), -1, SQLITE_STATIC );
     Edition ed = obj->edition();
     sqlite3_bind_text( handle, 2, ed.version().c_str(), -1, SQLITE_STATIC );
@@ -711,13 +711,14 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
     } else {
 	sqlite3_bind_int( handle, 4, ed.epoch());
     }
-
     sqlite3_bind_int( handle, 5, Arch2Rc (obj->arch()) );
+
     sqlite3_bind_int64( handle, 6, obj->size() );
     if (catalog != NULL)
 	sqlite3_bind_text( handle, 7, catalog, -1, SQLITE_STATIC );
     else
 	sqlite3_bind_text( handle, 7, obj->source().alias().c_str(), -1, SQLITE_STATIC );
+
     sqlite3_bind_int( handle,  8, status.isInstalled() ? 1 : 0);
 
     Source_Ref src( obj->source() );
