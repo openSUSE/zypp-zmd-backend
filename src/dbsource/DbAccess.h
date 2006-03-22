@@ -111,6 +111,7 @@ typedef enum {
 	RC_DEP_TARGET_LANGUAGE,			// 7
 	RC_DEP_TARGET_ATOM,			// 8
 	RC_DEP_TARGET_SRC,			// 9
+	RC_DEP_TARGET_SYSTEM,			// 10 SystemResObject
 	RC_DEP_TARGET_UNKNOWN=42		// 42
 } RCDependencyTarget;
 
@@ -141,7 +142,6 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
     sqlite3_stmt *_insert_res_handle;
     sqlite3_stmt *_insert_pkg_handle;
     sqlite3_stmt *_insert_patch_handle;
-    sqlite3_stmt *_insert_selection_handle;
     sqlite3_stmt *_insert_pattern_handle;
     sqlite3_stmt *_insert_product_handle;
     sqlite3_stmt *_insert_dep_handle;
@@ -152,7 +152,6 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
 
     sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, zypp::ResStatus status );
     sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch, zypp::ResStatus status );
-    sqlite_int64 writeSelection( sqlite_int64 id, zypp::Selection::constPtr selection, zypp::ResStatus status );
     sqlite_int64 writePattern( sqlite_int64 id, zypp::Pattern::constPtr pattern, zypp::ResStatus status );
     sqlite_int64 writeProduct( sqlite_int64 id, zypp::Product::constPtr product, zypp::ResStatus status );
 

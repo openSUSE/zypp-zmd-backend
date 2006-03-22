@@ -179,6 +179,7 @@ kind2target( Resolvable::Kind kind )
     else if (kind == ResTraits<Language>::kind)	 return RC_DEP_TARGET_LANGUAGE;
     else if (kind == ResTraits<Atom>::kind)	 return RC_DEP_TARGET_ATOM;
     else if (kind == ResTraits<SrcPackage>::kind) return RC_DEP_TARGET_SRC;
+    else if (kind == ResTraits<SystemResObject>::kind) return RC_DEP_TARGET_SYSTEM;
 
     WAR << "Unknown resolvable kind " << kind << endl;
     return RC_DEP_TARGET_UNKNOWN;
@@ -207,7 +208,6 @@ DbAccess::DbAccess( const std::string & dbfile_r )
     , _insert_res_handle( NULL )
     , _insert_pkg_handle( NULL )
     , _insert_patch_handle( NULL )
-    , _insert_selection_handle( NULL )
     , _insert_pattern_handle( NULL )
     , _insert_product_handle( NULL )
     , _insert_dep_handle( NULL )
@@ -259,9 +259,9 @@ prepare_res_insert (sqlite3 *db)
         "INSERT INTO resolvables (name, version, release, epoch, arch,"
 	//			  6               7
         "                         installed_size, catalog,"
-	//			  8          9      10
-        "                         installed, local, kind) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	//			  8          9      10      11        12
+        "                         installed, local, status, category, kind) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     return prepare_handle( db, query );
 }
@@ -288,27 +288,13 @@ static sqlite3_stmt *
 prepare_patch_insert (sqlite3 *db)
 {
     string query (
-	//			    1              2         3
-        "INSERT INTO patch_details (resolvable_id, patch_id, status, "
-	//			    4              5
-        "                           creation_time, category,"
-	//			    6       7        8
+	//			    1              2
+        "INSERT INTO patch_details (resolvable_id, patch_id, "
+	//			    3
+        "                           creation_time,"
+	//			    4       5        6
         "                           reboot, restart, interactive) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-	"");
-
-    return prepare_handle( db, query );
-}
-
-
-static sqlite3_stmt *
-prepare_selection_insert (sqlite3 *db)
-{
-    string query (
-	//			        1              2
-//        "INSERT INTO selection_details (resolvable_id, status) "
-        "INSERT INTO pattern_details (resolvable_id, status) "
-        "VALUES (?, ?)"
+        "VALUES (?, ?, ?, ?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
@@ -319,9 +305,9 @@ static sqlite3_stmt *
 prepare_pattern_insert (sqlite3 *db)
 {
     string query (
-	//			      1              2
-        "INSERT INTO pattern_details (resolvable_id, status) "
-        "VALUES (?, ?)"
+	//			      1
+        "INSERT INTO pattern_details (resolvable_id) "
+        "VALUES (?)"
 	"");
 
     return prepare_handle( db, query );
@@ -332,9 +318,9 @@ static sqlite3_stmt *
 prepare_product_insert (sqlite3 *db)
 {
     string query (
-	//			      1              2       3
-        "INSERT INTO product_details (resolvable_id, status, category) "
-        "VALUES (?, ?, ?)"
+	//			      1
+        "INSERT INTO product_details (resolvable_id) "
+        "VALUES (?)"
 	"");
 
     return prepare_handle( db, query );
@@ -380,13 +366,6 @@ DbAccess::prepareWrite(void)
 	result = false;
 	goto cleanup;
     }
-#if 0
-    _insert_selection_handle = prepare_selection_insert (_db);
-    if (_insert_selection_handle == NULL) {
-	result = false;
-	goto cleanup;
-    }
-#endif
     _insert_pattern_handle = prepare_pattern_insert (_db);
     if (_insert_pattern_handle == NULL) {
 	result = false;
@@ -465,7 +444,6 @@ DbAccess::closeDb(void)
     close_handle( &_insert_res_handle );
     close_handle( &_insert_pkg_handle );
     close_handle( &_insert_patch_handle );
-//    close_handle( &_insert_selection_handle );
     close_handle( &_insert_pattern_handle );
     close_handle( &_insert_product_handle );
     close_handle( &_insert_dep_handle );
@@ -652,32 +630,6 @@ DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch, ResStatus status )
 
 
 //----------------------------------------------------------------------------
-// selection
-
-sqlite_int64
-DbAccess::writeSelection( sqlite_int64 id, Selection::constPtr selection, ResStatus status )
-{
-    XXX <<  "DbAccess::writeSelection(" << id << ", " << *selection << ")" << endl;
-    int rc;
-    sqlite3_stmt *handle = _insert_selection_handle;
-
-    sqlite3_bind_int64( handle, 1, id);
-    sqlite3_bind_int( handle, 2, resstatus2rcstatus( status ) );
-
-    rc = sqlite3_step( handle);
-    sqlite3_reset( handle);
-
-    if (rc != SQLITE_DONE) {
-	ERR << "Error adding selection to SQL: " << sqlite3_errmsg (_db) << endl;
-	return -1;
-    }
-    sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
-
-    return rowid;
-}
-
-
-//----------------------------------------------------------------------------
 // pattern
 
 sqlite_int64
@@ -733,10 +685,18 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product, ResStatus st
 //----------------------------------------------------------------------------
 // resolvable
 
+// write ResObject to resolvables table
+//  return rowid (> 0) on success
+//  return < 0 on failure
+//  return == 0 if this kind of resolvable is to be skipped
+
 sqlite_int64
 DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char *catalog)
 {
     XXX << "DbAccess::writeResObject (" << *obj << ", " << status << ")" << endl;
+
+    if (obj->kind() == ResTraits<SystemResObject>::kind)
+	return 0;
 
     Resolvable::constPtr res = obj;
 
@@ -786,15 +746,11 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
 	Patch::constPtr patch = asKind<Patch>(res);
 	if (patch != NULL) writePatch (rowid, patch, status);
 	else {
-	    Selection::constPtr selection = asKind<Selection>(res);
-	    if (selection != NULL) writeSelection (rowid, selection, status);
+	    Pattern::constPtr pattern = asKind<Pattern>(res);
+	    if (pattern != NULL) writePattern (rowid, pattern, status);
 	    else {
-		Pattern::constPtr pattern = asKind<Pattern>(res);
-		if (pattern != NULL) writePattern (rowid, pattern, status);
-		else {
-		    Product::constPtr product = asKind<Product>(res);
-		    if (product != NULL) writeProduct (rowid, product, status);
-		}
+		Product::constPtr product = asKind<Product>(res);
+		if (product != NULL) writeProduct (rowid, product, status);
 	    }
 	}
     }
@@ -1000,7 +956,8 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 	    rowid = writeResObject( obj, status, catalog );
 	    if (rowid < 0)
 		break;
-	    ++count;
+	    if (rowid > 0)		// rowid == 0 means 'skip'
+		++count;
 	}
 	else {
 	    DBG << "Not writing " << *obj << endl;
@@ -1025,10 +982,13 @@ DbAccess::writePool( const zypp::ResPool & pool, const char *catalog )
     }
 
     int count = 0;
+    sqlite_int64 rowid = 0;
     for (ResPool::const_iterator iter = pool.begin(); iter != pool.end(); ++iter) {
-	if (!writeResObject( iter->resolvable(), iter->status(), catalog ))
+	rowid = writeResObject( iter->resolvable(), iter->status(), catalog );
+	if (rowid < 0)
 	    break;
-	++count;
+	if (rowid > 0)			// rowid == 0 means 'skip'
+	    ++count;
     }
 
     MIL << "Wrote " << count << " resolvables to database" << endl;
