@@ -20,13 +20,13 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/SourceManager.h"
-#include "zypp/SourceFactory.h"
-#include "zypp/Source.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/SourceManager.h>
+#include <zypp/SourceFactory.h>
+#include <zypp/Source.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
 
 using namespace std;
 using namespace zypp;

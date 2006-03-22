@@ -5,10 +5,10 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
 
 using namespace std;
 using namespace zypp;
@@ -18,7 +18,7 @@ using namespace zypp;
 #include "dbsource/DbSources.h"
 
 #include "transactions.h"
-#include "zypp/solver/detail/ResolverInfo.h"
+#include <zypp/solver/detail/ResolverInfo.h>
 
 using solver::detail::ResolverInfo_Ptr;
 

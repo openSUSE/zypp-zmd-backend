@@ -8,21 +8,21 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/SourceManager.h"
-#include "zypp/Source.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/SourceManager.h>
+#include <zypp/Source.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
 
-#include "zypp/base/Algorithm.h"
-#include "zypp/ResPool.h"
-#include "zypp/ResFilters.h"
-#include "zypp/CapFilters.h"
+#include <zypp/base/Algorithm.h>
+#include <zypp/ResPool.h>
+#include <zypp/ResFilters.h>
+#include <zypp/CapFilters.h>
 
-#include "zypp/target/rpm/RpmHeader.h"
-#include "zypp/target/rpm/RpmDb.h"
-#include "zypp/Target.h"
+#include <zypp/target/rpm/RpmHeader.h>
+#include <zypp/target/rpm/RpmDb.h>
+#include <zypp/Target.h>
 
 using namespace zypp;
 using namespace std;

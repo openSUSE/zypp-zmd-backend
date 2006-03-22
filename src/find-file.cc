@@ -4,13 +4,13 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/LogControl.h"
-#include "zypp/base/Exception.h"
-#include "zypp/target/rpm/RpmDb.h"
-#include "zypp/Target.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/LogControl.h>
+#include <zypp/base/Exception.h>
+#include <zypp/target/rpm/RpmDb.h>
+#include <zypp/Target.h>
 
 #include "dbsource/DbAccess.h"
 

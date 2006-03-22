@@ -7,19 +7,19 @@
 #include <set>
 #include "transactions.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
 
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
-#include "zypp/base/Algorithm.h"
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
+#include <zypp/base/Algorithm.h>
 
-#include "zypp/ResPool.h"
-#include "zypp/ResFilters.h"
-#include "zypp/CapFilters.h"
+#include <zypp/ResPool.h>
+#include <zypp/ResFilters.h>
+#include <zypp/CapFilters.h>
 
-#include "zypp/solver/detail/ResolverContext.h"
-#include "zypp/solver/detail/ResolverInfo.h"
+#include <zypp/solver/detail/ResolverContext.h>
+#include <zypp/solver/detail/ResolverInfo.h>
 
 using std::endl;
 using namespace zypp;

@@ -8,16 +8,16 @@
 
 #include "zmd-backend.h"
 
-#include "zypp/ZYpp.h"
-#include "zypp/ZYppFactory.h"
-#include "zypp/base/Logger.h"
-#include "zypp/base/Exception.h"
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+#include <zypp/base/Logger.h>
+#include <zypp/base/Exception.h>
 
 #include <sqlite3.h>
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 
-#include "zypp/solver/detail/ResolverInfo.h"
+#include <zypp/solver/detail/ResolverInfo.h>
 
 using namespace std;
 using namespace zypp;
