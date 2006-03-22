@@ -3,11 +3,9 @@
 #
 
 INCLUDES = 					\
-	-I$(top_srcdir) -Wall			\
+	-I$(top_srcdir) $(ZYPP_CFLAGS) -Wall	\
 	-DG_LOG_DOMAIN=\"dbsource\"		\
 	-DZYPP_BASE_LOGGER_LOGGROUP=\"dbsource\"
-
-LDADD =	$(noinst_LTLIBRARIES) $(top_srcdir)/zypp/lib@PACKAGE@.la
 
 pkginclude_HEADERS =				\
 	DbSources.h				\

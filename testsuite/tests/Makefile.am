@@ -8,10 +8,10 @@ noinst_PROGRAMS =	\
 ## ##################################################
 
 LDADD = $(top_srcdir)/src/dbsource/lib@PACKAGE@.la \
-	-lzypp			\
+	$(ZYPP_LIBS)			\
 	$(SQLITE_LIBS)
 	
-CFLAGS = $(SQLITE_CFLAGS)
+CFLAGS = $(ZYPP_FLAGS) $(SQLITE_CFLAGS)
 
 ## ##################################################
 

@@ -108,9 +108,11 @@ AC_CHECK_HEADERS([boost/scoped_ptr.hpp],
 dnl ==================================================
 dnl checks for libraries
 dnl libzypp
-AC_CHECK_HEADER([zypp/ZYpp.h],
-        [:],
-        AC_MSG_ERROR([ZYpp.h not found. please install libzypp-devel]))
+PKG_CHECK_MODULES(ZYPP, libzypp, pkg_libzypp=yes, pkg_libzypp=no)
+if test $pkg_libzypp = no; then
+  echo
+  AC_MSG_ERROR([Could not find libzypp library, please install libzypp-devel])
+fi
 
 dnl libz
 AC_CHECK_LIB([z], [gzopen],
