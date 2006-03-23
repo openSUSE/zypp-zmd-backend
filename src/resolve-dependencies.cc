@@ -97,34 +97,42 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
-    if (!read_transactions (God->pool(), db.db(), dbs))
+    int count = read_transactions (God->pool(), db.db(), dbs);
+    if (count < 0)
 	return 1;
+
+    MIL << "Processing " << count << " transactions" << endl;
 
     God->resolver()->setForceResolve( true );
 
-    bool success;
+    bool success = true;
     if (argc == 3) {
 	success = God->resolver()->verifySystem();
+	count = 1;					// dont exit early
     }
-    else {
+    else if (count > 0) {
 	success = God->resolver()->resolvePool();
     }
-    MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
 
-    solver::detail::ResolverContext_Ptr context = God->resolver()->context();
-    if (context == NULL) {
-	ERR << "No context ?!" << endl;
-	return 1;
-    }
-    if (success) {
-	success = write_transactions( God->pool(), db.db(), context );
-    }
-    else {
-	cerr << "Unresolved dependencies:" << endl;
+    if (count > 0) {			// if we really did something
 
-	context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, NULL );
+	MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
 
-	cerr.flush();
+	solver::detail::ResolverContext_Ptr context = God->resolver()->context();
+	if (context == NULL) {
+	    ERR << "No context ?!" << endl;
+	    return 1;
+        }
+	if (success) {
+	    success = write_transactions( God->pool(), db.db(), context );
+	}
+	else {
+	    cerr << "Unresolved dependencies:" << endl;
+
+	    context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, NULL );
+
+	    cerr.flush();
+	}
     }
 
     db.closeDb();
