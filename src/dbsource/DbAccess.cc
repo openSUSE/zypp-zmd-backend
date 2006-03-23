@@ -241,7 +241,6 @@ prepare_handle( sqlite3 *db, const string & query )
 
     if (rc != SQLITE_OK) {
 	ERR << "Can not prepare '" << query << "': " << sqlite3_errmsg (db) << endl;
-        sqlite3_finalize( handle);
         handle = NULL;
     }
 
@@ -292,7 +291,9 @@ prepare_patch_insert (sqlite3 *db)
         "                           creation_time,"
 	//			    4       5        6
         "                           reboot, restart, interactive) "
-        "VALUES (?, ?, ?, ?, ?, ?)"
+	//			    7        8
+        "                           summary, description) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
@@ -304,8 +305,10 @@ prepare_pattern_insert (sqlite3 *db)
 {
     string query (
 	//			      1
-        "INSERT INTO pattern_details (resolvable_id) "
-        "VALUES (?)"
+        "INSERT INTO pattern_details (resolvable_id, "
+	//			      2        3
+        "                             summary, description) "
+        "VALUES (?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
@@ -317,8 +320,10 @@ prepare_product_insert (sqlite3 *db)
 {
     string query (
 	//			      1
-        "INSERT INTO product_details (resolvable_id) "
-        "VALUES (?)"
+        "INSERT INTO product_details (resolvable_id, "
+	//			      2        3
+        "                             summary, description) "
+        "VALUES (?, ?, ?)"
 	"");
 
     return prepare_handle( db, query );
@@ -345,49 +350,46 @@ DbAccess::prepareWrite(void)
 
     sqlite3_exec (_db, "PRAGMA synchronous = 0", NULL, NULL, NULL);
 
-    bool result = true;
+    bool result = false;
 
     _insert_res_handle = prepare_res_insert (_db);
     if (_insert_res_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
 
     _insert_pkg_handle = prepare_pkg_insert (_db);
     if (_insert_pkg_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
 
     _insert_patch_handle = prepare_patch_insert (_db);
     if (_insert_patch_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
+
     _insert_pattern_handle = prepare_pattern_insert (_db);
     if (_insert_pattern_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
 
     _insert_product_handle = prepare_product_insert (_db);
     if (_insert_product_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
 
     _insert_dep_handle = prepare_dep_insert (_db);
     if (_insert_dep_handle == NULL) {
-	result = false;
 	goto cleanup;
     }
+
+    result = true;
 
  cleanup:
     if (result == false) {
 	closeDb();
     }
 
-    return true;
+    return result;
 }
 
 
@@ -405,14 +407,18 @@ DbAccess::openDb( bool for_writing )
 
     int rc = sqlite3_open (_dbfile.c_str(), &_db);
     if (rc != SQLITE_OK
-	|| _db == NULL) {
+	|| _db == NULL)
+    {
 	ERR << "Can not open SQL database: " << sqlite3_errmsg (_db) << endl;
+	cerr << "Can't open " << _dbfile << endl;
 	return false;
     }
 
     if (for_writing) {
-	if (!prepareWrite())
+	if (!prepareWrite()) {
+	    cerr << "Can't prepare sql access handles" << endl;
 	    return false;
+	}
     }
 
     sqlite3_exec (_db, "BEGIN", NULL, NULL, NULL);
@@ -611,6 +617,8 @@ DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch )
     sqlite3_bind_int( handle, 4, patch->reboot_needed() ? 1 : 0 );
     sqlite3_bind_int( handle, 5, patch->affects_pkg_manager() ? 1 : 0 );
     sqlite3_bind_int( handle, 6, patch->interactive() ? 1 : 0 );
+    sqlite3_bind_text( handle, 7, patch->summary().c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 8, desc2str(patch->description()).c_str(), -1, SQLITE_STATIC );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
@@ -636,6 +644,8 @@ DbAccess::writePattern (sqlite_int64 id, Pattern::constPtr pattern )
     sqlite3_stmt *handle = _insert_pattern_handle;
 
     sqlite3_bind_int64( handle, 1, id);
+    sqlite3_bind_text( handle, 2, pattern->summary().c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 3, desc2str(pattern->description()).c_str(), -1, SQLITE_STATIC );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
@@ -661,6 +671,8 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
     sqlite3_stmt *handle = _insert_product_handle;
 
     sqlite3_bind_int64( handle, 1, id);
+    sqlite3_bind_text( handle, 2, product->summary().c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 3, desc2str(product->description()).c_str(), -1, SQLITE_STATIC );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
