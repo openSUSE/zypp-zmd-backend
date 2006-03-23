@@ -2,6 +2,10 @@
 //
 // parse-metadata.cc
 //
+// parse metadata and pass the info
+// - to the database
+// - back to zypp, if not there yet (#156139)
+//
 // parse-metadata <zmd.db> <metadata type> <path> <catalog id>
 //
 // metadata type can be currently either 'yum' or 'installation'.
@@ -13,6 +17,8 @@
 // The helper is guaranteed to find /var/cache/zmd/foo/repodata/repomd.xml
 // and all the other files referenced from the repomd.xml. For example, if
 // the repomd.xml has
+//
+// FIXME rest of sentence missing!
 
 #include <iostream>
 #include <cstring>
@@ -40,6 +46,80 @@ using namespace zypp;
 #include <sys/stat.h>
 
 #include "dbsource/DbAccess.h"
+
+//----------------------------------------------------------------------------
+static SourceManager_Ptr manager;
+// manager->store may be expensive
+static bool store_needed = false;
+
+static bool
+restore_sources ()
+{
+    try {
+	manager->restore("/");
+    }
+    catch (Exception & excpt_r) {
+	ZYPP_CAUGHT (excpt_r);
+	ERR << "Couldn't restore sources" << endl;
+	return false;
+    }
+    return true;
+}
+
+static bool
+store_sources ()
+{
+    if (store_needed) {
+	try {
+	    manager->store ("/", true /*metadata_cache*/);
+	}
+	catch (Exception & excpt_r) {
+	    ZYPP_CAUGHT (excpt_r);
+	    ERR << "Couldn't store sources" << endl;
+	    return false;
+	}
+    }
+    return true;
+}
+
+static void
+add_source_if_new (const Source_Ref & source, const string & alias)
+{
+    // only add if it is not there already.
+    // findSource throws if the source is not there
+    try {
+	manager->findSource( alias );
+    }
+    catch( const Exception & excpt_r ) {
+	manager->addSource( source );
+	store_needed = true;
+    }
+}
+
+//----------------------------------------------------------------------------
+//Tell yast that we are done storing the updated source. This is
+//necessary because when "rug sa" is called by yast, it calls us
+//asyncronously
+static void
+tell_yast()
+{
+    // yast will delete the file before and afterwards.
+    // the name must be synchronized with inst_you.ycp
+    // and inst_suse_register.ycp
+    const char * flag_file = "/var/lib/zypp/zmd_updated_the_sources";
+    int err;
+    int fd = creat( flag_file, 0666 );
+    if ( fd == -1 ) {
+	err = errno;
+	ERR << "creating " << flag_file << ": " << strerror( err ) << endl;
+    }
+    else {
+	if ( close( fd ) == -1) {
+	    err = errno;
+	    ERR << "closing " << flag_file << ": " << strerror( err ) << endl;
+	}
+    }
+}
 
 //----------------------------------------------------------------------------
 // upload all zypp sources as catalogs to the database
@@ -92,20 +172,11 @@ sync_catalog( DbAccess & db, const string & path, const string & catalog )
 {
     MIL << "sync_catalog(..., " << path << ", " << catalog << ")" << endl;
 
-    SourceManager_Ptr manager = SourceManager::sourceManager();
-
-    try {
-	manager->restore("/");
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	ERR << "Couldn't restore sources" << endl;
-	return;
-    }
-
     list<SourceManager::SourceId> sources = manager->allSources();
     MIL << "Found " << sources.size() << " sources" << endl;
 
+    // we could use SourceManager::findSource(const std::string & alias_r)
+    // but for the /installation case we need this
     for (list<SourceManager::SourceId>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
 	Source_Ref source = manager->findSource( *it );
 	if (!source) {
@@ -134,6 +205,8 @@ sync_catalog( DbAccess & db, const string & path, const string & catalog )
 int
 main (int argc, char **argv)
 {
+    atexit (tell_yast);
+
     if (argc != 5) {
 	cerr << "usage: " << argv[0] << " <database> <type> <path> <catalog id>" << endl;
 	return 1;
@@ -151,12 +224,17 @@ main (int argc, char **argv)
 
     ZYpp::Ptr God = zypp::getZYpp();
 
+    manager = SourceManager::sourceManager();
+    if (! restore_sources ())
+	return 1;
+
     DbAccess db(argv[1]);
 
     db.openDb( true );		// open for writing
 
     if (strcmp( argv[2], ZYPP) == 0) {
 	MIL << "Doing a catalog sync" << endl;
+	// the source already exists in the catalog, no need to add it
 	sync_catalog( db, argv[3], argv[4] );
     }
     else if (strcmp( argv[2], YUM) == 0) {
@@ -169,6 +247,7 @@ main (int argc, char **argv)
 	Pathname cache_dir("");
 	try {
 	    Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
+	    add_source_if_new (source, alias);
 	    sync_source ( db, source, alias );
 	}
 	catch( const Exception & excpt_r )
@@ -185,6 +264,8 @@ main (int argc, char **argv)
     }
 
     db.closeDb();
+
+    store_sources ();		// no checking, we're finished anyway
 
     MIL << "END parse-metadata" << endl;
 
