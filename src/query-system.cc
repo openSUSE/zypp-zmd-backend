@@ -147,7 +147,8 @@ main (int argc, char **argv)
     }
 
     DbAccess db( argv[1] );
-    db.openDb( true );
+    if (!db.openDb( true ))
+	return 1;
 
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
 

@@ -232,7 +232,9 @@ main (int argc, char **argv)
 
     DbAccess db(argv[1]);
 
-    db.openDb( true );		// open for writing
+    if (!db.openDb( true ))		// open for writing
+	return 1;
+
     Target_Ptr target;
 
     try {

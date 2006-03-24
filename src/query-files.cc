@@ -415,7 +415,8 @@ main (int argc, char **argv)
 
     DbAccess db(argv[1]);
 
-    db.openDb( true );		// open for writing
+    if (!db.openDb( true ))		// open for writing
+	return false;
 
     if (strcmp( argv[2], CATALOGSYNC ) == 0) {
 	MIL << "Doing a catalog sync" << endl;

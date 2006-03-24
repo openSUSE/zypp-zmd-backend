@@ -230,7 +230,8 @@ main (int argc, char **argv)
 
     DbAccess db(argv[1]);
 
-    db.openDb( true );		// open for writing
+    if (!db.openDb( true ))		// open for writing
+	return 1;
 
     if (strcmp( argv[2], ZYPP) == 0) {
 	MIL << "Doing a catalog sync" << endl;

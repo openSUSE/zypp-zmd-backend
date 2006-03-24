@@ -58,7 +58,9 @@ main (int argc, char **argv)
     }
 
     DbAccess dbacc( argv[1] );
-    dbacc.openDb( false );
+    if (!dbacc.openDb( false ))
+	return 1;
+
     sqlite3 *db = dbacc.db();
 
     // prepare SQL query
