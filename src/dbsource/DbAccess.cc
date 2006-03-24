@@ -290,7 +290,7 @@ prepare_patch_insert (sqlite3 *db)
 	//			    3
         "                           creation_time,"
 	//			    4       5        6
-        "                           reboot, restart, interactive) "
+        "                           reboot, restart, interactive,"
 	//			    7        8
         "                           summary, description) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
