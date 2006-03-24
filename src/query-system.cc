@@ -10,7 +10,7 @@
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
 
-using std::endl;
+using namespace std;
 using namespace zypp;
 
 #include <sqlite3.h>
