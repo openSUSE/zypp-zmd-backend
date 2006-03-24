@@ -222,7 +222,15 @@ main (int argc, char **argv)
     //				      database		type		  path/uri	    catalog/alias
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << endl;
 
-    ZYpp::Ptr God = zypp::getZYpp();
+    ZYpp::Ptr God;
+    try {
+	God = zypp::getZYpp();
+    }
+    catch (Exception & excpt_r) {
+	ZYPP_CAUGHT (excpt_r);
+	cerr << "Couldn't aquire Zypp lock" << endl;
+	return 2;
+    }
 
     manager = SourceManager::sourceManager();
     if (! restore_sources ())

@@ -402,7 +402,15 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START query-files " << argv[1] << " " << argv[2] << " " << ((argc>3)?argv[3]:"") << endl;
 
-    ZYpp::Ptr God = zypp::getZYpp();
+    ZYpp::Ptr God;
+    try {
+	God = zypp::getZYpp();
+    }
+    catch (Exception & excpt_r) {
+	ZYPP_CAUGHT (excpt_r);
+	cerr << "Couldn't aquire Zypp lock" << endl;
+	return 2;
+    }
 
     try {
        God->initTarget( "/", true );
