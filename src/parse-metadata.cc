@@ -239,7 +239,10 @@ main (int argc, char **argv)
     DbAccess db(argv[1]);
 
     if (!db.openDb( true ))		// open for writing
+    {
+	ERR << "Cannot open database" << endl;
 	return 1;
+    }
 
     if (strcmp( argv[2], ZYPP) == 0) {
 	MIL << "Doing a catalog sync" << endl;
@@ -255,8 +258,23 @@ main (int argc, char **argv)
 
 	Pathname cache_dir("");
 	try {
+
 	    Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
-	    add_source_if_new (source, alias);
+	    
+	    // try to create a source using the alias, this is typically
+	    // the original location of the source, not the local cache
+	    try {
+		Url url( alias );
+		
+		MIL << "Creating remote source for libzypp" << endl;
+		Source_Ref source_remote( SourceFactory().createFrom(url, p, alias, cache_dir) );
+		add_source_if_new (source_remote, alias);
+	    } catch ( const Exception & excpt_r )
+	    {
+		ZYPP_CAUGHT( excpt_r );
+		add_source_if_new (source, alias);
+	    }
+	    
 	    sync_source ( db, source, alias );
 	}
 	catch( const Exception & excpt_r )
