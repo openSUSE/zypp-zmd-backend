@@ -75,17 +75,7 @@ main (int argc, char **argv)
     if (!db.openDb(false))
 	return 1;
 
-    // start ZYPP
-
-    ZYpp::Ptr God;
-    try {
-	God = zypp::getZYpp();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "Couldn't aquire Zypp lock" << endl;
-	return 2;
-    }
+    ZYpp::Ptr God = backend::getZYpp();
 
     // load the catalogs and resolvables from sqlite db
 

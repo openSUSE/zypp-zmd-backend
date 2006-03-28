@@ -228,32 +228,13 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START package-files " << argv[1] << " " << argv[2] << endl;
 
-    ZYpp::Ptr God;
-    try {
-	God = zypp::getZYpp();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "Couldn't aquire Zypp lock" << endl;
-	return 2;
-    }
-
     DbAccess db(argv[1]);
 
     if (!db.openDb( true ))		// open for writing
 	return 1;
 
-    Target_Ptr target;
-
-    try {
-	God->initTarget( "/", true );
-	target = God->target();
-    }
-    catch( const Exception & excpt_r ) {    
-	ERR << "Can't initialize target." << endl;
-	ZYPP_CAUGHT( excpt_r );
-	return 1;
-    }
+    ZYpp::Ptr God = backend::getZYpp();
+    Target_Ptr target = backend::initTarget( God );
 
     int result = package_files( db.db(), str::strtonum<long long>( argv[2] ), target );
 

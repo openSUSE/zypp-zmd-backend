@@ -402,29 +402,14 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START query-files " << argv[1] << " " << argv[2] << " " << ((argc>3)?argv[3]:"") << endl;
 
-    ZYpp::Ptr God;
-    try {
-	God = zypp::getZYpp();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "Couldn't aquire Zypp lock" << endl;
-	return 2;
-    }
-
-    try {
-       God->initTarget( "/", true );
-    }
-    catch( const Exception & excpt_r ) {
-       ERR << "Can't initialize target." << endl;
-       ZYPP_CAUGHT( excpt_r );
-       return 1;
-    }
+    ZYpp::Ptr God = backend::getZYpp();
 
     DbAccess db(argv[1]);
 
     if (!db.openDb( true ))		// open for writing
 	return false;
+
+    backend::initTarget( God );
 
     if (strcmp( argv[2], CATALOGSYNC ) == 0) {
 	MIL << "Doing a catalog sync" << endl;

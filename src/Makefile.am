@@ -23,12 +23,12 @@ bin_PROGRAMS =	\
 	update-status		\
 	transact
 
-query_system_SOURCES = query-system.cc
-query_files_SOURCES = query-files.cc
-resolve_dependencies_SOURCES = resolve-dependencies.cc transactions.cc transactions.h
-transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h MediaChangeCallback.h
-parse_metadata_SOURCES = parse-metadata.cc
-package_files_SOURCES = package-files.cc
-find_file_SOURCES = find-file.cc
-update_status_SOURCES = update-status.cc
+query_system_SOURCES = query-system.cc zmd-backend.cc
+query_files_SOURCES = query-files.cc zmd-backend.cc
+resolve_dependencies_SOURCES = resolve-dependencies.cc transactions.cc transactions.h zmd-backend.cc
+transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h MediaChangeCallback.h zmd-backend.cc
+parse_metadata_SOURCES = parse-metadata.cc zmd-backend.cc
+package_files_SOURCES = package-files.cc zmd-backend.cc
+find_file_SOURCES = find-file.cc zmd-backend.cc
+update_status_SOURCES = update-status.cc zmd-backend.cc
 

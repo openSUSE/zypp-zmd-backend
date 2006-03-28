@@ -88,15 +88,8 @@ main (int argc, char **argv)
 
     // start ZYPP
 
-    ZYpp::Ptr God;
-    try {
-	God = zypp::getZYpp();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "Couldn't aquire Zypp lock" << endl;
-	return 2;
-    }
+    ZYpp::Ptr God = backend::getZYpp();
+    Target_Ptr target = backend::initTarget( God );
 
     // load the catalogs and resolvables from sqlite db
 
@@ -125,16 +118,6 @@ main (int argc, char **argv)
 	MIL << "No transactions found" << endl;
 	cout << "4" << endl;
 	return 0;
-    }
-
-    try {
-	God->initTarget( "/", true );
-    }
-    catch ( Exception & expt_r ) {
-	ZYPP_CAUGHT( expt_r );
-	cout << "3|" << expt_r.asUserString() << endl;
-	cerr << expt_r.asString() << endl;
-	return 1;
     }
 
     RpmCallbacks r_callbacks;		// init and connect rpm progress callbacks

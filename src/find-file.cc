@@ -39,26 +39,8 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START find-file " << argv[1] << " " << argv[2] << endl;
 
-    ZYpp::Ptr God;
-    try {
-	God = zypp::getZYpp();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "Couldn't aquire Zypp lock" << endl;
-	return 2;
-    }
-
-    Target_Ptr target;
-
-    try {
-	God->initTarget( "/", true );
-	target = God->target();
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	return 1;
-    }
+    ZYpp::Ptr God = backend::getZYpp();
+    Target_Ptr target = backend::initTarget( God );
 
     string name = target->rpmDb().whoOwnsFile( argv[2] );
     if (name.empty()) {
