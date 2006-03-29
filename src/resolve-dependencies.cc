@@ -55,7 +55,7 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 int
 main (int argc, char **argv)
 {
-    if (argc != 2) {
+    if (argc < 2) {
 	cerr << "usage: " << argv[0] << " <database> [verify]" << endl;
 	return 1;
     }
