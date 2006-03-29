@@ -79,7 +79,7 @@ DbSources::sources (bool refresh)
 
     const char *query =
 	//      0   1     2      3            4         5
-	"SELECT id, name, alias, description, priority, priority_unsubd "
+	"SELECT id, name, alias, description, priority, subscribed "
 	"FROM catalogs";
 
     sqlite3_stmt *handle = NULL;
@@ -112,15 +112,20 @@ DbSources::sources (bool refresh)
 	text = (const char *) sqlite3_column_text( handle, 3 );
 	if (text != NULL) desc = text;
 	unsigned priority = sqlite3_column_int( handle, 4 );
-	unsigned priority_unsub = sqlite3_column_int( handle, 5 );
+	int subscribed = sqlite3_column_int( handle, 5 );
 
 	MIL << "id " << id
 	    << ", name " << name
 	    << ", alias " << alias
 	    << ", desc " << desc
 	    << ", prio " << priority
-	    << ", pr. un " << priority_unsub
+	    << ", subs " << subscribed
 	    << endl;
+
+	if (subscribed == 0) {
+	    MIL << "Not subscribed, skipping" << endl;
+	    continue;
+	}
 
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
@@ -133,7 +138,6 @@ DbSources::sources (bool refresh)
 	    impl->setZmdName( name );
 	    impl->setZmdDescription ( desc );
 	    impl->setPriority( priority );
-	    impl->setPriorityUnsubscribed( priority_unsub );
 
 	    impl->attachDatabase( _db );
 	    impl->attachIdMap( &_idmap );
