@@ -14,7 +14,7 @@ getZYpp()
 {
     ZYpp::Ptr Z = NULL;
     try {
-	Z = getZYpp();
+	Z = zypp::getZYpp();
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);

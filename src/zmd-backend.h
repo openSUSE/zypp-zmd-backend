@@ -5,6 +5,7 @@
 
 #include <zypp/base/LogControl.h>
 #include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
 
 #define ZMD_BACKEND_LOG "/var/log/zmd-backend.log"
 
