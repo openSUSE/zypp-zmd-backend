@@ -6,7 +6,7 @@
 |                         /_____||_| |_| |_|                           |
 |                                                                      |
 \---------------------------------------------------------------------*/
-/** \file zmd/backend/MediaChangeCallback.cc
+/** \file zmd/backend/MediaChangeCallback.h
  *
 */
 
@@ -48,23 +48,31 @@ namespace ZyppRecipients {
 
 	    DBG << "requestMedia(" << source << ", " << mediumNr << ", " << error << ", " << description << ")" << endl;
 
-	    // request media via stdout
+	    if (mediumNr > 0) {
 
-	    std::cout << "10|" << mediumNr;
+		// request media via stdout
 
-	    std::string product_name;
+		std::cout << "10|" << mediumNr;
 
-	    // get name of the product
-	    for (zypp::ResStore::iterator it = source.resolvables().begin(); it != source.resolvables().end(); it++)
-	    {
-		// is it a product object?
-		if (zypp::isKind<zypp::Product>( *it ))
+		std::string product_name;
+
+		// get name of the product
+		for (zypp::ResStore::iterator it = source.resolvables().begin(); it != source.resolvables().end(); it++)
 		{
-		    product_name = (*it)->name();
-		    break;
-		}	
+		    // is it a product object?
+		    if (zypp::isKind<zypp::Product>( *it ))
+		    {
+			product_name = (*it)->name();
+			break;
+		    }	
+		}
+
+		if (product_name.empty()) {
+		    product_name = description;
+		}
+
+		std::cout << "|" << product_name << std::endl;
 	    }
-	    std::cout << "|" << product_name << std::endl;
 
 	    // and abort here.
 	    // This will end the 'transact' helper and its up to ZMD to evaluate the

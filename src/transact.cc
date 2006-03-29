@@ -139,7 +139,7 @@ main (int argc, char **argv)
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
 	if (m_callback.mediaNr() != 0			// exception due to MediaChange callback ?
-	    || !m_callback.description().empty())
+	    && !m_callback.description().empty())
 	{
 	    cerr << "Need media " << m_callback.mediaNr() << ": " << m_callback.description() << endl;
 	}
