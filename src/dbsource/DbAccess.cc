@@ -56,6 +56,8 @@ static struct archrc {
 static bool
 source_is_local( Source_Ref source )
 {
+    return false;
+
     if (!source) return true;
 
     string scheme = source.url().getScheme();
