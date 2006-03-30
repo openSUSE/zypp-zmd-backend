@@ -66,9 +66,14 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 int
 main (int argc, char **argv)
 {
-    if (argc != 2) {
-	cerr << "usage: " << argv[0] << " <database>" << endl;
+    if (argc < 2) {
+	cerr << "usage: " << argv[0] << " <database> [dry-run]" << endl;
 	return 1;
+    }
+
+    bool dry_run = false;
+    if (argc > 2) {
+	dry_run = (string(argv[2]) == "dry-run");
     }
 
     const char *logfile = getenv("ZYPP_LOGFILE");
@@ -130,7 +135,7 @@ main (int argc, char **argv)
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
 
-	God->target()->commit( God->pool(), 0, x, y, z );
+	God->target()->commit( God->pool(), 0, x, y, z, dry_run );
 
 	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
 	suseconfig.close();		// discard exit code
