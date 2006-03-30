@@ -22,8 +22,22 @@ using namespace zypp;
 //-----------------------------------------------------------------------------
 
 static void
-sync_sources( sqlite3 *db )
+sync_sources( )
 {
+
+    MIL << "sync_sources" << endl;
+
+    sqlite3 *db;
+    int rc = sqlite3_open( "/var/lib/zypp/backend.db", &db );
+
+    if (rc != SQLITE_OK) {
+	ERR << "Can not open SQL database zsources.db: " << sqlite3_errmsg( db ) << endl;
+	return;
+    }
+
+    sqlite3_exec (db, "PRAGMA synchronous = 0", NULL, NULL, NULL);
+    sqlite3_exec (db, "BEGIN", NULL, NULL, NULL);
+
     const char *query =
 	"CREATE TABLE zsources ("
 	"id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
@@ -34,7 +48,7 @@ sync_sources( sqlite3 *db )
 	"path VARCHAR "
 	")";
 
-    int rc = sqlite3_exec( db, query, NULL, NULL, NULL );
+    rc = sqlite3_exec( db, query, NULL, NULL, NULL );
     if (rc != SQLITE_OK) {
 	ERR << "Can not create 'zsources'[" << rc << "]: " << sqlite3_errmsg( db ) << endl;
 	ERR << query << endl;
@@ -114,6 +128,11 @@ sync_sources( sqlite3 *db )
 	    sqlite3_reset( insert_h );
 	}
     }
+
+    sqlite3_finalize( select_h );
+    sqlite3_finalize( insert_h );
+    sqlite3_close( db );
+
     return;
 }
 
@@ -146,7 +165,7 @@ main (int argc, char **argv)
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
 
     // sync SourceManager with sources table
-    sync_sources( db.db() );
+    sync_sources( );
 
     db.closeDb();
 
