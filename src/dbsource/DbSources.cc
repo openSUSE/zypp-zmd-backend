@@ -122,7 +122,9 @@ DbSources::sources (bool refresh)
 	    << ", subs " << subscribed
 	    << endl;
 
-	if (subscribed == 0) {
+	if (id != "@system"
+	    && subscribed == 0)
+	{
 	    MIL << "Not subscribed, skipping" << endl;
 	    continue;
 	}
