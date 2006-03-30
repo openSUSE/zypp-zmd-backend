@@ -14,6 +14,7 @@ noinst_HEADERS = zmd-backend.h
 bindir = $(libdir)/zmd
 
 bin_PROGRAMS =	\
+	query-pool		\
 	query-system		\
 	query-files		\
 	resolve-dependencies	\
@@ -23,6 +24,7 @@ bin_PROGRAMS =	\
 	update-status		\
 	transact
 
+query_pool_SOURCES = query-pool.cc zmd-backend.cc
 query_system_SOURCES = query-system.cc zmd-backend.cc
 query_files_SOURCES = query-files.cc zmd-backend.cc
 resolve_dependencies_SOURCES = resolve-dependencies.cc transactions.cc transactions.h zmd-backend.cc
