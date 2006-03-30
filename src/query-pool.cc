@@ -9,109 +9,118 @@
 #include <zypp/SourceManager.h>
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
+#include <zypp/base/Algorithm.h>
 
 using namespace std;
 using namespace zypp;
-
-#include <sqlite3.h>
-#include "dbsource/DbAccess.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "query-pool"
 
 //-----------------------------------------------------------------------------
 
-static void
-sync_sources( sqlite3 *db )
+class PrintItem : public resfilter::PoolItemFilterFunctor
 {
-    const char *query =
-	"CREATE TABLE zsources ("
-	"id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-	"zmd_id INTEGER DEFAULT 0, "		// reference to catalogs table for zmd, 0 for zypp
-	"alias VARCHAR, "
-	"type VARCHAR, "
-	"url VARCHAR, "
-	"path VARCHAR "
-	")";
+  public:
+    const string & _catalog;
 
-    int rc = sqlite3_exec( db, query, NULL, NULL, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create 'zsources'[" << rc << "]: " << sqlite3_errmsg( db ) << endl;
-	ERR << query << endl;
-// ignore error, possibly already exists	return;
+    PrintItem( const string & catalog )
+	: _catalog( catalog )
+    { }
+
+    bool operator()( PoolItem_Ref item )
+    {
+	if (_catalog.empty()
+	    || _catalog == item->source().alias())
+	{
+	    cout << (item.status().isInstalled() ? "i" : " ") << "|";
+	    cout << item->name() << "|";
+	    cout << item->edition().version();
+	    if (!item->edition().release().empty())
+		cout << "-" << item->edition().release();
+	    cout << "|";
+	    cout << item->arch() << endl;
+	}
+	return true;
+    }
+};
+
+
+
+
+static void
+query_pool( ZYpp::Ptr Z, const string & filter, const string & catalog)
+{
+    Resolvable::Kind kind;
+
+#define FILTER_ALL "all"
+
+    if (filter == "packages") kind = ResTraits<zypp::Package>::kind;
+    else if (filter == "patches") kind = ResTraits<zypp::Patch>::kind;
+    else if (filter == "patterns") kind = ResTraits<zypp::Pattern>::kind;
+    else if (filter == "products") kind = ResTraits<zypp::Product>::kind;
+    else if (!filter.empty() && filter != FILTER_ALL) {
+	std::cerr << "usage: query-pool [packages|patches|patterns|products] [<alias>]" << endl;
+	exit( 1 );
     }
 
-    //                                                            1
-    query = "SELECT id FROM zsources WHERE zmd_id = 0 AND alias = ?";
+    bool system = (catalog == "@system");
 
-    sqlite3_stmt *select_h = NULL;
-    rc = sqlite3_prepare( db, query, -1, &select_h, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create select query: " << sqlite3_errmsg( db ) << endl;
-	return;
-    }
-
-    //                             1      2     3    4
-    query = "INSERT INTO zsources (alias, type, url, path) VALUES (?, ?, ?, ?)";
-
-    sqlite3_stmt *insert_h = NULL;
-    rc = sqlite3_prepare( db, query, -1, &insert_h, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create insert query: " << sqlite3_errmsg( db ) << endl;
-	return;
-    }
+    MIL << "query_pool kind " << kind << ", catalog " << catalog << endl;
 
     SourceManager_Ptr manager = SourceManager::sourceManager();
 
-    try {
-	manager->restore( "/" );
+    if (!system) {
+	try {
+	    manager->restore( "/" );
+	}
+	catch (Exception & excpt_r) {
+	    ZYPP_CAUGHT( excpt_r );
+	    ERR << "Couldn't restore sources" << endl;
+	    exit( 1 );
+	}
     }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT( excpt_r );
-	ERR << "Couldn't restore sources" << endl;
-	return;
+
+    if (system
+	|| catalog.empty())
+    {
+	zypp::ResStore store = Z->target()->resolvables();
+	MIL << "System contributing " << store.size() << " resolvables" << endl;
+	Z->addResolvables( store, true );
     }
 
-    std::list<SourceManager::SourceId> sources = manager->allSources();
-    MIL << "Found " << sources.size() << " sources" << endl;
+    for (SourceManager::Source_const_iterator it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
+	zypp::ResStore store = it->resolvables();
+	MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
+	Z->addResolvables( store, (it->id() == "@system") );
+    }
 
-    for (std::list<SourceManager::SourceId>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
-	Source_Ref source = manager->findSource( *it );
-
-	if (!source) {
-	    ERR << "SourceManager can't find source " << *it << endl;
-	    continue;
+    if (filter.empty()
+	|| filter == FILTER_ALL)
+    {
+	if (system) {
+	    PrintItem printitem( "" );
+	    zypp::invokeOnEach( Z->pool().begin(), Z->pool().end(),
+			  zypp::resfilter::ByInstalled (),
+			  zypp::functor::functorRef<bool,PoolItem> (printitem) );
 	}
-
-
-	sqlite3_bind_text( select_h, 1, source.alias().c_str(), -1, SQLITE_STATIC );
-	rc = sqlite3_step( select_h );
-
-	bool found = false;
-	if (rc == SQLITE_ROW) {
-	    found = true;
-	    DBG << "Source '" << source.alias() << "' already synched" << endl;
+	else {
+	    PrintItem printitem( catalog );
+	    zypp::invokeOnEach( Z->pool().begin(), Z->pool().end(),
+			  zypp::functor::functorRef<bool,PoolItem> (printitem) );
 	}
-	else if (rc != SQLITE_DONE) {
-	    ERR << "rc " << rc << ": " << sqlite3_errmsg( db ) << endl;
-	    break;
+    }
+    else {
+	if (system) {
+	    PrintItem printitem( "" );
+	    zypp::invokeOnEach( Z->pool().byKindBegin( kind ), Z->pool().byKindEnd( kind ),
+			  zypp::resfilter::ByInstalled (),
+			  zypp::functor::functorRef<bool,PoolItem> (printitem) );
 	}
-	sqlite3_reset( select_h );
-
-	if (!found) {
-	    DBG << "Syncing source '" << source.alias() << "'" << endl;
-	    sqlite3_bind_text( insert_h, 1, source.alias().c_str(), -1, SQLITE_STATIC );
-	    std::string type = source.type();
-	    if (type.empty()) type = "YaST";
-	    sqlite3_bind_text( insert_h, 2, type.c_str(), -1, SQLITE_STATIC );
-	    sqlite3_bind_text( insert_h, 3, source.url().asString().c_str(), -1, SQLITE_STATIC );
-	    sqlite3_bind_text( insert_h, 4, source.path().asString().c_str(), -1, SQLITE_STATIC );
-	    rc = sqlite3_step( insert_h );
-	    if (rc != SQLITE_DONE) {
-		ERR << "rc " << rc << ": " << sqlite3_errmsg( db ) << endl;
-		break;
-	    }
-	    sqlite3_reset( insert_h );
+	else {
+	    PrintItem printitem( catalog );
+	    zypp::invokeOnEach( Z->pool().byKindBegin( kind ), Z->pool().byKindEnd( kind ),
+			  zypp::functor::functorRef<bool,PoolItem> (printitem) );
 	}
     }
     return;
@@ -122,11 +131,6 @@ sync_sources( sqlite3 *db )
 int
 main (int argc, char **argv)
 {
-    if (argc != 2) {
-	std::cerr << "usage: " << argv[0] << " <database>" << endl;
-	return 1;
-    }
-
     const char *logfile = getenv("ZYPP_LOGFILE");
     if (logfile != NULL)
 	zypp::base::LogControl::instance().logfile( logfile );
@@ -134,21 +138,19 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    MIL << "START query-pool " << argv[1] << endl;
+    string filter;
+    if (argc > 1)
+	filter = argv[1];
+    string catalog;
+    if (argc > 2)
+	catalog = argv[2];
 
-    ZYpp::Ptr God = backend::getZYpp();
-    Target_Ptr target = backend::initTarget( God );
+    MIL << "START query-pool " << filter << " " << catalog << endl;
 
-    DbAccess db( argv[1] );
-    if (!db.openDb( true ))
-	return 1;
+    ZYpp::Ptr Z = backend::getZYpp();
+    Target_Ptr target = backend::initTarget( Z );
 
-    db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
-
-    // sync SourceManager with sources table
-    sync_sources( db.db() );
-
-    db.closeDb();
+    query_pool( Z, filter, catalog );
 
     MIL << "END query-pool" << endl;
 
