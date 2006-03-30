@@ -564,6 +564,8 @@ target2kind( RCDependencyTarget dep_target )
 	break;
 	case RC_DEP_TARGET_SRC:		kind = ResTraits<SrcPackage>::kind;
 	break;
+	case RC_DEP_TARGET_SYSTEM:	kind = ResTraits<System>::kind;
+	break;
 	default:			WAR << "Unknown dep_target " << dep_target << endl;
 					kind = ResTraits<Package>::kind;
 	break;
