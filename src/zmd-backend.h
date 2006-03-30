@@ -15,7 +15,7 @@ namespace backend {
 zypp::ZYpp::Ptr getZYpp();
 
 // init Target (root="/", commit_only=true), exit(1) on error
-zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z );
+zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z, bool commit_only = true );
 
 }
 

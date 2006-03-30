@@ -26,12 +26,12 @@ getZYpp()
 }
 
 Target_Ptr
-initTarget( ZYpp::Ptr Z )
+initTarget( ZYpp::Ptr Z, bool commit_only )
 {
     Target_Ptr T;
 
     try {
-	Z->initTarget( "/", true );	// its always "/", and we never populate the pool (commit_only = true)
+	Z->initTarget( "/", commit_only );	// its always "/", and we never populate the pool (commit_only = true)
 	T = Z->target();
     }
     catch (Exception & excpt_r) {
