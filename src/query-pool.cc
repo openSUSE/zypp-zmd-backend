@@ -82,18 +82,25 @@ query_pool( ZYpp::Ptr Z, const string & filter, const string & catalog)
 	}
     }
 
-    if (system
-	|| catalog.empty())
+    if (system				// if only the systems resolvables are wanted
+	|| catalog.empty())		//  or no restrictions on the sources
     {
+	// add all installed resolvables to the pool
+
 	zypp::ResStore store = Z->target()->resolvables();
 	MIL << "System contributing " << store.size() << " resolvables" << endl;
 	Z->addResolvables( store, true );
     }
 
+    // add all non-installed (cached sources) resolvables to the pool
+    // remark: If only the systems resolvables should be shown (catalog == "@system")
+    //         then the SourceManager is not initialized (see approx. 20 lines above)
+    //         and the following loop is not run at all.
+
     for (SourceManager::Source_const_iterator it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
 	zypp::ResStore store = it->resolvables();
 	MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
-	Z->addResolvables( store, (it->id() == "@system") );
+	Z->addResolvables( store, false );
     }
 
     if (filter.empty()
