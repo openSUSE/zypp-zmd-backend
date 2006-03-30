@@ -34,6 +34,7 @@ class PrintItem : public resfilter::PoolItemFilterFunctor
 	    || _catalog == item->source().alias())
 	{
 	    cout << (item.status().isInstalled() ? "i" : " ") << "|";
+	    cout << item->kind() << "|";
 	    cout << item->name() << "|";
 	    cout << item->edition().version();
 	    if (!item->edition().release().empty())
@@ -66,7 +67,7 @@ query_pool( ZYpp::Ptr Z, const string & filter, const string & catalog)
 
     bool system = (catalog == "@system");
 
-    MIL << "query_pool kind " << kind << ", catalog " << catalog << endl;
+    MIL << "query_pool kind '" << kind << "', catalog '" << catalog << "'" << endl;
 
     SourceManager_Ptr manager = SourceManager::sourceManager();
 
