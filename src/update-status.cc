@@ -84,14 +84,11 @@ write_status( const ResPool & pool, sqlite3 *db, ResolverContext_Ptr context )
 
     sqlite3_stmt *handle = NULL;
 
-    const char *sql = "UPDATE patch_details SET status = ? WHERE resolvable_id = ?";
-
-// USE THIS once 'status' is available as an attribute of the 'resolvables' table
-//    const char *sql = "UPDATE resolvables SET status = ? WHERE id = ?";
+    const char *sql = "UPDATE resolvables SET status = ? WHERE id = ?";
 
     int rc = sqlite3_prepare( db, sql, -1, &handle, NULL );
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare transaction insertion clause: " << sqlite3_errmsg (db) << endl;
+	ERR << "Can not prepare update resolvables clause: " << sqlite3_errmsg (db) << endl;
         return false;
     }
 
