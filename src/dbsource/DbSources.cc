@@ -122,13 +122,6 @@ DbSources::sources (bool refresh)
 	    << ", subs " << subscribed
 	    << endl;
 
-	if (id != "@system"
-	    && subscribed == 0)
-	{
-//	    MIL << "Not subscribed, skipping" << endl;
-//	    continue;
-	}
-
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
 
@@ -140,6 +133,7 @@ DbSources::sources (bool refresh)
 	    impl->setZmdName( name );
 	    impl->setZmdDescription ( desc );
 	    impl->setPriority( priority );
+	    impl->setSubscribed( subscribed != 0 );
 
 	    impl->attachDatabase( _db );
 	    impl->attachIdMap( &_idmap );
