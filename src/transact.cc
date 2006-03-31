@@ -134,9 +134,12 @@ main (int argc, char **argv)
 	PoolItemList x,y,z;
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
-
+#if 0
+#warning dry_run disabled
+	God->target()->commit( God->pool(), 0, x, y, z );
+#else
 	God->target()->commit( God->pool(), 0, x, y, z, dry_run );
-
+#endif
 	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
 	suseconfig.close();		// discard exit code
     }
