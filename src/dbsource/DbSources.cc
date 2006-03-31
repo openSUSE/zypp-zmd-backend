@@ -125,8 +125,8 @@ DbSources::sources (bool refresh)
 	if (id != "@system"
 	    && subscribed == 0)
 	{
-	    MIL << "Not subscribed, skipping" << endl;
-	    continue;
+//	    MIL << "Not subscribed, skipping" << endl;
+//	    continue;
 	}
 
 	if (alias.empty()) alias = name;
