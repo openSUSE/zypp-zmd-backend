@@ -143,7 +143,7 @@ main (int argc, char **argv)
 
     MIL << "START query-pool " << filter << " " << catalog << endl;
 
-    ZYpp::Ptr Z = backend::getZYpp();
+    ZYpp::Ptr Z = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( Z, false );
 
     query_pool( Z, filter, catalog );

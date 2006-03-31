@@ -75,7 +75,7 @@ main (int argc, char **argv)
     if (!db.openDb(false))
 	return 1;
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
 
     // load the catalogs and resolvables from sqlite db
 

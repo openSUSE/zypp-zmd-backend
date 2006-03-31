@@ -4,14 +4,19 @@
 
 #include "zmd-backend.h"
 
+#include <zypp/zypp_detail/ZYppReadOnlyHack.h>
+
 using namespace zypp;
 using namespace std;
 
 namespace backend {
 
 ZYpp::Ptr
-getZYpp()
+getZYpp( bool readonly )
 {
+    if (readonly)
+	zypp::zypp_readonly_hack::IWantIt();
+
     ZYpp::Ptr Z = NULL;
     try {
 	Z = zypp::getZYpp();

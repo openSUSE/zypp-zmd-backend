@@ -10,6 +10,7 @@
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>
+
 #include <zypp/SourceManager.h>
 #include <zypp/Source.h>
 #include <zypp/base/Logger.h>
@@ -402,7 +403,7 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START query-files " << argv[1] << " " << argv[2] << " " << ((argc>3)?argv[3]:"") << endl;
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
 
     DbAccess db(argv[1]);
 

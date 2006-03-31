@@ -155,7 +155,7 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START query-system " << argv[1] << endl;
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( God, false );
 
     DbAccess db( argv[1] );

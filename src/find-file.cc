@@ -39,7 +39,7 @@ main (int argc, char **argv)
     MIL << "-------------------------------------" << endl;
     MIL << "START find-file " << argv[1] << " " << argv[2] << endl;
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( God );
 
     string name = target->rpmDb().whoOwnsFile( argv[2] );

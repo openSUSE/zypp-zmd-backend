@@ -233,7 +233,7 @@ main (int argc, char **argv)
     if (!db.openDb( true ))		// open for writing
 	return 1;
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( God );
 
     int result = package_files( db.db(), str::strtonum<long long>( argv[2] ), target );

@@ -12,7 +12,7 @@
 namespace backend {
 
 // get ZYpp pointer, exit(1) if locked
-zypp::ZYpp::Ptr getZYpp();
+zypp::ZYpp::Ptr getZYpp( bool readonly = false );
 
 // init Target (root="/", commit_only=true), exit(1) on error
 zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z, bool commit_only = true );
