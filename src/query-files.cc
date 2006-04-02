@@ -29,6 +29,7 @@ using namespace std;
 #include <sys/stat.h>
 
 #include "dbsource/DbAccess.h"
+#include "dbsource/DbSources.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "query-files"
@@ -36,7 +37,7 @@ using namespace std;
 //-----------------------------------------------------------------------------
 
 static ResStore
-query_file (const Pathname & path)
+query_file (const Pathname & path, Source_Ref source)
 {
     ResStore store;
 
@@ -44,7 +45,7 @@ query_file (const Pathname & path)
 
     target::rpm::RpmHeader::constPtr header = target::rpm::RpmHeader::readPackage( path );
 
-    Package::Ptr package = target::rpm::RpmDb::makePackageFromHeader( header, NULL, path );
+    Package::Ptr package = target::rpm::RpmDb::makePackageFromHeader( header, NULL, path, source );
 
     if (package != NULL) {
 	store.insert( package );
@@ -102,14 +103,14 @@ parse_query (const string & query, bool *recursive)
 int
 extract_packages_from_directory (ResStore & store,
 				 const Pathname & path,
-				 const string & alias,
+				 Source_Ref source,
 				 bool recursive)
 {
     Pathname filename;
     PathInfo magic;
     bool distro_magic, pkginfo_magic;
 
-DBG << "extract_packages_from_directory(.., " << path << ", " << alias << ", " << recursive << ")" << endl;
+DBG << "extract_packages_from_directory(.., " << path << ", " << source.alias() << ", " << recursive << ")" << endl;
     
     /*
       Check for magic files that indicate how to treat the
@@ -223,7 +224,7 @@ DBG << "extract_packages_from_directory(.., " << path << ", " << alias << ", " <
 	PathInfo file_info( file_path );
         if (recursive && file_info.isDir()) {
 
-	    extract_packages_from_directory( store, file_path, alias, recursive );
+	    extract_packages_from_directory( store, file_path, source, recursive );
 
         } else if (file_info.isFile()) {
 
@@ -233,7 +234,7 @@ DBG << "extract_packages_from_directory(.., " << path << ", " << alias << ", " <
 	    if (string(*it, ++dotpos) != "rpm")
 		continue;
 	    target::rpm::RpmHeader::constPtr header = target::rpm::RpmHeader::readPackage( file_path );
-	    Package::Ptr package = target::rpm::RpmDb::makePackageFromHeader( header, NULL, file_path );
+	    Package::Ptr package = target::rpm::RpmDb::makePackageFromHeader( header, NULL, file_path, source );
 
 	    if (package != NULL) {
 		DBG << "Adding package " << *package << endl;
@@ -246,11 +247,11 @@ DBG << "extract_packages_from_directory(.., " << path << ", " << alias << ", " <
 
 
 static ResStore
-query_directory (const Pathname & path, bool recursive)
+query_directory (const Pathname & path, bool recursive, Source_Ref source)
 {
     ResStore store;
     MIL << "query_directory( " << path << (recursive?", recursive":"") << ")" << endl;
-    extract_packages_from_directory( store, path, "@local", recursive );
+    extract_packages_from_directory( store, path, source, recursive );
 
     return store;
 }
@@ -258,7 +259,7 @@ query_directory (const Pathname & path, bool recursive)
 //----------------------------------------------------------------------------
 
 static ResStore
-query (const string & uri, const string & channel_id)
+query (const string & uri, Source_Ref source)
 {
     ResStore store;
 
@@ -287,11 +288,6 @@ query (const string & uri, const string & channel_id)
 
     MIL << "query(" << uri << ") path '" << path << "'" << endl;
 
-#if 0
-    channel = rc_channel_new (channel_id != NULL ? channel_id : "@local",
-		              "foo", "foo", "foo");
-#endif
-
     struct stat buf;
 
     int err = stat (path.asString().c_str(), &buf);
@@ -301,7 +297,7 @@ query (const string & uri, const string & channel_id)
     }
     else if (S_ISREG( buf.st_mode )) {			/* Single file */
 
-	store = query_file( path );
+	store = query_file( path, source );
 
     }
     else if (S_ISDIR( buf.st_mode )) {			/* Directory */
@@ -313,7 +309,7 @@ query (const string & uri, const string & channel_id)
 	    string p( uri, query_part + 1 );
 	    parse_query( p, &recursive );
 	}
-	store = query_directory( path, recursive );
+	store = query_directory( path, recursive, source );
     }
 
     return store;
@@ -418,7 +414,10 @@ main (int argc, char **argv)
     }
     else {
 	MIL << "Doing a file/directory query" << endl;
-	ResStore store = query( argv[2], argc == 4 ? argv[3] : "@local" );
+
+	Source_Ref source = DbSources::createDummy( Url("file://"), argc == 4 ? argv[3] : "@local" );
+
+	ResStore store = query( argv[2], source );
 	if (!store.empty()) {
 	    db.writeStore( store, ResStatus::uninstalled );
 	}

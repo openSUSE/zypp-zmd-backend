@@ -564,27 +564,18 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg )
     sqlite3_bind_text( handle, 2, pkg->group().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 3, pkg->summary().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
-    const char *plainrpm = pkg->plainRpm().asString().c_str();
-    if (plainrpm[0] == '.' && plainrpm[1] == '/') plainrpm += 2;				// strip leading "./"
-    sqlite3_bind_text( handle, 5, plainrpm, -1, SQLITE_STATIC );				// package_url
-
     Source_Ref src( pkg->source() );
-#if 1	// set to 0 once Source::remote() is fixed (#157469)
-    if (source_is_local( src ))
-    {
-	sqlite3_bind_text( handle, 6, plainrpm, -1, SQLITE_STATIC );				// so zypp knows how to get the package
-    }
-    else {
-	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );				// else zmd knows how to get the package
-    }
-#else
+
+    sqlite3_bind_text( handle, 5, src.url().asString().c_str(), -1, SQLITE_STATIC );		// package_url
+
     if (src.remote()) {
-	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );				// zmd knows how to get the package
+	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
     else {
-	sqlite3_bind_text( handle, 6, pkg->plainRpm().asString().c_str(), -1, SQLITE_STATIC );	// zypp knows how to get the package
+	const char *plainrpm = pkg->plainRpm().asString().c_str();
+	if (plainrpm[0] == '.' && plainrpm[1] == '/') plainrpm += 2;		// strip leading "./"
+	sqlite3_bind_text( handle, 6, plainrpm, -1, SQLITE_STATIC );		// zypp knows how to get the package
     }
-#endif
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
     sqlite3_bind_int( handle, 9, pkg->installOnly() ? 1 : 0 );

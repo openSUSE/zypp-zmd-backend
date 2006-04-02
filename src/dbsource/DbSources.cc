@@ -61,6 +61,34 @@ DbSources::getById (sqlite_int64 id) const
 }
 
 
+Source_Ref
+DbSources::createDummy( const Url & url, const string & catalog )
+{
+    media::MediaManager mmgr;
+    media::MediaId mediaid = mmgr.open( url );
+    SourceFactory factory;
+
+    try {
+
+	DbSourceImpl *impl = new DbSourceImpl ();
+	impl->factoryCtor( mediaid, Pathname(), catalog );
+	impl->setId( catalog );
+	impl->setZmdName( catalog );
+	impl->setZmdDescription ( catalog );
+	impl->setPriority( 0 );
+	impl->setSubscribed( true );
+
+	Source_Ref src( factory.createFrom( impl ) );
+	return src;
+    }
+    catch (Exception & excpt_r) {
+	ZYPP_CAUGHT(excpt_r);
+    }
+
+    return Source_Ref();
+}
+
+
 const SourcesList &
 DbSources::sources (bool refresh)
 {

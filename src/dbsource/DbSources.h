@@ -29,6 +29,7 @@
 
 #include <sqlite3.h>
 #include <zypp/Source.h>
+#include <zypp/Url.h>
 #include <zypp/PoolItem.h>
 
 #include "DbAccess.h"
@@ -53,6 +54,8 @@ class DbSources
 
     const SourcesList & sources (bool refresh = false);
     zypp::ResObject::constPtr getById (sqlite_int64 id) const;
+
+    static zypp::Source_Ref createDummy( const zypp::Url & url, const std::string & catalog );
 };
 
 #endif  // ZMD_BACKEND_DBSOURCES_H
