@@ -569,11 +569,13 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg )
     sqlite3_bind_text( handle, 5, src.url().asString().c_str(), -1, SQLITE_STATIC );		// package_url
 
     if (src.remote()) {
+	DBG << "Source " << src << " is remote";
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
     else {
 	const char *plainrpm = pkg->plainRpm().asString().c_str();
 	if (plainrpm[0] == '.' && plainrpm[1] == '/') plainrpm += 2;		// strip leading "./"
+	DBG << "Source " << src << " is local, plainrpm " << plainrpm << endl;
 	sqlite3_bind_text( handle, 6, plainrpm, -1, SQLITE_STATIC );		// zypp knows how to get the package
     }
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename

@@ -41,13 +41,14 @@ query_file (const Pathname & path, Source_Ref source)
 {
     ResStore store;
 
-    MIL << "query_file(" << path << ")" << endl;
+    MIL << "query_file(" << path << "), source " << source << endl;
 
     target::rpm::RpmHeader::constPtr header = target::rpm::RpmHeader::readPackage( path );
 
     Package::Ptr package = target::rpm::RpmDb::makePackageFromHeader( header, NULL, path, source );
 
     if (package != NULL) {
+	DBG << "package source " << package->source() << endl;
 	store.insert( package );
     }
 
@@ -263,6 +264,8 @@ query (const string & uri, Source_Ref source)
 {
     ResStore store;
 
+    MIL << "query(" << uri << ", " << source << ")" << endl;
+
     /* The magic 7 is strlen ("file://") */
 
     if (uri.size() < 7
@@ -286,7 +289,7 @@ query (const string & uri, Source_Ref source)
 	path = p;
     }
 
-    MIL << "query(" << uri << ") path '" << path << "'" << endl;
+    MIL << "query path '" << path << "'" << endl;
 
     struct stat buf;
 
@@ -415,7 +418,7 @@ main (int argc, char **argv)
     else {
 	MIL << "Doing a file/directory query" << endl;
 
-	Source_Ref source = DbSources::createDummy( Url("file://"), argc == 4 ? argv[3] : "@local" );
+	Source_Ref source = DbSources::createDummy( Url("file:///"), argc == 4 ? argv[3] : "@local" );
 
 	ResStore store = query( argv[2], source );
 	if (!store.empty()) {
