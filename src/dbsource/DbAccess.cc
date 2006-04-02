@@ -554,7 +554,7 @@ DbAccess::writeDependencies(sqlite_int64 id, Resolvable::constPtr res)
 // package
 
 sqlite_int64
-DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg )
+DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remote )
 {
     XXX <<  "DbAccess::writePackage(" << id << ", " << *pkg << ")" << endl;
     int rc;
@@ -568,7 +568,9 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg )
 
     sqlite3_bind_text( handle, 5, src.url().asString().c_str(), -1, SQLITE_STATIC );		// package_url
 
-    if (src.remote()) {
+    if (force_remote
+	|| src.remote())
+    {
 	DBG << "Source " << src << " is remote";
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
@@ -691,7 +693,7 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
 //  return == 0 if this kind of resolvable is to be skipped
 
 sqlite_int64
-DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char *catalog)
+DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char *catalog, bool force_remote )
 {
     XXX << "DbAccess::writeResObject (" << *obj << ", " << status << ")" << endl;
 
@@ -756,7 +758,7 @@ DbAccess::writeResObject (ResObject::constPtr obj, ResStatus status, const char 
 
     // now write the respective _details table
 
-    if (pkg != NULL) writePackage( rowid, pkg );
+    if (pkg != NULL) writePackage( rowid, pkg, force_remote );
     else if (patch != NULL) writePatch( rowid, patch );
     else if (pattern != NULL) writePattern( rowid, pattern );
     else if (product != NULL) writeProduct( rowid, product );
@@ -935,7 +937,7 @@ DbAccess::removeCatalog( const std::string & catalog )
 // store
 
 void
-DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog )
+DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, bool force_remote )
 {
     XXX << "DbAccess::writeStore()" << endl;
 
@@ -959,7 +961,7 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
             && ( status == ResStatus::installed			// installed ones are ok
 		|| obj->arch().compatibleWith( sysarch ) ) )	//   and so are architecturally compatible ones
 	{
-	    rowid = writeResObject( obj, status, catalog );
+	    rowid = writeResObject( obj, status, catalog, force_remote );
 	    if (rowid < 0)
 		break;
 	    if (rowid > 0)		// rowid == 0 means 'skip'

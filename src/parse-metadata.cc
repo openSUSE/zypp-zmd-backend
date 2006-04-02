@@ -125,9 +125,9 @@ tell_yast()
 // upload all zypp sources as catalogs to the database
 
 static void
-sync_source( DbAccess & db, Source_Ref source, string catalog )
+sync_source( DbAccess & db, Source_Ref source, string catalog, bool is_remote = false )
 {
-    DBG << "sync_source, catalog '" << catalog << "', alias '" << source.alias() << "'" << endl;
+    DBG << "sync_source, catalog '" << catalog << "', alias '" << source.alias() << "', remote? " << is_remote << endl;
 
 #if 0	// ZMD does this
     if (db.haveCatalog( catalog ) ) {
@@ -154,7 +154,7 @@ sync_source( DbAccess & db, Source_Ref source, string catalog )
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-	db.writeStore( store, ResStatus::uninstalled, catalog.c_str() );	// store all resolvables as 'uninstalled'
+	db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), is_remote );	// store all resolvables as 'uninstalled'
 #if 0
     }
 #endif
@@ -251,23 +251,35 @@ main (int argc, char **argv)
 	Pathname cache_dir("");
 	try {
 
+	    bool is_remote = true;
+
 	    Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
 	    
-	    // try to create a source using the alias, this is typically
+	    // try to create a Url using the alias, this is typically
 	    // the original location of the source, not the local cache
 	    try {
 		Url url( alias );
-		
+		string scheme = url.getScheme();
+		if (scheme != "ftp"
+		    && scheme != "http"
+		    && scheme != "https")
+		{
+		    is_remote = false;
+		}
+#if 0	// don't re-create real source, this will re-load all metadata (#162735)
 		MIL << "Creating remote source for libzypp" << endl;
 		Source_Ref source_remote( SourceFactory().createFrom(url, p, alias, cache_dir) );
 		add_source_if_new (source_remote, alias);
+#endif
 	    } catch ( const Exception & excpt_r )
 	    {
 		ZYPP_CAUGHT( excpt_r );
+#if 0
 		add_source_if_new (source, alias);
+#endif
 	    }
 	    
-	    sync_source ( db, source, alias );
+	    sync_source( db, source, alias, is_remote );
 	}
 	catch( const Exception & excpt_r )
 	{
