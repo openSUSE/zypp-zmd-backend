@@ -18,12 +18,14 @@ bin_PROGRAMS =	\
 	query-system		\
 	query-files		\
 	resolve-dependencies	\
+	service-delete		\
 	package-files		\
 	parse-metadata		\
 	find-file		\
 	update-status		\
 	transact
 
+service_delete_SOURCES = service-delete.cc zmd-backend.cc
 query_pool_SOURCES = query-pool.cc zmd-backend.cc
 query_system_SOURCES = query-system.cc zmd-backend.cc
 query_files_SOURCES = query-files.cc zmd-backend.cc
