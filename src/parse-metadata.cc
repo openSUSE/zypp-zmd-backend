@@ -100,6 +100,7 @@ add_source_if_new (const Source_Ref & source, const string & alias)
 //Tell yast that we are done storing the updated source. This is
 //necessary because when "rug sa" is called by yast, it calls us
 //asyncronously
+
 static void
 tell_yast()
 {
@@ -163,39 +164,6 @@ sync_source( DbAccess & db, Source_Ref source, string catalog, bool is_remote = 
 }
 
 
-//
-// find matching source and write its resolvables to the catalog
-//
-
-static void
-sync_catalog( DbAccess & db, const string & path, const string & catalog )
-{
-    MIL << "sync_catalog(..., " << path << ", " << catalog << ")" << endl;
-
-    list<SourceManager::SourceId> sources = manager->allSources();
-    MIL << "Found " << sources.size() << " sources" << endl;
-
-    // we could use SourceManager::findSource(const std::string & alias_r)
-    // but for the /installation case we need this
-    for (list<SourceManager::SourceId>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
-	Source_Ref source = manager->findSource( *it );
-	if (!source) {
-	    ERR << "SourceManager can't find source " << *it << endl;
-	    continue;
-	}
-	if (!source.enabled())
-	    continue;
-
-	if ((path == "/installation") 		// just sync the first source
-	    || (catalog == source.alias()))	// or the matching one
-	{ 
-	    sync_source( db, source, catalog );
-	    break;
-	}
-    }
-    return;
-}
-
 //----------------------------------------------------------------------------
 
 // metadata types
@@ -208,7 +176,7 @@ main (int argc, char **argv)
     atexit (tell_yast);
 
     if (argc != 5) {
-	cerr << "usage: " << argv[0] << " <database> <type> <path> <catalog id>" << endl;
+	cerr << "usage: " << argv[0] << " <database> <type> <uri> <catalog id>" << endl;
 	return 1;
     }
 
@@ -219,7 +187,7 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    //				      database		type		  path/uri	    catalog/alias
+    //				      database		type		  uri		    catalog
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << endl;
 
     ZYpp::Ptr God = backend::getZYpp( );
@@ -228,7 +196,7 @@ main (int argc, char **argv)
     if (! restore_sources ())
 	return 1;
 
-    DbAccess db(argv[1]);
+    DbAccess db( argv[1] );
 
     if (!db.openDb( true ))		// open for writing
     {
@@ -236,29 +204,53 @@ main (int argc, char **argv)
 	return 1;
     }
 
-    if (strcmp( argv[2], ZYPP) == 0) {
-	MIL << "Doing a catalog sync" << endl;
+    string type( argv[2] );
+    Url uri( argv[3] );
+    string catalog( argv[4] );
+
+    int result = 0;
+
+    if (type == ZYPP)
+    {
+
+	MIL << "Doing a zypp->zmd sync" << endl;
 	// the source already exists in the catalog, no need to add it
-	sync_catalog( db, argv[3], argv[4] );
+
+	//
+	// find matching source and write its resolvables to the catalog
+	//
+
+	SourceManager::Source_const_iterator it;
+	for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
+	    string src_uri = it->url().asString() + "?alias=" + it->alias();
+	    MIL << "Uri " << src_uri << endl;
+	    if (src_uri == uri.asString()) {
+		sync_source( db, *it, catalog );
+		break;
+	    }
+	}
+	if (it == manager->Source_end()) {
+	    WAR << "Source not found" << endl;
+	    result = 1;
+	}
     }
-    else if (strcmp( argv[2], YUM) == 0) {
-	MIL << "Doing a cached source sync" << endl;
-	Pathname p;
-	Url url( string("file:") + argv[3] );
-	string alias( argv[4] );
-	Locale lang( "en" );
+    else if (strcmp( argv[2], YUM ) == 0)
+    {
+
+	MIL << "Doing a zmd->zypp sync" << endl;
 
 	Pathname cache_dir("");
 	try {
 
 	    bool is_remote = true;
 
-	    Source_Ref source( SourceFactory().createFrom(url, p, alias, cache_dir) );
+	    Source_Ref source( SourceFactory().createFrom( uri, Pathname(), catalog, cache_dir ) );
 	    
-	    // try to create a Url using the alias, this is typically
+	    // try to create a Url using the catalog (as alias), this is typically
 	    // the original location of the source, not the local cache
 	    try {
-		Url url( alias );
+#warning Need real URL, not catalog
+		Url url( catalog );
 		string scheme = url.getScheme();
 		if (scheme != "ftp"
 		    && scheme != "http"
@@ -266,39 +258,34 @@ main (int argc, char **argv)
 		{
 		    is_remote = false;
 		}
-#if 0	// don't re-create real source, this will re-load all metadata (#162735)
-		MIL << "Creating remote source for libzypp" << endl;
-		Source_Ref source_remote( SourceFactory().createFrom(url, p, alias, cache_dir) );
-		add_source_if_new (source_remote, alias);
-#endif
 	    } catch ( const Exception & excpt_r )
 	    {
 		ZYPP_CAUGHT( excpt_r );
-#if 0
-		add_source_if_new (source, alias);
-#endif
 	    }
 	    
-	    sync_source( db, source, alias, is_remote );
+	    sync_source( db, source, catalog, is_remote );
 	}
 	catch( const Exception & excpt_r )
 	{
 	    cerr << "3|Cant access repository data at " << argv[3] << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't access repository at " << argv[3] << endl;
-	    return 1;
+	    result = 1;
 	};
 
     }
-    else {
+    else
+    {
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << YUM << "'" << endl;
+	result = 1;
     }
 
     db.closeDb();
 
-    store_sources ();		// no checking, we're finished anyway
+    if (result == 0)
+	store_sources ();		// no checking, we're finished anyway
 
     MIL << "END parse-metadata" << endl;
 
-    return 0;
+    return result;
 }
