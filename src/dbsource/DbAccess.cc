@@ -571,7 +571,7 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remot
     if (force_remote
 	|| src.remote())
     {
-//	DBG << "Source " << src << " is remote";
+//	DBG << "Source " << src << " is remote" << endl;
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
     else {
