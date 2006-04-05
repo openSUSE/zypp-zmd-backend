@@ -566,18 +566,20 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remot
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
     Source_Ref src( pkg->source() );
 
-    sqlite3_bind_text( handle, 5, src.url().asString().c_str(), -1, SQLITE_STATIC );		// package_url
+    string surl = src.url().asString();
+    sqlite3_bind_text( handle, 5, surl.c_str(), -1, SQLITE_STATIC );		// package_url
 
+    const char *location;
     if (force_remote
 	|| src.remote())
     {
-//	DBG << "Source " << src << " is remote" << endl;
+//	DBG << "Source " << src << ", url " << src.url() << " is remote" << endl;
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
     else {
-	const char *location = pkg->location().asString().c_str();
+	location = pkg->location().asString().c_str();
 	if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
-//	DBG << "Source " << src << " is local, location " << location << endl;
+//	DBG << "Source " << src << ", url " << src.url() << " is local, location " << location << endl;
 	sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );		// zypp knows how to get the package
     }
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
