@@ -418,7 +418,7 @@ main (int argc, char **argv)
     else {
 	MIL << "Doing a file/directory query" << endl;
 
-	Source_Ref source = DbSources::createDummy( Url("file:///"), argc == 4 ? argv[3] : "@local" );
+	Source_Ref source = DbSources::createDummy( Url("file:/"), argc == 4 ? argv[3] : "@local" );
 
 	ResStore store = query( argv[2], source );
 	if (!store.empty()) {
