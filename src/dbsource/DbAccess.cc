@@ -571,13 +571,13 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remot
     if (force_remote
 	|| src.remote())
     {
-	DBG << "Source " << src << " is remote";
+//	DBG << "Source " << src << " is remote";
 	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
     }
     else {
 	const char *location = pkg->location().asString().c_str();
 	if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
-	DBG << "Source " << src << " is local, location " << location << endl;
+//	DBG << "Source " << src << " is local, location " << location << endl;
 	sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );		// zypp knows how to get the package
     }
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
