@@ -567,21 +567,23 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remot
     Source_Ref src( pkg->source() );
 
     string surl = src.url().asString();
-    sqlite3_bind_text( handle, 5, surl.c_str(), -1, SQLITE_STATIC );		// package_url
+    const char *location = pkg->location().asString().c_str();
+    if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
 
-    const char *location;
     if (force_remote
 	|| src.remote())
     {
 //	DBG << "Source " << src << ", url " << src.url() << " is remote" << endl;
-	sqlite3_bind_text( handle, 6, NULL, -1, SQLITE_STATIC );		// zmd knows how to get the package
+	surl += "/";
+	surl += location;
+	location = NULL;				// zmd knows how to get the package
     }
     else {
-	location = pkg->location().asString().c_str();
-	if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
 //	DBG << "Source " << src << ", url " << src.url() << " is local, location " << location << endl;
-	sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );		// zypp knows how to get the package
     }
+    sqlite3_bind_text( handle, 5, surl.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );
+
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
     sqlite3_bind_int( handle, 9, pkg->installOnly() ? 1 : 0 );
