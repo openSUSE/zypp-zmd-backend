@@ -148,7 +148,7 @@ main (int argc, char **argv)
 
     query_pool( Z, filter, catalog );
 
-    MIL << "END query-pool" << endl;
+    MIL << "END query-pool, result 0" << endl;
 
     return 0;
 }

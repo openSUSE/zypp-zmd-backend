@@ -70,21 +70,21 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    string alias;
-    if (argc < 2) {
-	cerr << "Usage: service-delete <uri>" << endl;
+    if (argc < 3) {
+	cerr << "Usage: service-delete <db> <uri>" << endl;
 	exit( 1 );
     }
-    alias = argv[1];
+    string db( argv[1] );
+    string alias( argv[2] );
 
-    MIL << "START service-delete " << alias << endl;
+    MIL << "START service-delete " << db << " " << alias << endl;
 
     ZYpp::Ptr Z = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( Z, false );
 
     int result = service_delete( Z, alias );
 
-    MIL << "END service-delete" << endl;
+    MIL << "END service-delete, result " << result << endl;
 
     return result;
 }

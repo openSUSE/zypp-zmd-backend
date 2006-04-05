@@ -407,7 +407,7 @@ main (int argc, char **argv)
     DbAccess db(argv[1]);
 
     if (!db.openDb( true ))		// open for writing
-	return false;
+	return 1;
 
     backend::initTarget( God );
 
@@ -428,7 +428,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END query-files" << endl;
+    MIL << "END query-files, result 0" << endl;
 
     return 0;
 }

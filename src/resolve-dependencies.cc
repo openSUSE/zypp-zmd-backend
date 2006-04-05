@@ -135,7 +135,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END resolve-dependencies" << endl;
+    MIL << "END resolve-dependencies, result " << (success ? 0 : 1) << endl;
 
     return (success ? 0 : 1);
 }

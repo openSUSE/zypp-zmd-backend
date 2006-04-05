@@ -242,7 +242,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END package-files" << endl;
+    MIL << "END package-files, result " << result << endl;
 
     return result;
 }

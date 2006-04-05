@@ -205,7 +205,16 @@ main (int argc, char **argv)
     }
 
     string type( argv[2] );
-    Url uri( argv[3] );
+    Url uri;
+    try {
+	uri = Url ( ((argv[3][0] == '/') ? string("file:"):string("")) + argv[3] );
+    }
+    catch ( const Exception & excpt_r ) {
+	ZYPP_CAUGHT( excpt_r );
+	cerr << excpt_r.asUserString() << endl;
+	return 1;
+    }
+
     string catalog( argv[4] );
 
     int result = 0;
@@ -285,7 +294,7 @@ main (int argc, char **argv)
     if (result == 0)
 	store_sources ();		// no checking, we're finished anyway
 
-    MIL << "END parse-metadata" << endl;
+    MIL << "END parse-metadata, result " << result << endl;
 
     return result;
 }

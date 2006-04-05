@@ -169,7 +169,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END query-system" << endl;
+    MIL << "END query-system, result 0" << endl;
 
     return 0;
 }

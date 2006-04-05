@@ -93,7 +93,7 @@ main (int argc, char **argv)
 
     dbacc.closeDb();
 
-    MIL << "END find-file" << endl;
+    MIL << "END find-file, result " << res << endl;
 
     return res;
 }

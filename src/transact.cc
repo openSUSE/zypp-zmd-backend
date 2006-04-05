@@ -167,7 +167,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END transact" << endl;
+    MIL << "END transact, result " << result << endl;
 
     return result;
 }
