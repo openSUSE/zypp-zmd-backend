@@ -126,9 +126,9 @@ tell_yast()
 // upload all zypp sources as catalogs to the database
 
 static void
-sync_source( DbAccess & db, Source_Ref source, string catalog, bool is_remote = false )
+sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, bool is_remote = false )
 {
-    DBG << "sync_source, catalog '" << catalog << "', alias '" << source.alias() << "', remote? " << is_remote << endl;
+    DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << "', remote? " << is_remote << endl;
 
 #if 0	// ZMD does this
     if (db.haveCatalog( catalog ) ) {
@@ -152,6 +152,10 @@ sync_source( DbAccess & db, Source_Ref source, string catalog, bool is_remote = 
 #endif
 
 	ResStore store = source.resolvables();
+	if (!url.getScheme().empty()) {
+	    MIL << "Setting source URL  to " << url << endl;
+	    source.setUrl( url );
+	}
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
@@ -234,7 +238,7 @@ main (int argc, char **argv)
 	    string src_uri = it->url().asString() + "?alias=" + it->alias();
 	    MIL << "Uri " << src_uri << endl;
 	    if (src_uri == uri.asString()) {
-		sync_source( db, *it, catalog );
+		sync_source( db, *it, catalog, Url() );
 		break;
 	    }
 	}
@@ -257,9 +261,10 @@ main (int argc, char **argv)
 	    
 	    // try to create a Url using the catalog (as alias), this is typically
 	    // the original location of the source, not the local cache
+	    Url url;
 	    try {
 #warning Need real URL, not catalog
-		Url url( catalog );
+		url = Url( catalog );
 		string scheme = url.getScheme();
 		if (scheme != "ftp"
 		    && scheme != "http"
@@ -271,8 +276,9 @@ main (int argc, char **argv)
 	    {
 		ZYPP_CAUGHT( excpt_r );
 	    }
-	    
-	    sync_source( db, source, catalog, is_remote );
+
+	    sync_source( db, source, catalog, url, is_remote );
+
 	}
 	catch( const Exception & excpt_r )
 	{
