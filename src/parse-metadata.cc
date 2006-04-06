@@ -179,7 +179,7 @@ main (int argc, char **argv)
 {
     atexit (tell_yast);
 
-    if (argc != 5) {
+    if (argc < 5) {
 	cerr << "usage: " << argv[0] << " <database> <type> <uri> <catalog id>" << endl;
 	return 1;
     }
