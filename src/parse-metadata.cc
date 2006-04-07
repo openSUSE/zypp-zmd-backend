@@ -130,39 +130,15 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 {
     DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << "', remote? " << is_remote << endl;
 
-#if 0	// ZMD does this
-    if (db.haveCatalog( catalog ) ) {
-	db.removeCatalog( catalog );		// clean old entries first
+    ResStore store = source.resolvables();
+    if (!url.getScheme().empty()) {
+	MIL << "Setting source URL  to " << url << endl;
+	source.setUrl( url );
     }
-#endif
 
-#if 0 // catalogs table is locked
-    DBG << "Updating catalog '" << catalog << "', setting description to '" << source.url().asString() << "'" << endl;
-    // save the URL in the description attribute
-    db.updateCatalog( catalog, "", "", source.url().asString() );
-#endif
+    DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-#if 0	// ZMD does this
-    string name = source.zmdName();
-    if (name.empty()) name = source.url().asString();
-    string desc = source.zmdDescription();
-    if (desc.empty()) desc = source.vendor();
-
-    if (db.insertCatalog( catalog, name, catalog, desc )) {		// create catalog
-#endif
-
-	ResStore store = source.resolvables();
-	if (!url.getScheme().empty()) {
-	    MIL << "Setting source URL  to " << url << endl;
-	    source.setUrl( url );
-	}
-
-	DBG << "Source provides " << store.size() << " resolvables" << endl;
-
-	db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), is_remote );	// store all resolvables as 'uninstalled'
-#if 0
-    }
-#endif
+    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), is_remote );	// store all resolvables as 'uninstalled'
 
     return;
 }
@@ -191,8 +167,8 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    //				      database		type		  uri		    catalog
-    MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << endl;
+    //				      database		type		  uri		    path              catalog
+    MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
 
     ZYpp::Ptr God = backend::getZYpp( );
 
@@ -209,9 +185,13 @@ main (int argc, char **argv)
     }
 
     string type( argv[2] );
+    Pathname path( argv[3] );
+
     Url uri;
+    Url pathurl;
     try {
 	uri = Url ( ((argv[3][0] == '/') ? string("file:"):string("")) + argv[3] );
+	pathurl = Url ( ((argv[4][0] == '/') ? string("file:"):string("")) + argv[4] );
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
@@ -219,7 +199,7 @@ main (int argc, char **argv)
 	return 1;
     }
 
-    string catalog( argv[4] );
+    string catalog( argv[5] );
 
     int result = 0;
 
@@ -238,7 +218,7 @@ main (int argc, char **argv)
 	    string src_uri = it->url().asString() + "?alias=" + it->alias();
 	    MIL << "Uri " << src_uri << endl;
 	    if (src_uri == uri.asString()) {
-		sync_source( db, *it, catalog, Url() );
+		sync_source( db, *it, catalog, Url() );			// zypp is always local
 		break;
 	    }
 	}
@@ -247,44 +227,23 @@ main (int argc, char **argv)
 	    result = 1;
 	}
     }
-    else if (strcmp( argv[2], YUM ) == 0)
+    else if (type == YUM)
     {
 
 	MIL << "Doing a zmd->zypp sync" << endl;
 
-	Pathname cache_dir("");
 	try {
 
-	    bool is_remote = true;
-
-	    Source_Ref source( SourceFactory().createFrom( uri, Pathname(), catalog, cache_dir ) );
+	    Source_Ref source( SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() ) );
 	    
-	    // try to create a Url using the catalog (as alias), this is typically
-	    // the original location of the source, not the local cache
-	    Url url;
-	    try {
-#warning Need real URL, not catalog
-		url = Url( catalog );
-		string scheme = url.getScheme();
-		if (scheme != "ftp"
-		    && scheme != "http"
-		    && scheme != "https")
-		{
-		    is_remote = false;
-		}
-	    } catch ( const Exception & excpt_r )
-	    {
-		ZYPP_CAUGHT( excpt_r );
-	    }
-
-	    sync_source( db, source, catalog, url, is_remote );
+	    sync_source( db, source, catalog, uri, true );		// yum is always remote
 
 	}
 	catch( const Exception & excpt_r )
 	{
-	    cerr << "3|Cant access repository data at " << argv[3] << endl;
+	    cerr << "3|Cant access repository data at " << path << endl;
 	    ZYPP_CAUGHT( excpt_r );
-	    ERR << "Can't access repository at " << argv[3] << endl;
+	    ERR << "Can't access repository at " << path << endl;
 	    result = 1;
 	};
 

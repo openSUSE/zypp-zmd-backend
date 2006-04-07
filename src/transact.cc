@@ -67,13 +67,19 @@ int
 main (int argc, char **argv)
 {
     if (argc < 2) {
-	cerr << "usage: " << argv[0] << " <database> [dry-run]" << endl;
+	cerr << "usage: " << argv[0] << " <database> [--test] [--nosignature]" << endl;
 	return 1;
     }
 
+    int argp = 2;
+
     bool dry_run = false;
-    if (argc > 2) {
-	dry_run = (string(argv[2]) == "dry-run");
+    bool nosignature = false;
+    while (argp < argc) {
+	string arg(argv[argp]);
+	if (arg == "--test") dry_run = true;
+	if (arg == "--nosignature") nosignature = true;
+	argp++;
     }
 
     const char *logfile = getenv("ZYPP_LOGFILE");
@@ -83,7 +89,7 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    MIL << "START transact " << argv[1] << endl;
+    MIL << "START transact " << argv[1] << (dry_run?" --test":" ") << (nosignature?" --nosignature":"") <<  endl;
 
     // access the sqlite db
 
@@ -134,6 +140,7 @@ main (int argc, char **argv)
 	PoolItemList x,y,z;
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
+#warning Must honor nosignature
 #if 0
 #warning dry_run disabled
 	God->target()->commit( God->pool(), 0, x, y, z );
