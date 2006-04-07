@@ -55,6 +55,8 @@ public:
         /** */
 	virtual unsigned mediaId() const;
 
+	virtual Vendor vendor() const;
+
 protected:
 	Source_Ref _source;
 	TranslatedText _summary;

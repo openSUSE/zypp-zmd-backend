@@ -109,6 +109,9 @@ bool DbPackageImpl::installOnly() const
 unsigned DbPackageImpl::mediaId() const
 { return _media_nr; }
 
+Vendor DbPackageImpl::vendor() const
+{ return "suse"; }
+
   /////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
