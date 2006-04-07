@@ -258,9 +258,9 @@ prepare_res_insert (sqlite3 *db)
         "INSERT INTO resolvables (name, version, release, epoch, arch,"
 	//			  6               7
         "                         installed_size, catalog,"
-	//			  8          9      10      11        12
-        "                         installed, local, status, category, kind) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	//			  8          9      10      11        12       13
+        "                         installed, local, status, category, license, kind) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     return prepare_handle( db, query );
 }
@@ -710,6 +710,8 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
     Pattern::constPtr pattern = asKind<Pattern>(res);
     Product::constPtr product = asKind<Product>(res);
 
+    zypp::License license;
+
     int rc;
     sqlite3_stmt *handle = _insert_res_handle;
 
@@ -744,12 +746,30 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
     }
     sqlite3_bind_int( handle, 10, resstatus2rcstatus( status ) );
 
-    if (patch != NULL)
+    if (pkg != NULL) {
+	license = pkg->licenseToConfirm();
+	if (license.empty()) {
+	    sqlite3_bind_text( handle, 12, NULL, -1, SQLITE_STATIC );
+	}
+	else {
+	    sqlite3_bind_text( handle, 12, license.c_str(), -1, SQLITE_STATIC );
+	}
+    }
+    else if (patch != NULL) {
 	sqlite3_bind_text( handle, 11, patch->category().c_str(), -1, SQLITE_STATIC );
-    else if (product != NULL)
+    }
+    else if (product != NULL) {
 	sqlite3_bind_text( handle, 11, product->category().c_str(), -1, SQLITE_STATIC );
+	license = product->licenseToConfirm();
+	if (license.empty()) {
+	    sqlite3_bind_text( handle, 12, NULL, -1, SQLITE_STATIC );
+	}
+	else {
+	    sqlite3_bind_text( handle, 12, license.c_str(), -1, SQLITE_STATIC );
+	}
+    }
 
-    sqlite3_bind_int( handle, 12, kind2target( obj->kind() ) );
+    sqlite3_bind_int( handle, 13, kind2target( obj->kind() ) );
 
     rc = sqlite3_step( handle );
     sqlite3_reset( handle );
