@@ -27,6 +27,7 @@ using namespace zypp;
 
 #include "RpmCallbacks.h"
 #include "MediaChangeCallback.h"
+#include "MessageResolvableReportCallback.h"
 
 using solver::detail::ResolverInfo_Ptr;
 
@@ -131,8 +132,9 @@ main (int argc, char **argv)
 	return 0;
     }
 
-    RpmCallbacks r_callbacks;		// init and connect rpm progress callbacks
-    MediaChangeCallback m_callback;	// init and connect media change callback
+    RpmCallbacks rpm_callbacks;				// init and connect rpm progress callbacks
+    MediaChangeCallback med_callback;			// init and connect media change callback
+    MessageResolvableReportCallback msg_callback;	// init and connect patch message callback
 
     int result = 0;
 
@@ -153,10 +155,10 @@ main (int argc, char **argv)
     catch ( const media::MediaException & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
-	if (m_callback.mediaNr() != 0			// exception due to MediaChange callback ?
-	    && !m_callback.description().empty())
+	if (med_callback.mediaNr() != 0			// exception due to MediaChange callback ?
+	    && !med_callback.description().empty())
 	{
-	    cerr << "Need media " << m_callback.mediaNr() << ": " << m_callback.description() << endl;
+	    cerr << "Need media " << med_callback.mediaNr() << ": " << med_callback.description() << endl;
 	}
 	else {
 	    cout << "3|" << expt_r.asUserString() << endl;
