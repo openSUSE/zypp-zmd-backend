@@ -156,7 +156,7 @@ main (int argc, char **argv)
 
     // start ZYPP
 
-    ZYpp::Ptr God = backend::getZYpp();
+    ZYpp::Ptr God = backend::getZYpp( true );
 
     // load the catalogs and resolvables from sqlite db
 

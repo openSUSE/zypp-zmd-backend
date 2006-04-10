@@ -170,7 +170,7 @@ main (int argc, char **argv)
     //				      database		type		  uri		    path              catalog
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
 
-    ZYpp::Ptr God = backend::getZYpp( );
+    ZYpp::Ptr God = backend::getZYpp( true );
 
     manager = SourceManager::sourceManager();
     if (! restore_sources ())
