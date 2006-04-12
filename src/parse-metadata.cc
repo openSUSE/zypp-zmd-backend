@@ -223,8 +223,32 @@ main (int argc, char **argv)
 	    }
 	}
 	if (it == manager->Source_end()) {
-	    WAR << "Source not found" << endl;
-	    result = 1;
+	    MIL << "Source not found, adding" << endl;
+
+	    Source_Ref source;
+	    try {
+		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
+		sync_source( db, source, catalog, Url() );			// zypp is always local
+	    }
+	    catch( const Exception & excpt_r ) {
+		cerr << "3|Can't add repository at " << uri << endl;
+		ZYPP_CAUGHT( excpt_r );
+		ERR << "Can't add repository at " << uri << endl;
+		result = 1;
+	    }
+
+	    if (result == 0) {
+		try {
+		    manager->addSource( source );
+		    manager->store( "/", true /*metadata_cache*/ );
+		}
+		catch (Exception & excpt_r) {
+		    cerr << "3|Can't store zypp repository" << endl;
+		    ZYPP_CAUGHT (excpt_r);
+		    ERR << "Couldn't store sources" << endl;
+		    result = 1;
+		}
+	    }
 	}
     }
     else if (type == YUM)
