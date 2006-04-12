@@ -983,7 +983,8 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 
 	if (obj->kind() != ResTraits<SrcPackage>::kind		// don't write src/nosrc packages
             && ( status == ResStatus::installed			// installed ones are ok
-		|| obj->arch().compatibleWith( sysarch ) ) )	//   and so are architecturally compatible ones
+		|| obj->kind() == ResTraits<Atom>::kind		//  and atoms because we need them for multi-arch patch requirements
+		|| obj->arch().compatibleWith( sysarch ) ) )	//   and architecturally compatible ones
 	{
 	    rowid = writeResObject( obj, status, catalog, force_remote );
 	    if (rowid < 0)
