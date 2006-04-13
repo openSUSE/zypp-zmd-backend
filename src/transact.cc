@@ -69,7 +69,7 @@ int
 main (int argc, char **argv)
 {
     if (argc < 2) {
-	cerr << "usage: " << argv[0] << " <database> [--test] [--nosignature]" << endl;
+	cerr << "usage: " << argv[0] << " <database> [--test] [--nosignature] [--nopretest]" << endl;
 	return 1;
     }
 
@@ -77,10 +77,13 @@ main (int argc, char **argv)
 
     bool dry_run = false;
     bool nosignature = false;
+    bool nopretest = false;
     while (argp < argc) {
 	string arg(argv[argp]);
 	if (arg == "--test") dry_run = true;
 	if (arg == "--nosignature") nosignature = true;
+#warning nopretest not honored
+	if (arg == "--nopretest") nopretest = true;
 	argp++;
     }
 
