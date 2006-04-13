@@ -28,6 +28,7 @@ using namespace zypp;
 #include "RpmCallbacks.h"
 #include "MediaChangeCallback.h"
 #include "MessageResolvableReportCallback.h"
+#include "KeyRingCallbacks.h"
 
 using solver::detail::ResolverInfo_Ptr;
 
@@ -186,5 +187,10 @@ main (int argc, char **argv)
 
     MIL << "END transact, result " << result << endl;
 
+    if (count > 1
+	&& dry_run)
+    {
+	return 0;	// bug #164583
+    }
     return result;
 }

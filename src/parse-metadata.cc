@@ -46,6 +46,7 @@ using namespace zypp;
 #include <sys/stat.h>
 
 #include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 //----------------------------------------------------------------------------
 static SourceManager_Ptr manager;
