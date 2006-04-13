@@ -142,13 +142,21 @@ main (int argc, char **argv)
 	PoolItemList x,y,z;
 
 	::setenv( "YAST_IS_RUNNING", "1", 1 );
-#warning Must honor nosignature
-#if 0
-#warning dry_run disabled
-	God->target()->commit( God->pool(), 0, x, y, z );
-#else
-	God->target()->commit( God->pool(), 0, x, y, z, dry_run );
-#endif
+
+	ZYppCommitPolicy policy;
+	if (dry_run) policy.dryRun( true );
+	if (nosignature) policy.rpmNoSignature( true );
+
+	ZYppCommitResult zres = God->commit( policy );
+	if (zres._result != 0) {
+	    result = 1;
+	    if (zres._errors.size() > 0) {
+		cout << "3|Incomplete transactions:" << endl;
+		for (PoolItemList::const_iterator it = zres._errors.begin(); it != zres._errors.end(); ++it) {
+		    cout << "3|" << it->resolvable() << endl;
+		}
+	    }
+	}
 	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
 	suseconfig.close();		// discard exit code
     }
