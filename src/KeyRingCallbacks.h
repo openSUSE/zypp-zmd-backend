@@ -19,6 +19,7 @@
 #include <zypp/ZYppCallbacks.h>
 #include <zypp/Pathname.h>
 #include <zypp/KeyRing.h>
+#include <zypp/Digest.h>
 
 ///////////////////////////////////////////////////////////////////
 namespace zypp {
@@ -37,10 +38,18 @@ namespace zypp {
 	{ return true; }
 	virtual bool askUserToAcceptVerificationFailed( const Pathname &file, const std::string &keyid, const std::string &keyname )
 	{ return true; }
-	virtual bool askUserToAcceptFileWithoutChecksum( const zypp::Pathname &file )
-	{ return true; }
     };
 
+
+    struct DigestReceive : public zypp::callback::ReceiveReport<zypp::DigestReport>
+    {
+      virtual bool askUserToAcceptNoDigest( const zypp::Pathname &file )
+      { return true; }
+      virtual bool askUserToAccepUnknownDigest( const Pathname &file, const std::string &name )
+      { return true; }
+      virtual bool askUserToAcceptWrongDigest( const Pathname &file, const std::string &requested, const std::string &found )
+      { return true; }
+    };
 
 ///////////////////////////////////////////////////////////////////
 }; // namespace zypp
@@ -63,5 +72,24 @@ class KeyRingCallbacks {
     }
 
 };
+
+class DigestCallbacks {
+
+  private:
+    zypp::DigestReceive _digestReport;
+
+  public:
+    DigestCallbacks()
+    {
+	_digestReport.connect();
+    }
+
+    ~DigestCallbacks()
+    {
+	_digestReport.disconnect();
+    }
+
+};
+
 
 #endif // ZMD_BACKEND_KEYRINGCALLBACKS_H
