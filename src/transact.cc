@@ -111,11 +111,11 @@ main (int argc, char **argv)
 
     DbSources dbs(db.db());
 
-    const SourcesList & sources = dbs.sources();
+    const SourcesList & sources = dbs.sources( true );	// create actual zypp sources
 
     for (SourcesList::const_iterator it = sources.begin(); it != sources.end(); ++it) {
 	zypp::ResStore store = it->resolvables();
-	MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
+	MIL << "Catalog " << it->id() << ", type " << it->type() << " contributing " << store.size() << " resolvables" << endl;
 	God->addResolvables( store, (it->id() == "@system") );
     }
 

@@ -89,10 +89,18 @@ DbSources::createDummy( const Url & url, const string & catalog )
 }
 
 
+//
+// actually create sources from catalogs table
+// if zypp_restore == true, match catalogs entries with actual zypp sources
+//   and return zypp source on match
+// else create dummy file:/ source since a real source is either not needed
+//   or files are provided by zmd
+//
+
 const SourcesList &
-DbSources::sources (bool refresh)
+DbSources::sources( bool zypp_restore, bool refresh )
 {
-    MIL << "DbSources::sources(" << (refresh ? "refresh" : "") << ")" << endl;
+    MIL << "DbSources::sources(" << (zypp_restore ? "zypp_restore " : "") << (refresh ? "refresh" : "") << ")" << endl;
 
     if (_db == NULL)
 	return _sources;
@@ -118,9 +126,10 @@ DbSources::sources (bool refresh)
     }
 
     media::MediaManager mmgr;
+    _smgr = SourceManager::sourceManager();
 
     try {
-	mmgr->restore("/");
+	_smgr->restore("/");
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
@@ -163,16 +172,34 @@ DbSources::sources (bool refresh)
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
 
-	Source_Ref zypp_source;
-	MIL << "Try to find '" << alias << "' as zypp source" << endl;
-	try {
-	    zypp_source = manager->findSource( alias );
-	    _sources.push_back( zypp_source );
-	    continue;
-	}
-	catch( const Exception & excpt_r ) {
-	    ZYPP_CAUGHT(excpt_r);
-	    MIL << "Not found, create dummy source for zmd provided files" << endl;
+	if (zypp_restore
+	    && id[0] != '@')		// not for zmd '@system' and '@local'
+	{
+	    Source_Ref zypp_source;
+	    MIL << "Try to find '" << name << "' as zypp source" << endl;
+	    try {
+		zypp_source = _smgr->findSource( name );
+		zypp_source.setId( id );		// set id, to match resolvable catalog
+		_sources.push_back( zypp_source );
+		MIL << "Found " << zypp_source << endl;
+		continue;
+	    }
+	    catch( const Exception & excpt_r ) {
+		ZYPP_CAUGHT(excpt_r);
+	    }
+
+	    MIL << "Try to find '" << alias << "' as zypp source" << endl;
+	    try {
+		zypp_source = _smgr->findSource( alias );
+		zypp_source.setId( id );		// set id, to match resolvable catalog
+		_sources.push_back( zypp_source );
+		MIL << "Found " << zypp_source << endl;
+		continue;
+	    }
+	    catch( const Exception & excpt_r ) {
+		ZYPP_CAUGHT(excpt_r);
+		MIL << "Not found, create dummy source for zmd provided files" << endl;
+	    }
 	}
 
 	try {
