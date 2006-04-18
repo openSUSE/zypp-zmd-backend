@@ -152,7 +152,9 @@ main (int argc, char **argv)
 	if (nosignature) policy.rpmNoSignature( true );
 
 	ZYppCommitResult zres = God->commit( policy );
-	if (zres._result != 0) {
+	if (zres._result <= 0					// no items committed ?
+	    || zres._errors.size() > 0)
+	{
 	    result = 1;
 	    if (zres._errors.size() > 0) {
 		cout << "3|Incomplete transactions:" << endl;
