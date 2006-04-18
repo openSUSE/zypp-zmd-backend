@@ -81,6 +81,12 @@ DbSourceImpl::attachIdMap (IdMap *idmap)
   _idmap = idmap;
 }
 
+void
+DbSourceImpl::attachZyppSource(zypp::Source_Ref source)
+{
+  _zyppsource = source;
+}
+
 //-----------------------------------------------------------------------------
 
 static sqlite3_stmt *
@@ -296,7 +302,7 @@ DbSourceImpl::createPackages(void)
 
 	try
 	{
-	    detail::ResImplTraits<DbPackageImpl>::Ptr impl( new DbPackageImpl( _source ) );
+	    detail::ResImplTraits<DbPackageImpl>::Ptr impl( new DbPackageImpl( _zyppsource ? _zyppsource :_source ) );
 
 	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
 	    name = (const char *) sqlite3_column_text( handle, 1 );

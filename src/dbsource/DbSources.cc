@@ -172,33 +172,30 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
 
+	Source_Ref zypp_source;
+
 	if (zypp_restore
 	    && id[0] != '@')		// not for zmd '@system' and '@local'
 	{
-	    Source_Ref zypp_source;
 	    MIL << "Try to find '" << name << "' as zypp source" << endl;
 	    try {
 		zypp_source = _smgr->findSource( name );
-		zypp_source.setId( id );		// set id, to match resolvable catalog
-		_sources.push_back( zypp_source );
-		MIL << "Found " << zypp_source << endl;
-		continue;
 	    }
 	    catch( const Exception & excpt_r ) {
 		ZYPP_CAUGHT(excpt_r);
+
+		MIL << "Try to find '" << alias << "' as zypp source" << endl;
+		try {
+		    zypp_source = _smgr->findSource( alias );
+		}
+		catch( const Exception & excpt_r ) {
+		    ZYPP_CAUGHT(excpt_r);
+		}
 	    }
 
-	    MIL << "Try to find '" << alias << "' as zypp source" << endl;
-	    try {
-		zypp_source = _smgr->findSource( alias );
+	    if (zypp_source) {
 		zypp_source.setId( id );		// set id, to match resolvable catalog
-		_sources.push_back( zypp_source );
 		MIL << "Found " << zypp_source << endl;
-		continue;
-	    }
-	    catch( const Exception & excpt_r ) {
-		ZYPP_CAUGHT(excpt_r);
-		MIL << "Not found, create dummy source for zmd provided files" << endl;
 	    }
 	}
 
@@ -214,6 +211,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
 
 	    impl->attachDatabase( _db );
 	    impl->attachIdMap( &_idmap );
+	    impl->attachZyppSource( zypp_source );
 
 	    Source_Ref src( factory.createFrom( impl ) );
 	    _sources.push_back( src );
