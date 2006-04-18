@@ -163,8 +163,11 @@ main (int argc, char **argv)
 		}
 	    }
 	}
-	ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
-	suseconfig.close();		// discard exit code
+
+	if (!dry_run) {
+	    ExternalProgram suseconfig( "/sbin/SuSEconfig", ExternalProgram::Discard_Stderr );	// should redirect stderr to logfile
+	    suseconfig.close();		// discard exit code
+	}
     }
     catch ( const media::MediaException & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
