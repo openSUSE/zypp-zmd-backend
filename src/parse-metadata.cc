@@ -216,9 +216,15 @@ main (int argc, char **argv)
 
 	SourceManager::Source_const_iterator it;
 	for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	    string src_uri = it->url().asString() + "?alias=" + it->alias();
+	    string src_uri = it->url().asString();
 	    MIL << "Uri " << src_uri << endl;
-	    if (src_uri == uri.asString()) {
+	    if (src_uri == uri.asString()) {				// check url first
+		sync_source( db, *it, catalog, Url(), false );
+		break;
+	    }
+	    src_uri += "?alias=" + it->alias();
+	    MIL << "Uri " << src_uri << endl;
+	    if (src_uri == uri.asString()) {				// then check <url>?alias=<alias>
 		sync_source( db, *it, catalog, Url(), false );
 		break;
 	    }
