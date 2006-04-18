@@ -148,9 +148,9 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
 
     void commit();
 
-    sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, bool force_remote = false );
+    sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, bool zmd_owned = false );
 
-    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, bool force_remote = false );
+    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, bool zmd_owned = false );
     sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch );
     sqlite_int64 writePattern( sqlite_int64 id, zypp::Pattern::constPtr pattern );
     sqlite_int64 writeProduct( sqlite_int64 id, zypp::Product::constPtr product );
@@ -185,7 +185,7 @@ public:
     bool updateCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
 
     /** write resolvables from store to db */
-    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, bool force_remote = false );
+    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, bool zmd_owned = false );
     /** write resolvables from pool to db */
     void writePool( const zypp::ResPool & pool, const char *catalog = NULL );
 

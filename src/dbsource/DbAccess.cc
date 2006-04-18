@@ -554,7 +554,7 @@ DbAccess::writeDependencies(sqlite_int64 id, Resolvable::constPtr res)
 // package
 
 sqlite_int64
-DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remote )
+DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool zmd_owned )
 {
     XXX <<  "DbAccess::writePackage(" << id << ", " << *pkg << ")" << endl;
     int rc;
@@ -570,19 +570,18 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool force_remot
     const char *location = pkg->location().asString().c_str();
     if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
 
-    if (force_remote
-	|| src.remote())
+    if (zmd_owned)
     {
-//	DBG << "Source " << src << ", url " << src.url() << " is remote" << endl;
+//	DBG << "Source " << src << ", url " << src.url() << " is zmd owned" << endl;
 	surl += "/";
 	surl += location;
-	location = NULL;				// zmd knows how to get the package
+	location = NULL;							// zmd knows how to get the package
     }
     else {
-//	DBG << "Source " << src << ", url " << src.url() << " is local, location " << location << endl;
+//	DBG << "Source " << src << ", url " << src.url() << " is zypp owned, location " << location << endl;
     }
     sqlite3_bind_text( handle, 5, surl.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );		// package_filename, NULL for zmd owned sources
 
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
@@ -697,7 +696,7 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
 //  return == 0 if this kind of resolvable is to be skipped
 
 sqlite_int64
-DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char *catalog, bool force_remote )
+DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char *catalog, bool zmd_owned )
 {
     XXX << "DbAccess::writeResObject (" << *obj << ", " << status << ")" << endl;
 
@@ -782,7 +781,7 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
 
     // now write the respective _details table
 
-    if (pkg != NULL) writePackage( rowid, pkg, force_remote );
+    if (pkg != NULL) writePackage( rowid, pkg, zmd_owned );
     else if (patch != NULL) writePatch( rowid, patch );
     else if (pattern != NULL) writePattern( rowid, pattern );
     else if (product != NULL) writeProduct( rowid, product );
@@ -961,7 +960,7 @@ DbAccess::removeCatalog( const std::string & catalog )
 // store
 
 void
-DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, bool force_remote )
+DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, bool zmd_owned )
 {
     XXX << "DbAccess::writeStore()" << endl;
 
@@ -986,7 +985,7 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 		|| obj->kind() == ResTraits<Atom>::kind		//  and atoms because we need them for multi-arch patch requirements
 		|| obj->arch().compatibleWith( sysarch ) ) )	//   and architecturally compatible ones
 	{
-	    rowid = writeResObject( obj, status, catalog, force_remote );
+	    rowid = writeResObject( obj, status, catalog, zmd_owned );
 	    if (rowid < 0)
 		break;
 	    if (rowid > 0)		// rowid == 0 means 'skip'

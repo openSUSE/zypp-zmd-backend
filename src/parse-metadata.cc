@@ -127,9 +127,9 @@ tell_yast()
 // upload all zypp sources as catalogs to the database
 
 static void
-sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, bool is_remote = false )
+sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, bool zmd_owned )
 {
-    DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << "', remote? " << is_remote << endl;
+    DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << ", zmd_owned " << zmd_owned << endl;
 
     ResStore store = source.resolvables();
     if (!url.getScheme().empty()) {
@@ -139,7 +139,7 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 
     DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), is_remote );	// store all resolvables as 'uninstalled'
+    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), zmd_owned );	// store all resolvables as 'uninstalled'
 
     return;
 }
@@ -219,7 +219,7 @@ main (int argc, char **argv)
 	    string src_uri = it->url().asString() + "?alias=" + it->alias();
 	    MIL << "Uri " << src_uri << endl;
 	    if (src_uri == uri.asString()) {
-		sync_source( db, *it, catalog, Url() );			// zypp is always local
+		sync_source( db, *it, catalog, Url(), false );
 		break;
 	    }
 	}
@@ -229,7 +229,7 @@ main (int argc, char **argv)
 	    Source_Ref source;
 	    try {
 		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
-		sync_source( db, source, catalog, Url() );			// zypp is always local
+		sync_source( db, source, catalog, Url(), false );
 	    }
 	    catch( const Exception & excpt_r ) {
 		cerr << "3|Can't add repository at " << uri << endl;
@@ -261,7 +261,7 @@ main (int argc, char **argv)
 
 	    Source_Ref source( SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() ) );
 	    
-	    sync_source( db, source, catalog, uri, true );		// yum is always remote
+	    sync_source( db, source, catalog, uri, true );		// yum is always zmd_owned
 
 	}
 	catch( const Exception & excpt_r )
