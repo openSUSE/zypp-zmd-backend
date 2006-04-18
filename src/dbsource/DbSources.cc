@@ -118,6 +118,16 @@ DbSources::sources (bool refresh)
     }
 
     media::MediaManager mmgr;
+
+    try {
+	mmgr->restore("/");
+    }
+    catch (Exception & excpt_r) {
+	ZYPP_CAUGHT (excpt_r);
+	ERR << "Couldn't restore sources" << endl;
+	return _sources;
+    }
+
     media::MediaId mediaid = mmgr.open( Url( "file:/" ) );
     SourceFactory factory;
 
@@ -153,6 +163,18 @@ DbSources::sources (bool refresh)
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
 
+	Source_Ref zypp_source;
+	MIL << "Try to find '" << alias << "' as zypp source" << endl;
+	try {
+	    zypp_source = manager->findSource( alias );
+	    _sources.push_back( zypp_source );
+	    continue;
+	}
+	catch( const Exception & excpt_r ) {
+	    ZYPP_CAUGHT(excpt_r);
+	    MIL << "Not found, create dummy source for zmd provided files" << endl;
+	}
+
 	try {
 
 	    DbSourceImpl *impl = new DbSourceImpl ();
@@ -171,6 +193,7 @@ DbSources::sources (bool refresh)
 	}
 	catch (Exception & excpt_r) {
 	    ZYPP_CAUGHT(excpt_r);
+	    ERR << "Couldn't create zmd source" << endl;
 	}
 
     }
