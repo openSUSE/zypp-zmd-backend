@@ -173,6 +173,11 @@ main (int argc, char **argv)
 
     ZYpp::Ptr God = backend::getZYpp( true );
 
+    backend::initTarget( God );
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
+
     manager = SourceManager::sourceManager();
     if (! restore_sources ())
 	return 1;
@@ -184,9 +189,6 @@ main (int argc, char **argv)
 	ERR << "Cannot open database" << endl;
 	return 1;
     }
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     string type( argv[2] );
     Pathname path( argv[3] );
