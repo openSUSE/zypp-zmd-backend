@@ -39,7 +39,15 @@ service_delete( ZYpp::Ptr Z, const string & uri)
 
     SourceManager::Source_const_iterator it;
     for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	string src_uri = it->url().asString() + "?alias=" + it->alias();
+	string src_type = it->type(); // #160613
+	if (src_type == "YaST")
+	    src_type = "zypp";
+	string src_uri = it->url().asString();
+	if (src_type == "zypp")
+	{
+	    char separator = (src_uri.find('?') != string::npos) ? ';' : '?';
+	    src_uri += separator + "alias=" + it->alias();
+	}
 	MIL << "Uri " << src_uri << endl;
 	if (src_uri == uri) {
 	    manager->removeSource( it->alias() );
