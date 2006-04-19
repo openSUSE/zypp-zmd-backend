@@ -27,6 +27,7 @@ using namespace zypp;
 #include <sqlite3.h>
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
+#include "KeyRingCallbacks.h"
 
 typedef enum {
     PACKAGE_OP_REMOVE  = 0,

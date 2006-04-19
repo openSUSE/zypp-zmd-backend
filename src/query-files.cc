@@ -30,6 +30,7 @@ using namespace std;
 
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
+#include "KeyRingCallbacks.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "query-files"
@@ -410,6 +411,9 @@ main (int argc, char **argv)
 	return 1;
 
     backend::initTarget( God );
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     if (strcmp( argv[2], CATALOGSYNC ) == 0) {
 	MIL << "Doing a catalog sync" << endl;

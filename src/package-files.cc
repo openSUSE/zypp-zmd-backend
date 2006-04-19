@@ -35,6 +35,7 @@ using target::rpm::FileInfo;
 #include <sys/stat.h>
 
 #include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "package-files"
@@ -235,6 +236,9 @@ main (int argc, char **argv)
 
     ZYpp::Ptr God = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( God );
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     int result = package_files( db.db(), str::strtonum<long long>( argv[2] ), target );
 

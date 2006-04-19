@@ -16,6 +16,7 @@
 #include <sqlite3.h>
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
+#include "KeyRingCallbacks.h"
 
 #include <zypp/solver/detail/ResolverInfo.h>
 
@@ -161,6 +162,9 @@ main (int argc, char **argv)
     // load the catalogs and resolvables from sqlite db
 
     DbSources dbs(db.db());
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     const SourcesList & sources = dbs.sources();
 

@@ -11,6 +11,8 @@
 #include <zypp/base/Exception.h>
 #include <zypp/base/Algorithm.h>
 
+#include "KeyRingCallbacks.h"
+
 using namespace std;
 using namespace zypp;
 
@@ -145,6 +147,9 @@ main (int argc, char **argv)
 
     ZYpp::Ptr Z = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( Z, false );
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     query_pool( Z, filter, catalog );
 

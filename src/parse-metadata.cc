@@ -185,6 +185,9 @@ main (int argc, char **argv)
 	return 1;
     }
 
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
+
     string type( argv[2] );
     Pathname path( argv[3] );
 

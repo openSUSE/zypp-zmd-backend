@@ -13,6 +13,7 @@
 #include <zypp/Target.h>
 
 #include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 using namespace std;
 using namespace zypp;
@@ -41,6 +42,9 @@ main (int argc, char **argv)
 
     ZYpp::Ptr God = backend::getZYpp( true );
     Target_Ptr target = backend::initTarget( God );
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     string name = target->rpmDb().whoOwnsFile( argv[2] );
     if (name.empty()) {

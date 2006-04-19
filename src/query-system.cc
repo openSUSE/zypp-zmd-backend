@@ -15,6 +15,7 @@ using namespace zypp;
 
 #include <sqlite3.h>
 #include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "query-system"
@@ -161,6 +162,9 @@ main (int argc, char **argv)
     DbAccess db( argv[1] );
     if (!db.openDb( true ))
 	return 1;
+
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
 

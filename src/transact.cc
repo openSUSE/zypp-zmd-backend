@@ -111,6 +111,9 @@ main (int argc, char **argv)
 
     DbSources dbs(db.db());
 
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
+
     const SourcesList & sources = dbs.sources( true );	// create actual zypp sources
 
     for (SourcesList::const_iterator it = sources.begin(); it != sources.end(); ++it) {
