@@ -45,7 +45,7 @@ service_delete( ZYpp::Ptr Z, const string & uri)
 	string src_uri = it->url().asString();
 	if (src_type == "zypp")
 	{
-	    char separator = (src_uri.find('?') != string::npos) ? ';' : '?';
+	    char separator = (src_uri.find('?') != string::npos) ? '&' : '?';
 	    src_uri += separator + "alias=" + it->alias();
 	}
 	MIL << "Uri " << src_uri << endl;
