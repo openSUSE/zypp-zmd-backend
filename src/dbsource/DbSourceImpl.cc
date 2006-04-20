@@ -370,7 +370,7 @@ DbSourceImpl::createAtoms(void)
 
 	    Atom::Ptr atom = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( atom );
-	    DBG << "Atom[" << id << "] " << *atom << endl;
+	    XXX << "Atom[" << id << "] " << *atom << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = atom;
 	}
@@ -421,7 +421,7 @@ DbSourceImpl::createPatches(void)
 
 	    Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( patch );
-	    DBG << "Patch[" << id << "] " << *patch << endl;
+	    XXX << "Patch[" << id << "] " << *patch << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = patch;
 	}
@@ -472,7 +472,7 @@ DbSourceImpl::createPatterns(void)
 
 	    Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( pattern );
-	    DBG << "Pattern[" << id << "] " << *pattern << endl;
+	    XXX << "Pattern[" << id << "] " << *pattern << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = pattern;
 	}
@@ -523,7 +523,7 @@ DbSourceImpl::createProducts(void)
 
 	    Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
 	    _store.insert( product );
-	    DBG << "Product[" << id << "] " << *product << endl;
+	    XXX << "Product[" << id << "] " << *product << endl;
 	    if ( _idmap != 0)
 		(*_idmap)[id] = product;
 	}
