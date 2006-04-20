@@ -105,14 +105,14 @@ main (int argc, char **argv)
     // start ZYPP
 
     ZYpp::Ptr God = backend::getZYpp();
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
+
     Target_Ptr target = backend::initTarget( God );
 
     // load the catalogs and resolvables from sqlite db
 
     DbSources dbs(db.db());
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     const SourcesList & sources = dbs.sources( true );	// create actual zypp sources
 
@@ -124,7 +124,8 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
-    int count = read_transactions (God->pool(), db.db(), dbs);
+    int removals = 0;
+    int count = read_transactions (God->pool(), db.db(), dbs, removals);
     if (count < 0) {
 	cerr << "Reading transactions failed." << endl;
 	return 1;
@@ -155,8 +156,13 @@ main (int argc, char **argv)
 	if (nosignature) policy.rpmNoSignature( true );
 
 	ZYppCommitResult zres = God->commit( policy );
-	if (zres._result <= 0					// no items committed ?
-	    || zres._errors.size() > 0)
+
+	// removals aren't counted in zres._result, only installs are
+	// so check if there where installs at all before checking zres._result
+
+	if (((count - removals > 0)				// any installs ?
+	      && (zres._result <= 0))				// but no items committed ?
+	    || zres._errors.size() > 0)				// or any errors
 	{
 	    result = 1;
 	    if (zres._errors.size() > 0) {

@@ -235,10 +235,10 @@ main (int argc, char **argv)
 	return 1;
 
     ZYpp::Ptr God = backend::getZYpp( true );
-    Target_Ptr target = backend::initTarget( God );
-
     KeyRingCallbacks keyring_callbacks;
     DigestCallbacks digest_callbacks;
+
+    Target_Ptr target = backend::initTarget( God );
 
     int result = package_files( db.db(), str::strtonum<long long>( argv[2] ), target );
 

@@ -172,11 +172,10 @@ main (int argc, char **argv)
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
 
     ZYpp::Ptr God = backend::getZYpp( true );
-
-    backend::initTarget( God );
-
     KeyRingCallbacks keyring_callbacks;
     DigestCallbacks digest_callbacks;
+
+    backend::initTarget( God );
 
     manager = SourceManager::sourceManager();
     if (! restore_sources ())

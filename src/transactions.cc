@@ -27,7 +27,6 @@ using namespace zypp;
 #include <sqlite3.h>
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
-#include "KeyRingCallbacks.h"
 
 typedef enum {
     PACKAGE_OP_REMOVE  = 0,
@@ -87,10 +86,11 @@ struct CopyTransaction
 // read all transactions from the transactions table and
 //  set the appropriate status in the pool
 // return -1 on error
-//  else the number of transactions
+//  else the number of transactions (installs, removals, and upgrades)
+// return the number of removals in removals
 
 int
-read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
+read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources, int & removals)
 {
     MIL << "read_transactions" << endl;
 
@@ -103,6 +103,8 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
     }
 
     int count = 0;
+
+    removals = 0;
 
     while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
         int id;
@@ -118,6 +120,9 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources)
 	    cerr << "3|Resolvable id " << id << " does not exist." << endl;
 	    break;
 	}
+
+	if (action == PACKAGE_OP_REMOVE)
+	    ++removals;
 
 	// now we have the ResObject, but for setting the status we need
 	//  the corresponding PoolItem

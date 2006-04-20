@@ -157,14 +157,14 @@ main (int argc, char **argv)
     MIL << "START query-system " << argv[1] << endl;
 
     ZYpp::Ptr God = backend::getZYpp( true );
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
+
     Target_Ptr target = backend::initTarget( God, false );
 
     DbAccess db( argv[1] );
     if (!db.openDb( true ))
 	return 1;
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
 

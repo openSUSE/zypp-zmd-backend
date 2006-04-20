@@ -158,13 +158,12 @@ main (int argc, char **argv)
     // start ZYPP
 
     ZYpp::Ptr God = backend::getZYpp( true );
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     // load the catalogs and resolvables from sqlite db
 
     DbSources dbs(db.db());
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     const SourcesList & sources = dbs.sources();
 

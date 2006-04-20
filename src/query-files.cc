@@ -404,6 +404,8 @@ main (int argc, char **argv)
     MIL << "START query-files " << argv[1] << " " << argv[2] << " " << ((argc>3)?argv[3]:"") << endl;
 
     ZYpp::Ptr God = backend::getZYpp( true );
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     DbAccess db(argv[1]);
 
@@ -411,9 +413,6 @@ main (int argc, char **argv)
 	return 1;
 
     backend::initTarget( God );
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     if (strcmp( argv[2], CATALOGSYNC ) == 0) {
 	MIL << "Doing a catalog sync" << endl;

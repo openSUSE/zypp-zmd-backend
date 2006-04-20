@@ -90,10 +90,10 @@ main (int argc, char **argv)
     MIL << "START service-delete " << db << " " << alias << endl;
 
     ZYpp::Ptr Z = backend::getZYpp( true );
-    Target_Ptr target = backend::initTarget( Z, false );
-
     KeyRingCallbacks keyring_callbacks;
     DigestCallbacks digest_callbacks;
+
+    Target_Ptr target = backend::initTarget( Z, false );
 
     int result = service_delete( Z, alias );
 

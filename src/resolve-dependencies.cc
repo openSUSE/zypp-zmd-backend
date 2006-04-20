@@ -77,13 +77,12 @@ main (int argc, char **argv)
 	return 1;
 
     ZYpp::Ptr God = backend::getZYpp( true );
+    KeyRingCallbacks keyring_callbacks;
+    DigestCallbacks digest_callbacks;
 
     // load the catalogs and resolvables from sqlite db
 
     DbSources dbs(db.db());
-
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
 
     const SourcesList & sources = dbs.sources();
 
@@ -99,7 +98,9 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
-    int count = read_transactions (God->pool(), db.db(), dbs);
+    int removals = 0;	// unused here
+
+    int count = read_transactions (God->pool(), db.db(), dbs, removals);
     if (count < 0)
 	return 1;
 
