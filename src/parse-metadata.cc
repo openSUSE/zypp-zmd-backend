@@ -226,7 +226,8 @@ main (int argc, char **argv)
 		sync_source( db, *it, catalog, Url(), false );
 		break;
 	    }
-	    src_uri += "?alias=" + it->alias();
+	    char separator = (src_uri.find('?') != string::npos) ? ';' : '?';
+	    src_uri += separator + "alias=" + it->alias();
 	    MIL << "Uri " << src_uri << endl;
 	    if (src_uri == uri.asString()) {				// then check <url>?alias=<alias>
 		sync_source( db, *it, catalog, Url(), false );
