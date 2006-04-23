@@ -192,11 +192,24 @@ main (int argc, char **argv)
     string type( argv[2] );
     Pathname path( argv[3] );
 
+    // check for "...;alias=..." and replace with "...&alias=..." (#168030)
+    string checkpath ( argv[3] );
+    string::size_type aliaspos = checkpath.find( ";alias=" );
+    if (aliaspos != string::npos) {
+	checkpath.replace( aliaspos, 1, "&" );
+    }
+
+    string checkurl( argv[4] );
+    aliaspos = checkurl.find( ";alias=" );
+    if (aliaspos != string::npos) {
+	checkurl.replace( aliaspos, 1, "&" );
+    }
+
     Url uri;
     Url pathurl;
     try {
-	uri = Url ( ((argv[3][0] == '/') ? string("file:"):string("")) + argv[3] );
-	pathurl = Url ( ((argv[4][0] == '/') ? string("file:"):string("")) + argv[4] );
+	uri = Url ( ((checkpath[0] == '/') ? string("file:"):string("")) + checkpath );
+	pathurl = Url ( ((checkurl[0] == '/') ? string("file:"):string("")) + checkurl );
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
@@ -221,14 +234,14 @@ main (int argc, char **argv)
 	SourceManager::Source_const_iterator it;
 	for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
 	    string src_uri = it->url().asString();
-	    MIL << "Uri " << src_uri << endl;
+	    MIL << "Uri '" << src_uri << "'" << endl;
 	    if (src_uri == uri.asString()) {				// check url first
 		sync_source( db, *it, catalog, Url(), false );
 		break;
 	    }
-	    char separator = (src_uri.find('?') != string::npos) ? '&' : '?';
-	    src_uri += separator + "alias=" + it->alias();
-	    MIL << "Uri " << src_uri << endl;
+	    string separator = (src_uri.find('?') != string::npos) ? "&" : "?";
+	    src_uri += (separator + "alias=" + it->alias());
+	    MIL << "Uri '" << src_uri << "'" << endl;
 	    if (src_uri == uri.asString()) {				// then check <url>?alias=<alias>
 		sync_source( db, *it, catalog, Url(), false );
 		break;
