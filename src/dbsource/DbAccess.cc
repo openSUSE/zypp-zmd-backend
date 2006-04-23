@@ -11,6 +11,7 @@
 */
 
 #include <iostream>
+#include <fstream>
 
 #include "zypp/base/Logger.h"
 #include "zypp/ZYppFactory.h"
@@ -207,6 +208,8 @@ DbAccess::DbAccess( const std::string & dbfile_r )
     , _db( NULL )
     , _insert_res_handle( NULL )
     , _insert_pkg_handle( NULL )
+    , _insert_message_handle( NULL )
+    , _insert_script_handle( NULL )
     , _insert_patch_handle( NULL )
     , _insert_pattern_handle( NULL )
     , _insert_product_handle( NULL )
@@ -261,6 +264,36 @@ prepare_res_insert (sqlite3 *db)
 	//			  8          9      10      11        12       13
         "                         installed, local, status, category, license, kind) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+    return prepare_handle( db, query );
+}
+
+
+static sqlite3_stmt *
+prepare_message_insert (sqlite3 *db)
+{
+    string query (
+	//			      1
+        "INSERT INTO message_details (resolvable_id, "
+	//			      2
+        "                             content) "
+        "VALUES (?, ?)"
+	"");
+
+    return prepare_handle( db, query );
+}
+
+
+static sqlite3_stmt *
+prepare_script_insert (sqlite3 *db)
+{
+    string query (
+	//			      1
+        "INSERT INTO script_details (resolvable_id, "
+	//			      2          3
+        "                             do_script, undo_script) "
+        "VALUES (?, ?, ?)"
+	"");
 
     return prepare_handle( db, query );
 }
@@ -364,6 +397,16 @@ DbAccess::prepareWrite(void)
 	goto cleanup;
     }
 
+    _insert_message_handle = prepare_message_insert (_db);
+    if (_insert_message_handle == NULL) {
+	goto cleanup;
+    }
+
+    _insert_script_handle = prepare_script_insert (_db);
+    if (_insert_script_handle == NULL) {
+	goto cleanup;
+    }
+
     _insert_patch_handle = prepare_patch_insert (_db);
     if (_insert_patch_handle == NULL) {
 	goto cleanup;
@@ -449,6 +492,8 @@ DbAccess::closeDb(void)
 
     close_handle( &_insert_res_handle );
     close_handle( &_insert_pkg_handle );
+    close_handle( &_insert_message_handle );
+    close_handle( &_insert_script_handle );
     close_handle( &_insert_patch_handle );
     close_handle( &_insert_pattern_handle );
     close_handle( &_insert_product_handle );
@@ -602,6 +647,79 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool zmd_owned )
 
 
 //----------------------------------------------------------------------------
+// message
+
+sqlite_int64
+DbAccess::writeMessage (sqlite_int64 id, Message::constPtr message )
+{
+    XXX <<  "DbAccess::writeMessage(" << id << ", " << *message << ")" << endl;
+    int rc;
+    sqlite3_stmt *handle = _insert_message_handle;
+
+    sqlite3_bind_int64( handle, 1, id);
+    sqlite3_bind_text( handle, 2, message->text().asString().c_str(), -1, SQLITE_STATIC );
+
+    rc = sqlite3_step( handle);
+    sqlite3_reset( handle);
+
+    if (rc != SQLITE_DONE) {
+	ERR << "Error adding message to SQL: " << sqlite3_errmsg (_db) << endl;
+	return -1;
+    }
+    sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+
+    return rowid;
+}
+
+
+//----------------------------------------------------------------------------
+// script
+
+static string
+readFromPath( const Pathname & p )
+{
+    string result;
+    string line;
+    try {
+	ifstream infile( p.asString().c_str() );
+	while (getline( infile, line )) {
+	    result += line;
+	    result += "\n";
+	}
+    }
+    catch( const Exception & excpt_r ) {
+	ZYPP_CAUGHT( excpt_r );
+    }
+    return result;
+}
+
+sqlite_int64
+DbAccess::writeScript (sqlite_int64 id, Script::constPtr script)
+{
+    XXX <<  "DbAccess::writeScript(" << id << ", " << *script << ")" << endl;
+    int rc;
+    sqlite3_stmt *handle = _insert_script_handle;
+
+    sqlite3_bind_int64( handle, 1, id);
+    string do_script( readFromPath( script->do_script() ) );
+    string undo_script( readFromPath( script->undo_script() ) );
+    sqlite3_bind_text( handle, 2, do_script.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 3, undo_script.c_str(), -1, SQLITE_STATIC );
+
+    rc = sqlite3_step( handle);
+    sqlite3_reset( handle);
+
+    if (rc != SQLITE_DONE) {
+	ERR << "Error adding message to SQL: " << sqlite3_errmsg (_db) << endl;
+	return -1;
+    }
+    sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+
+    return rowid;
+}
+
+
+//----------------------------------------------------------------------------
 // patch
 
 sqlite_int64
@@ -705,6 +823,8 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
 
     Resolvable::constPtr res = obj;
     Package::constPtr pkg = asKind<Package>(res);
+    Message::constPtr message = asKind<Message>(res);
+    Script::constPtr script = asKind<Script>(res);
     Patch::constPtr patch = asKind<Patch>(res);
     Pattern::constPtr pattern = asKind<Pattern>(res);
     Product::constPtr product = asKind<Product>(res);
@@ -782,6 +902,8 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
     // now write the respective _details table
 
     if (pkg != NULL) writePackage( rowid, pkg, zmd_owned );
+    else if (message != NULL) writeMessage( rowid, message );
+    else if (script != NULL) writeScript( rowid, script );
     else if (patch != NULL) writePatch( rowid, patch );
     else if (pattern != NULL) writePattern( rowid, pattern );
     else if (product != NULL) writeProduct( rowid, product );

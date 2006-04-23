@@ -23,6 +23,8 @@
 #include <zypp/ResStore.h>
 #include <zypp/Resolvable.h>
 #include <zypp/Package.h>
+#include <zypp/Message.h>
+#include <zypp/Script.h>
 #include <zypp/Patch.h>
 #include <zypp/Selection.h>
 #include <zypp/Pattern.h>
@@ -141,6 +143,8 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
     sqlite3 *_db;
     sqlite3_stmt *_insert_res_handle;
     sqlite3_stmt *_insert_pkg_handle;
+    sqlite3_stmt *_insert_message_handle;
+    sqlite3_stmt *_insert_script_handle;
     sqlite3_stmt *_insert_patch_handle;
     sqlite3_stmt *_insert_pattern_handle;
     sqlite3_stmt *_insert_product_handle;
@@ -151,6 +155,8 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
     sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, bool zmd_owned = false );
 
     sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, bool zmd_owned = false );
+    sqlite_int64 writeMessage( sqlite_int64 id, zypp::Message::constPtr message );
+    sqlite_int64 writeScript( sqlite_int64 id, zypp::Script::constPtr script );
     sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch );
     sqlite_int64 writePattern( sqlite_int64 id, zypp::Pattern::constPtr pattern );
     sqlite_int64 writeProduct( sqlite_int64 id, zypp::Product::constPtr product );
