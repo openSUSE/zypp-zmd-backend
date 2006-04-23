@@ -15,16 +15,22 @@ noinst_HEADERS =				\
 	DbSourceImpl.h				\
 	DbPackageImpl.h				\
 	DbAtomImpl.h				\
+	DbScriptImpl.h				\
+	DbMessageImpl.h				\
+	DbLanguageImpl.h			\
 	DbPatchImpl.h				\
 	DbPatternImpl.h				\
 	DbProductImpl.h
 
 lib_LTLIBRARIES =	lib@PACKAGE@.la
 
-lib@PACKAGE@_la_SOURCES =		\
+lib@PACKAGE@_la_SOURCES =			\
 	DbSourceImpl.cc				\
 	DbPackageImpl.cc			\
 	DbAtomImpl.cc				\
+	DbScriptImpl.cc				\
+	DbMessageImpl.cc			\
+	DbLanguageImpl.cc			\
 	DbPatchImpl.cc				\
 	DbPatternImpl.cc			\
 	DbProductImpl.cc			\

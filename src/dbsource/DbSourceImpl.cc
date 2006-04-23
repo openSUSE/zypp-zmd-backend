@@ -23,13 +23,12 @@
 
 #include "DbPackageImpl.h"
 #include "DbAtomImpl.h"
+#include "DbMessageImpl.h"
+#include "DbScriptImpl.h"
+#include "DbLanguageImpl.h"
 #include "DbPatchImpl.h"
 #include "DbPatternImpl.h"
 #include "DbProductImpl.h"
-#if 0
-#include "DbScriptImpl.h"
-#include "DbMessageImpl.h"
-#endif
 
 #include "zypp/source/SourceImpl.h"
 #include "zypp/base/Logger.h"
@@ -140,6 +139,62 @@ create_resolvables_handle (sqlite3 *db)
 
 
 static sqlite3_stmt *
+create_message_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7
+	"       installed_size, catalog,"
+	//      8          9      10
+	"       installed, local, content "
+	"FROM messages "
+	"WHERE catalog = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare messages selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+static sqlite3_stmt *
+create_script_handle (sqlite3 *db)
+{
+    const char *query;
+    int rc;
+    sqlite3_stmt *handle = NULL;
+
+    query =
+	//      0   1     2        3        4      5
+	"SELECT id, name, version, release, epoch, arch, "
+	//      6               7
+	"       installed_size, catalog,"
+	//      8          9      10	     11
+	"       installed, local, do_script, undo_script "
+	"FROM scripts "
+	"WHERE catalog = ?";
+
+    rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare scripts selection clause: " << sqlite3_errmsg ( db) << endl;
+	sqlite3_finalize (handle);
+	return NULL;
+    }
+
+    return handle;
+}
+
+
+static sqlite3_stmt *
 create_package_handle (sqlite3 *db)
 {
     const char *query;
@@ -216,7 +271,7 @@ create_pattern_handle (sqlite3 *db)
 	"SELECT id, name, version, release, epoch, arch, "
 	//      6               7
 	"       installed_size, catalog,"
-	//      8          9      11
+	//      8          9      10
 	"       installed, local, status "
 	"FROM patterns "
 	"WHERE catalog = ?";
@@ -279,60 +334,13 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
 
     createPackages();
     createAtoms();
+    createMessages();
+    createScripts();
+//    createLanguages();
     createPatches();
     createPatterns();
     createProducts();
 
-    return;
-}
-
-
-void
-DbSourceImpl::createPackages(void)
-{
-    sqlite3_stmt *handle = create_package_handle ( _db);
-    if (handle == NULL) return;
-
-    sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
-
-    int rc;
-    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
-
-	string name;
-
-	try
-	{
-	    detail::ResImplTraits<DbPackageImpl>::Ptr impl( new DbPackageImpl( _zyppsource ? _zyppsource :_source ) );
-
-	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
-	    name = (const char *) sqlite3_column_text( handle, 1 );
-	    string version ((const char *) sqlite3_column_text( handle, 2 ));
-	    string release ((const char *) sqlite3_column_text( handle, 3 ));
-	    unsigned epoch = sqlite3_column_int( handle, 4 );
-	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
-
-	    impl->readHandle( id, handle );
-
-	    // Collect basic Resolvable data
-	    NVRAD dataCollect( name,
-			Edition( version, release, epoch ),
-			arch,
-			createDependencies (id ) );
-
-	    Package::Ptr package = detail::makeResolvableFromImpl( dataCollect, impl );
-	    _store.insert( package );
-	    if ( _idmap != 0)
-		(*_idmap)[id] = package;
-	}
-	catch (const Exception & excpt_r)
-	{
-	    ERR << "Cannot create package object '"+name+"' from catalog '"+_source.id()+"'" << endl;
-	    sqlite3_reset (handle);
-	    ZYPP_RETHROW (excpt_r);
-	}
-    }
-
-    sqlite3_reset (handle);
     return;
 }
 
@@ -376,7 +384,210 @@ DbSourceImpl::createAtoms(void)
 	}
 	catch (const Exception & excpt_r)
 	{
-	    ERR << "Cannot create atom object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    ERR << "Cannot create atom object '" << name << "' from catalog '" << _source.id() << "'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createMessages(void)
+{
+    sqlite3_stmt *handle = create_message_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text( handle, 1, _source.id().c_str(), -1, SQLITE_STATIC );
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version( (const char *)sqlite3_column_text( handle, 2 ) );
+	    string release( (const char *)sqlite3_column_text( handle, 3 ) );
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    string content( (const char *)sqlite3_column_text( handle, 10 ) );
+
+	    detail::ResImplTraits<DbMessageImpl>::Ptr impl( new DbMessageImpl( _source, TranslatedText( content ), id ) );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Message::Ptr message = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( message );
+	    XXX << "Message[" << id << "] " << *message << endl;
+	    if (_idmap != 0)
+		(*_idmap)[id] = message;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create message object '" << name << "' from catalog '" << _source.id() << "'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createScripts(void)
+{
+    sqlite3_stmt *handle = create_script_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text( handle, 1, _source.id().c_str(), -1, SQLITE_STATIC );
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    string do_script( (const char *)sqlite3_column_text( handle, 10 ) );
+	    string undo_script( (const char *)sqlite3_column_text( handle, 11 ) );
+
+	    detail::ResImplTraits<DbScriptImpl>::Ptr impl( new DbScriptImpl( _source, do_script, undo_script, id ) );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Script::Ptr script = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( script );
+	    XXX << "Script[" << id << "] " << *script << endl;
+	    if ( _idmap != 0)
+		(*_idmap)[id] = script;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create script object '" << name << "' from catalog '" << _source.id() << "'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createLanguages(void)
+{
+    sqlite3_stmt *handle = create_resolvables_handle( _db );
+    if (handle == NULL) return;
+
+    sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int (handle, 2, RC_DEP_TARGET_LANGUAGE);
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    detail::ResImplTraits<DbLanguageImpl>::Ptr impl( new DbLanguageImpl( _source, id ) );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Language::Ptr language = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( language );
+	    XXX << "Language[" << id << "] " << *language << endl;
+	    if ( _idmap != 0)
+		(*_idmap)[id] = language;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create language object '" << name << "' from catalog '" << _source.id() << "'" << endl;
+	    sqlite3_reset (handle);
+	    ZYPP_RETHROW (excpt_r);
+	}
+    }
+
+    sqlite3_reset (handle);
+    return;
+}
+
+
+void
+DbSourceImpl::createPackages(void)
+{
+    sqlite3_stmt *handle = create_package_handle ( _db);
+    if (handle == NULL) return;
+
+    sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
+
+    int rc;
+    while ((rc = sqlite3_step (handle)) == SQLITE_ROW) {
+
+	string name;
+
+	try
+	{
+	    detail::ResImplTraits<DbPackageImpl>::Ptr impl( new DbPackageImpl( _zyppsource ? _zyppsource :_source ) );
+
+	    sqlite_int64 id = sqlite3_column_int64( handle, 0 );
+	    name = (const char *) sqlite3_column_text( handle, 1 );
+	    string version ((const char *) sqlite3_column_text( handle, 2 ));
+	    string release ((const char *) sqlite3_column_text( handle, 3 ));
+	    unsigned epoch = sqlite3_column_int( handle, 4 );
+	    Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
+
+	    impl->readHandle( id, handle );
+
+	    // Collect basic Resolvable data
+	    NVRAD dataCollect( name,
+			Edition( version, release, epoch ),
+			arch,
+			createDependencies (id ) );
+
+	    Package::Ptr package = detail::makeResolvableFromImpl( dataCollect, impl );
+	    _store.insert( package );
+	    if ( _idmap != 0)
+		(*_idmap)[id] = package;
+	}
+	catch (const Exception & excpt_r)
+	{
+	    ERR << "Cannot create package object '" << name << "' from catalog '" << _source.id() << "'" << endl;
 	    sqlite3_reset (handle);
 	    ZYPP_RETHROW (excpt_r);
 	}
@@ -427,7 +638,7 @@ DbSourceImpl::createPatches(void)
 	}
 	catch (const Exception & excpt_r)
 	{
-	    ERR << "Cannot create patch object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    ERR << "Cannot create patch object '" << name << "' from catalog '" << _source.id() << "'" << endl;
 	    sqlite3_reset (handle);
 	    ZYPP_RETHROW (excpt_r);
 	}
@@ -478,7 +689,7 @@ DbSourceImpl::createPatterns(void)
 	}
 	catch (const Exception & excpt_r)
 	{
-	    ERR << "Cannot create pattern object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    ERR << "Cannot create pattern object '" << name << "' from catalog '" << _source.id() << "'" << endl;
 	    sqlite3_reset (handle);
 	    ZYPP_RETHROW (excpt_r);
 	}
@@ -529,7 +740,7 @@ DbSourceImpl::createProducts(void)
 	}
 	catch (const Exception & excpt_r)
 	{
-	    ERR << "Cannot create product object '"+name+"' from catalog '"+_source.id()+"'" << endl;
+	    ERR << "Cannot create product object '" << name << "' from catalog '" << _source.id() << "'" << endl;
 	    sqlite3_reset (handle);
 	    ZYPP_RETHROW (excpt_r);
 	}

@@ -34,6 +34,7 @@
 #include "zypp/Atom.h"
 #include "zypp/Message.h"
 #include "zypp/Script.h"
+#include "zypp/Language.h"
 #include "zypp/Patch.h"
 #include "zypp/Product.h"
 #include "zypp/Pattern.h"
@@ -57,12 +58,17 @@ class DbSourceImpl : public zypp::source::SourceImpl {
 
     sqlite3 *_db;
     sqlite3_stmt *_dependency_handle;
+    sqlite3_stmt *_message_handle;
+    sqlite3_stmt *_script_handle;
     sqlite3_stmt *_patch_handle;
     sqlite3_stmt *_pattern_handle;
     sqlite3_stmt *_product_handle;
 
     void createPackages(void);
     void createAtoms(void);
+    void createMessages(void);
+    void createScripts(void);
+    void createLanguages(void);
     void createPatches(void);
     void createPatterns(void);
     void createProducts(void);
