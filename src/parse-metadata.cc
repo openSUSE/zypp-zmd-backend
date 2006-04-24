@@ -51,7 +51,6 @@ using namespace zypp;
 //----------------------------------------------------------------------------
 static SourceManager_Ptr manager;
 // manager->store may be expensive
-static bool store_needed = false;
 
 static bool
 restore_sources ()
@@ -67,61 +66,6 @@ restore_sources ()
     return true;
 }
 
-static bool
-store_sources ()
-{
-    if (store_needed) {
-	try {
-	    manager->store ("/", true /*metadata_cache*/);
-	}
-	catch (Exception & excpt_r) {
-	    ZYPP_CAUGHT (excpt_r);
-	    ERR << "Couldn't store sources" << endl;
-	    return false;
-	}
-    }
-    return true;
-}
-
-static void
-add_source_if_new (const Source_Ref & source, const string & alias)
-{
-    // only add if it is not there already.
-    // findSource throws if the source is not there
-    try {
-	manager->findSource( alias );
-    }
-    catch( const Exception & excpt_r ) {
-	manager->addSource( source );
-	store_needed = true;
-    }
-}
-
-//----------------------------------------------------------------------------
-//Tell yast that we are done storing the updated source. This is
-//necessary because when "rug sa" is called by yast, it calls us
-//asyncronously
-
-static void
-tell_yast()
-{
-    // yast will delete the file before and afterwards.
-    // the name must be synchronized with inst_you.ycp
-    // and inst_suse_register.ycp
-    const char * flag_file = "/var/lib/zypp/zmd_updated_the_sources";
-    int err;
-    int fd = creat( flag_file, 0666 );
-    if ( fd == -1 ) {
-	err = errno;
-	ERR << "creating " << flag_file << ": " << strerror( err ) << endl;
-    }
-    else {
-	if ( close( fd ) == -1) {
-	    err = errno;
-	    ERR << "closing " << flag_file << ": " << strerror( err ) << endl;
-	}
-    }
-}
 
 //----------------------------------------------------------------------------
 // upload all zypp sources as catalogs to the database
@@ -147,17 +91,15 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 
 //----------------------------------------------------------------------------
 
-// metadata types
+// metadata owners
 #define ZYPP "zypp"
-#define YUM "yum"
+#define ZMD "yum"	// zmd claims "yum" for itself
 
 int
 main (int argc, char **argv)
 {
-    atexit (tell_yast);
-
     if (argc < 5) {
-	cerr << "usage: " << argv[0] << " <database> <type> <uri> <catalog id>" << endl;
+	cerr << "3|usage: " << argv[0] << " <database> <type> <uri> <catalog id>" << endl;
 	return 1;
     }
 
@@ -168,8 +110,22 @@ main (int argc, char **argv)
 	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
     MIL << "-------------------------------------" << endl;
-    //				      database		type		  uri		    path              catalog
+    //				      database		owner		  uri		    path              catalog
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
+
+    string owner( argv[2] );		// "zypp" or "yum"
+
+    if (owner == ZYPP)
+    {
+	MIL << "Zypp owned" << endl;
+    }
+    else if (owner == ZMD) {
+	MIL << "ZMD owned" << endl;
+    }
+    else {
+	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
+	return 1;
+    }
 
     ZYpp::Ptr God = backend::getZYpp( true );
     KeyRingCallbacks keyring_callbacks;
@@ -178,19 +134,17 @@ main (int argc, char **argv)
     backend::initTarget( God );
 
     manager = SourceManager::sourceManager();
-    if (! restore_sources ())
+    if (! restore_sources ()) {
 	return 1;
+    }
 
-    DbAccess db( argv[1] );
+    DbAccess db( argv[1] );		// the zmd.db
 
     if (!db.openDb( true ))		// open for writing
     {
 	ERR << "Cannot open database" << endl;
 	return 1;
     }
-
-    string type( argv[2] );
-    Pathname path( argv[3] );
 
     // check for "...;alias=..." and replace with "...&alias=..." (#168030)
     string checkpath ( argv[3] );
@@ -205,108 +159,146 @@ main (int argc, char **argv)
 	checkurl.replace( aliaspos, 1, "&" );
     }
 
+
     Url uri;
     Url pathurl;
+    url::ParamMap uriparams;
+    string urialias;
+
+    // Url() constructor might throw
     try {
 	uri = Url ( ((checkpath[0] == '/') ? string("file:"):string("")) + checkpath );
+	uriparams = uri.getQueryStringMap();	// extract parameters
+	url::ParamMap::const_iterator it = uriparams.find( "alias" );
+	if (it != uriparams.end()) {
+	    urialias = it->second;
+	}
 	pathurl = Url ( ((checkurl[0] == '/') ? string("file:"):string("")) + checkurl );
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
-	cerr << excpt_r.asUserString() << endl;
+	cerr << "3|" << excpt_r.asUserString() << endl;
 	return 1;
     }
 
+    // If the URL has an alias, it must be ZYPP owned.
+
+    if (owner == ZMD
+	&& !urialias.empty())
+    {
+	ERR << "Bad paremeters, yum-type url with alias" << endl;
+	cerr << "3|Bad paremeters, yum-type url with alias" << endl;
+	return 1;
+    }
+
+    // the catalog id to use when writing to zmd.db
     string catalog( argv[5] );
 
     int result = 0;
 
-    if (type == ZYPP)
-    {
+    MIL << "Uri '" << uri << "', Alias '" << urialias << "', Path '" << pathurl << "'" << endl;
 
-	MIL << "Doing a zypp->zmd sync" << endl;
-	// the source already exists in the catalog, no need to add it
+    //
+    // find matching source and write its resolvables to the catalog
+    //
+    // consider two cases
+    // 1. source added via YaST
+    // 2. source added via ZMD (rug, zen-installer, ...)
+    //
+    // case 1: YaST calls "rug sa <url>" but adds an alias to the URL
+    //	This alias parameter is compared to the alias values of the source
+    //	If the correct source cannot be found, we report an error
+    //	Else we get the source resolvables and write it to zmd.db (-> sync_source)
+    //
+    // case 2: A source might be owned by zypp or zmd (-> 'owner' parameter, see above)
+    //	For zmd owned sources, we first check if the url is already known. This is
+    //   safe since the url is unique within zmd.
+    //
+    // If the source is not known within zypp, we add it to zypp so it can be
+    // used by applications linking against zypp.
+    //
 
-	//
-	// find matching source and write its resolvables to the catalog
-	//
+    SourceManager::Source_const_iterator it;
+    for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
 
-	SourceManager::Source_const_iterator it;
-	for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	    string src_uri = it->url().asString();
-	    MIL << "Uri '" << src_uri << "'" << endl;
-	    if (src_uri == uri.asString()) {				// check url first
-		sync_source( db, *it, catalog, Url(), false );
-		break;
-	    }
-	    string separator = (src_uri.find('?') != string::npos) ? "&" : "?";
-	    src_uri += (separator + "alias=" + it->alias());
-	    MIL << "Uri '" << src_uri << "'" << endl;
-	    if (src_uri == uri.asString()) {				// then check <url>?alias=<alias>
-		sync_source( db, *it, catalog, Url(), false );
-		break;
+	if (urialias.empty()) {					// urialias empty -> not coming from yast
+
+	    if (uri.asString() == it->url().asString()) {	// url already known ?
+
+		if (owner == ZMD) {				//  and owned by ZMD ?
+		    MIL << "Found url, source already known to zypp";
+		    sync_source( db, *it, catalog, Url(), owner == ZMD );
+		    break;
+		}
+		else {						// --type=zypp used but no alias given
+		    ERR << "Duplicate source, url already known" << endl;
+		    cerr << "3|Duplicate source, url already known" << endl;
+		    break;
+		}
 	    }
 	}
-	if (it == manager->Source_end()) {
-	    MIL << "Source not found, adding" << endl;
-
-	    Source_Ref source;
-	    try {
-		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
-		sync_source( db, source, catalog, Url(), false );
-	    }
-	    catch( const Exception & excpt_r ) {
-		cerr << "3|Can't add repository at " << uri << endl;
-		ZYPP_CAUGHT( excpt_r );
-		ERR << "Can't add repository at " << uri << endl;
-		result = 1;
-	    }
-
-	    if (result == 0) {
-		try {
-		    manager->addSource( source );
-		    manager->store( "/", true /*metadata_cache*/ );
-		}
-		catch (Exception & excpt_r) {
-		    cerr << "3|Can't store zypp repository" << endl;
-		    ZYPP_CAUGHT (excpt_r);
-		    ERR << "Couldn't store sources" << endl;
-		    result = 1;
-		}
-	    }
+	else if (urialias == it->alias()) {			// urialias matches zypp one
+	    MIL << "Found alias, source already known to zypp";
+	    sync_source( db, *it, catalog, Url(), owner == ZMD );
+	    break;
 	}
     }
-    else if (type == YUM)
-    {
 
-	MIL << "Doing a zmd->zypp sync" << endl;
+    // if the source is not known in zypp, add it
+
+    if (it == manager->Source_end()) {
+
+	if (!urialias.empty()) {				// alias given but not found in zypp -> error
+	    cerr << "3|Unknown alias '" << urialias << "' passed." << endl;
+	    ERR << "Unknown alias '" << urialias << "' passed." << endl;
+	    goto finish;
+	}
+
+	MIL << "Source not found, creating" << endl;
+
+	Source_Ref source;
+	try {
+	    if (owner == ZMD) {		// use zmd downloaded metadata:
+		source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );
+		sync_source( db, source, catalog, uri, owner == ZMD );
+	    }
+	    else {			// let zypp do the download
+		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
+		sync_source( db, source, catalog, Url(), owner == ZMD );
+	    }
+	}
+	catch( const Exception & excpt_r ) {
+	    cerr << "3|Can't add repository at " << uri << endl;
+	    ZYPP_CAUGHT( excpt_r );
+	    ERR << "Can't add repository at " << uri << endl;
+	    goto finish;
+	}
+
+// See bug #168739 
+#if 0
+	if (owner == ZMD) {
+	    MIL << "Owner is ZMD, *not* adding to zypp" << endl;
+	    goto finish;
+	}
+#endif
+
+	MIL << "Source not found, adding" << endl;
 
 	try {
-
-	    Source_Ref source( SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() ) );
-	    
-	    sync_source( db, source, catalog, uri, true );		// yum is always zmd_owned
-
+	    manager->addSource( source );
+	    manager->store( "/", true /*metadata_cache*/ );
 	}
-	catch( const Exception & excpt_r )
-	{
-	    cerr << "3|Cant access repository data at " << path << endl;
-	    ZYPP_CAUGHT( excpt_r );
-	    ERR << "Can't access repository at " << path << endl;
+	catch (Exception & excpt_r) {
+	    cerr << "3|Can't store source to zypp" << endl;
+	    ZYPP_CAUGHT (excpt_r);
+	    ERR << "Couldn't store source to zypp" << endl;
 	    result = 1;
-	};
+	}
 
     }
-    else
-    {
-	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << YUM << "'" << endl;
-	result = 1;
-    }
+finish:
 
     db.closeDb();
-
-    if (result == 0)
-	store_sources ();		// no checking, we're finished anyway
 
     MIL << "END parse-metadata, result " << result << endl;
 

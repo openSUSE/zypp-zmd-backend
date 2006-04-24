@@ -22,11 +22,11 @@ using namespace zypp;
 //-----------------------------------------------------------------------------
 
 static int
-service_delete( ZYpp::Ptr Z, const string & uri)
+service_delete( ZYpp::Ptr Z, const string & name)
 {
     SourceManager_Ptr manager = SourceManager::sourceManager();
 
-    MIL << "service_delete(" << uri << ")" << endl;
+    MIL << "service_delete(" << name << ")" << endl;
 
     try {
 	manager->restore( "/" );
@@ -37,32 +37,49 @@ service_delete( ZYpp::Ptr Z, const string & uri)
 	return 1;
     }
 
+    Url uri;
+    url::ParamMap uriparams;
+    string urialias;
+
+    // Url() constructor might throw
+    try {
+	uri = Url ( name );
+	uriparams = uri.getQueryStringMap();	// extract parameters
+	url::ParamMap::const_iterator it = uriparams.find( "alias" );
+	if (it != uriparams.end()) {
+	    urialias = it->second;
+	}
+    }
+    catch ( const Exception & excpt_r ) {
+	ZYPP_CAUGHT( excpt_r );
+    }
+
     SourceManager::Source_const_iterator it;
     for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	string src_type = it->type(); // #160613
-	if (src_type == "YaST")
-	    src_type = "zypp";
-	string src_uri = it->url().asString();
-	if (src_type == "zypp")
-	{
-	    string separator = (src_uri.find('?') != string::npos) ? "&" : "?";
-	    src_uri += (separator + "alias=" + it->alias());
+	if (urialias.empty()) {
+	    if (name == it->url().asString()) {			// url already known ?
+		break;
+	    }
 	}
-	MIL << "Uri '" << src_uri << "'" << endl;
-	if (src_uri == uri) {
-	    manager->removeSource( it->alias() );
-	    try {
- 		manager->store ("/", true /*metadata_cache*/);
-	    }
-	    catch (Exception & excpt_r) {
-		ZYPP_CAUGHT (excpt_r);
-		ERR << "Couldn't update source cache" << endl;
-	    }
+	else if (urialias == it->alias()) {			// urialias matches zypp one
 	    break;
 	}
     }
-    if (it == manager->Source_end()) {
-	WAR << "Source not found" << endl;
+
+    if (it != manager->Source_end()) {
+
+	manager->removeSource( it->alias() );
+	try {
+ 	    manager->store ("/", true /*metadata_cache*/);
+	}
+	catch (Exception & excpt_r) {
+	    ZYPP_CAUGHT (excpt_r);
+	    ERR << "Couldn't update source cache" << endl;
+	    return 1;
+	}
+    }
+    else {
+	WAR << "Source '" << name << "' not found" << endl;
 	return 1;
     }
     return 0;

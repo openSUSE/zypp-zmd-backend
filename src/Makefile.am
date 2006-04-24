@@ -13,6 +13,9 @@ noinst_HEADERS = zmd-backend.h
 
 bindir = $(libdir)/zmd
 
+noinst_PROGRAMS = \
+	zypp-sources
+
 bin_PROGRAMS =	\
 	query-pool		\
 	query-system		\
@@ -25,6 +28,7 @@ bin_PROGRAMS =	\
 	update-status		\
 	transact
 
+zypp_sources_SOURCES = zypp-sources.cc zmd-backend.cc
 service_delete_SOURCES = service-delete.cc zmd-backend.cc
 query_pool_SOURCES = query-pool.cc zmd-backend.cc
 query_system_SOURCES = query-system.cc zmd-backend.cc
