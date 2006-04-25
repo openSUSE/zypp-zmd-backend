@@ -226,7 +226,7 @@ main (int argc, char **argv)
 	    if (uri.asString() == it->url().asString()) {	// url already known ?
 
 		if (owner == ZMD) {				//  and owned by ZMD ?
-		    MIL << "Found url, source already known to zypp";
+		    MIL << "Found url, source already known to zypp" << endl;
 		    sync_source( db, *it, catalog, Url(), owner == ZMD );
 		    break;
 		}
@@ -238,7 +238,7 @@ main (int argc, char **argv)
 	    }
 	}
 	else if (urialias == it->alias()) {			// urialias matches zypp one
-	    MIL << "Found alias, source already known to zypp";
+	    MIL << "Found alias, source already known to zypp" << endl;
 	    sync_source( db, *it, catalog, Url(), owner == ZMD );
 	    break;
 	}
@@ -275,12 +275,11 @@ main (int argc, char **argv)
 	}
 
 // See bug #168739 
-#if 0
+
 	if (owner == ZMD) {
 	    MIL << "Owner is ZMD, *not* adding to zypp" << endl;
 	    goto finish;
 	}
-#endif
 
 	MIL << "Source not found, adding" << endl;
 
