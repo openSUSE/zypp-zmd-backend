@@ -30,13 +30,13 @@ namespace zypp {
     ///////////////////////////////////////////////////////////////////
     struct KeyRingReceive : public zypp::callback::ReceiveReport<zypp::KeyRingReport>
     {
-	virtual bool askUserToAcceptUnsignedFile( const Pathname &file )
+	virtual bool askUserToAcceptUnsignedFile( const std::string &file )
 	{ return true; }
-	virtual bool askUserToAcceptUnknownKey( const Pathname &file, const std::string &keyid, const std::string &keyname )
+	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname )
 	{ return true; }
 	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &keydetails )
 	{ return true; }
-	virtual bool askUserToAcceptVerificationFailed( const Pathname &file, const std::string &keyid, const std::string &keyname )
+	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname )
 	{ return true; }
     };
 
