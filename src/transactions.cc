@@ -50,6 +50,7 @@ struct CopyTransaction
 {
     ResObject::constPtr _obj;
     PackageOpType _action;
+    PoolItem_Ref affected;
 
     CopyTransaction( ResObject::constPtr obj, PackageOpType action )
 	: _obj( obj )
@@ -74,6 +75,7 @@ struct CopyTransaction
 		    ERR << "Ignoring unknown action " << _action << endl;
 		    break;
 	    }
+	    affected = item;
 	    return false;			// stop looking
 	}
 	return true;		// continue looking
@@ -90,7 +92,7 @@ struct CopyTransaction
 // return the number of removals in removals
 
 int
-read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources, int & removals)
+read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources, int & removals, IdItemMap & items)
 {
     MIL << "read_transactions" << endl;
 
@@ -134,6 +136,10 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 	invokeOnEach( pool.byNameBegin( obj->name() ),
 		      pool.byNameEnd( obj->name() ),
 		      functor::functorRef<bool,PoolItem> (info) );
+	if (info.affected)
+	    items[id] = info.affected;
+	else
+	    ERR << "Item matching id " << id << " not found" << endl;
 
 	++count;
     }
@@ -259,4 +265,32 @@ MIL << "foreachUpgrade" << endl; print_set( install_set );
     sqlite3_finalize( handle );
 
     return result;
+}
+
+//-----------------------------------------------------------------------------
+
+// delete transaction with a specific ID
+// used by 'transact' helper after package commit()
+
+void
+drop_transaction (sqlite3 *db, sqlite_int64 id)
+{
+    sqlite3_stmt *handle = NULL;
+    const char *sql = "DELETE FROM transactions WHERE id = ?";
+    int rc = sqlite3_prepare( db, sql, -1, &handle, NULL );
+    if (rc != SQLITE_OK) {
+	ERR << "Can not prepare transaction delete clause: " << sqlite3_errmsg (db) << endl;
+        return;
+    }
+
+    sqlite3_bind_int64( handle, 1, id );
+
+    rc = sqlite3_step( handle );
+    if (rc != SQLITE_DONE) {
+	ERR << "Can not remove transaction: " << sqlite3_errmsg (db) << endl;
+    }
+
+    sqlite3_reset( handle );
+
+    return;
 }

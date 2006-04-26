@@ -65,6 +65,19 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 }
 
 
+static void
+drop_transacted( sqlite3 *db, IdItemMap & items )
+{
+    for (IdItemMap::const_iterator it = items.begin(); it != items.end(); ++it) {
+	if (it->second.status().transacts()) {			// transaction still set -> package was not committed yet
+	    continue;
+	}
+	drop_transaction( db, it->first );
+    }
+    return;
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -124,8 +137,10 @@ main (int argc, char **argv)
 
     // now the pool is complete, add transactions
 
+    IdItemMap items;
+
     int removals = 0;
-    int count = read_transactions (God->pool(), db.db(), dbs, removals);
+    int count = read_transactions (God->pool(), db.db(), dbs, removals, items);
     if (count < 0) {
 	cerr << "Reading transactions failed." << endl;
 	return 1;
@@ -199,6 +214,10 @@ main (int argc, char **argv)
     }
 
     cout << "4" << endl;
+
+    // now drop those transactions which are already commited
+
+    drop_transacted( db.db(), items );
 
     db.closeDb();
 

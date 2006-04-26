@@ -99,8 +99,9 @@ main (int argc, char **argv)
     // now the pool is complete, add transactions
 
     int removals = 0;	// unused here
+    IdItemMap transacted_items;	// unused here
 
-    int count = read_transactions (God->pool(), db.db(), dbs, removals);
+    int count = read_transactions (God->pool(), db.db(), dbs, removals, transacted_items);
     if (count < 0)
 	return 1;
 
