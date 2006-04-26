@@ -122,6 +122,7 @@ main (int argc, char **argv)
     DigestCallbacks digest_callbacks;
 
     Target_Ptr target = backend::initTarget( God );
+    target->enableStorage( "/" );			// transact affects the target store
 
     // load the catalogs and resolvables from sqlite db
 
@@ -215,7 +216,7 @@ main (int argc, char **argv)
 
     cout << "4" << endl;
 
-    // now drop those transactions which are already commited
+    // now drop those transactions which are already committed
 
     drop_transacted( db.db(), items );
 
