@@ -31,24 +31,45 @@ namespace zypp {
     struct KeyRingReceive : public zypp::callback::ReceiveReport<zypp::KeyRingReport>
     {
 	virtual bool askUserToAcceptUnsignedFile( const std::string &file )
-	{ return true; }
-	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname )
-	{ return true; }
-	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &keydetails )
-	{ return true; }
-	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname )
-	{ return true; }
+	{
+	  XXX << "(" << file << ")" << std::endl;
+	  return true;
+	}
+	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+	{
+	  XXX << "(" << file << ", " << keyid << ", " << keyname << ", " << fingerprint << ")" << std::endl;
+	  return true;
+	}
+	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+	{
+	  XXX << "(" << keyid << ", " << keyname <<  ", " << fingerprint << ")" << std::endl;
+	  return true;
+	}
+	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+	{
+	  XXX << "(" << file << ", " << keyid << ", " << keyname << ", " << fingerprint << ")" << std::endl;
+	  return true;
+	}
     };
 
 
     struct DigestReceive : public zypp::callback::ReceiveReport<zypp::DigestReport>
     {
       virtual bool askUserToAcceptNoDigest( const zypp::Pathname &file )
-      { return true; }
+      {
+	XXX << "(" << file << ")" << std::endl;
+	return true;
+      }
       virtual bool askUserToAccepUnknownDigest( const Pathname &file, const std::string &name )
-      { return true; }
+      {
+	XXX << "(" << file << ", " << name << ")" << std::endl;
+	return true;
+      }
       virtual bool askUserToAcceptWrongDigest( const Pathname &file, const std::string &requested, const std::string &found )
-      { return true; }
+      {
+	XXX << "(" << file << ", " << requested << ", " << found << ")" << std::endl;
+	return true;
+      }
     };
 
 ///////////////////////////////////////////////////////////////////
