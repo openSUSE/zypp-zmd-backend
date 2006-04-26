@@ -41,10 +41,9 @@ namespace ZyppRecipients {
 	{
 	    if (message == NULL) return;
 
-	    DBG << "show(" << *message << ")" << endl;
+	    DBG << "show(" << message->text().asString() << ")" << endl;
 
-
-	    std::cout << "20|" << *message << endl;
+	    std::cout << "20|" << message->text().asString() << endl;
 
 	    return;
 	}
