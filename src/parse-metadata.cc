@@ -70,6 +70,14 @@ restore_sources ()
 //----------------------------------------------------------------------------
 // upload all zypp sources as catalogs to the database
 
+// If url is non-empty, it defines the real url where the metadata comes from
+//  Usually zmd downloads metadata and provides is via a local path
+//  However, this is not useful for zypp since other applications linking against
+//  zypp (e.g. YaST) need the real url in order to work with it.
+// So in the special case of local metadata (since already downloaded by zmd), the
+// real url is passed here and set in the source. This way, storing the source in
+// zypp makes all information available to all zypp applications.
+//
 static void
 sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, bool zmd_owned )
 {
@@ -225,21 +233,14 @@ main (int argc, char **argv)
 
 	    if (uri.asString() == it->url().asString()) {	// url already known ?
 
-		if (owner == ZMD) {				//  and owned by ZMD ?
-		    MIL << "Found url, source already known to zypp" << endl;
-		    sync_source( db, *it, catalog, Url(), owner == ZMD );
-		    break;
-		}
-		else {						// --type=zypp used but no alias given
-		    ERR << "Duplicate source, url already known" << endl;
-		    cerr << "3|Duplicate source, url already known" << endl;
-		    break;
-		}
+		MIL << "Found url, source already known to zypp" << endl;
+		sync_source( db, *it, catalog, Url(), owner == ZMD );	// since its known by url, it already has a real Url, no need to pass one
+		break;
 	    }
 	}
 	else if (urialias == it->alias()) {			// urialias matches zypp one
 	    MIL << "Found alias, source already known to zypp" << endl;
-	    sync_source( db, *it, catalog, Url(), owner == ZMD );
+	    sync_source( db, *it, catalog, Url(), owner == ZMD );	// known by alias
 	    break;
 	}
     }
@@ -260,10 +261,12 @@ main (int argc, char **argv)
 	try {
 	    if (owner == ZMD) {		// use zmd downloaded metadata:
 		source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );
+		// zmd provided the data locally, 'source' has a local path, pass the real uri to sync_source
 		sync_source( db, source, catalog, uri, owner == ZMD );
 	    }
 	    else {			// let zypp do the download
 		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
+		// new zypp source, 'source' already has the real url, pass empty uri to sync_source
 		sync_source( db, source, catalog, Url(), owner == ZMD );
 	    }
 	}
