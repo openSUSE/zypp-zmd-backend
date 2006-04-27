@@ -20,6 +20,10 @@
 //
 // FIXME rest of sentence missing!
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <cstring>
 #include <list>
@@ -281,6 +285,12 @@ main (int argc, char **argv)
 
 	if (owner == ZMD) {
 	    MIL << "Owner is ZMD, *not* adding to zypp" << endl;
+	    goto finish;
+	}
+
+	struct stat st;
+	if (stat( "/var/lib/zypp/sources-being-processed-by-yast", &st ) == 0) {
+	    MIL << "Processed by YaST, exiting" << endl;
 	    goto finish;
 	}
 

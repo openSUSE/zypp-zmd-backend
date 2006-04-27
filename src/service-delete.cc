@@ -1,5 +1,8 @@
 /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <iostream>
 
 #include "zmd-backend.h"
@@ -105,6 +108,12 @@ main (int argc, char **argv)
     string alias( argv[2] );
 
     MIL << "START service-delete " << db << " " << alias << endl;
+
+    struct stat st;
+    if (stat( "/var/lib/zypp/sources-being-processed-by-yast", &st ) == 0) {
+	MIL << "Processed by YaST, exiting" << endl;
+	return 0;
+    }
 
     ZYpp::Ptr Z = backend::getZYpp( true );
     KeyRingCallbacks keyring_callbacks;
