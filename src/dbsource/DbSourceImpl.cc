@@ -336,7 +336,7 @@ DbSourceImpl::createResolvables(Source_Ref source_r)
     createAtoms();
     createMessages();
     createScripts();
-//    createLanguages();
+    createLanguages();
     createPatches();
     createPatterns();
     createProducts();
