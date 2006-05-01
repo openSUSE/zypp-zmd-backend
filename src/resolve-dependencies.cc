@@ -44,9 +44,9 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 
     if (debug || info->important()) {
 	if (debug && info->error())
-	    cerr << "ERR ";
+	    cout << "ERR ";
 	if (debug && info->important())
-	    cerr << "IMP ";
+	    cout << "IMP ";
 	cout << info->message() << endl;
 	WAR << info->message() << endl;
     }
