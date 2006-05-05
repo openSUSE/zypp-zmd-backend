@@ -208,9 +208,9 @@ create_package_handle (sqlite3 *db)
 	"       installed_size, catalog,"
 	//      8          9      10         11
 	"       installed, local, rpm_group, file_size,"
-	//      12       13           14
-	"       summary, description, package_filename,"
-	//      15            16
+	//      12       13           14           15
+	"       summary, description, package_url, package_filename,"
+	//      16            17
 	"       install_only, media_nr "
 	"FROM packages "
 	"WHERE catalog = ?";

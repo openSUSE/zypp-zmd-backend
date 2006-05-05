@@ -609,24 +609,12 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool zmd_owned )
     sqlite3_bind_text( handle, 2, pkg->group().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 3, pkg->summary().c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( handle, 4, desc2str(pkg->description()).c_str(), -1, SQLITE_STATIC );
-    Source_Ref src( pkg->source() );
 
-    string surl = src.url().asString();
-    const char *location = pkg->location().asString().c_str();
-    if (location[0] == '.' && location[1] == '/') location += 2;		// strip leading "./"
+    const char *package_url = pkg->location().asString().c_str();
+    if (package_url[0] == '.' && package_url[1] == '/') package_url += 2;		// strip leading "./"
 
-    if (zmd_owned)
-    {
-//	DBG << "Source " << src << ", url " << src.url() << " is zmd owned" << endl;
-	surl += "/";
-	surl += location;
-	location = NULL;							// zmd knows how to get the package
-    }
-    else {
-//	DBG << "Source " << src << ", url " << src.url() << " is zypp owned, location " << location << endl;
-    }
-    sqlite3_bind_text( handle, 5, surl.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 6, location, -1, SQLITE_STATIC );		// package_filename, NULL for zmd owned sources
+    sqlite3_bind_text( handle, 5, package_url, -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 6, zmd_owned ? NULL : "", -1, SQLITE_STATIC );
 
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );

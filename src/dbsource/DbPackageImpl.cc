@@ -65,11 +65,21 @@ DbPackageImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
     text = (const char *) sqlite3_column_text( handle, 13 );
     if (text != NULL)
 	_description = TranslatedText( string( text ) );
-    text = (const char *) sqlite3_column_text( handle, 14 );
-    if (text != NULL)
-	_location = Pathname( text );
-    _install_only = (sqlite3_column_int( handle, 15 ) != 0);
-    _media_nr = sqlite3_column_int( handle, 16 );
+    text = (const char *) sqlite3_column_text( handle, 15 );	// package_filename
+    if (text != NULL
+	&& *text != 0)
+    {
+	_location = Pathname( text );				// if set, use this (zmd owned source)
+    }
+    else {
+	text = (const char *)sqlite3_column_text( handle, 14 );	// else use package_url
+	if (text == NULL)
+	    ERR << "package_url NULL for id " << id << endl;
+	else
+	    _location = Pathname( text );
+    }
+    _install_only = (sqlite3_column_int( handle, 16 ) != 0);
+    _media_nr = sqlite3_column_int( handle, 17 );
 
     return;
 }
