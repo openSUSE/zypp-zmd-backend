@@ -59,12 +59,6 @@ CXXFLAGS="${CXXFLAGS} -g -O2 -Wall -Wformat"
 AC_SYS_LARGEFILE
 if test "$enable_largefile" != no ; then
 	enable_largefile=yes
-	if test "$ac_cv_sys_file_offset_bits" != no; then
-		CXXFLAGS="$CXXFLAGS -D_FILE_OFFSET_BITS=$ac_cv_sys_file_offset_bits"
-	fi
-	if test "$ac_cv_sys_large_files" != no; then
-		CXXFLAGS="$CXXFLAGS -D_LARGE_FILES=$ac_cv_sys_large_files"
-	fi
 fi
 
 dnl ==================================================
@@ -122,6 +116,17 @@ if test $pkg_libzypp = no; then
   echo
   AC_MSG_ERROR([Could not find libzypp library, please install libzypp-devel])
 fi
+ZYPP_FEATURES=`$PKG_CONFIG --variable=features libzypp 2>/dev/null`
+ZYPP_LFS=no
+for feature in $ZYPP_FEATURES ; do
+	case $feature in
+    		LFS) ZYPP_LFS=yes ;;
+  	esac
+done
+if test "$ZYPP_LFS" != "$enable_largefile" ; then
+	AC_MSG_ERROR([Large file support inconsistence with libzypp])
+fi
+test -n "$ZYPP_CFLAGS" && CXXFLAGS="$CXXFLAGS $ZYPP_CFLAGS"
 
 dnl libz
 AC_CHECK_LIB([z], [gzopen],
