@@ -599,7 +599,7 @@ DbAccess::writeDependencies(sqlite_int64 id, Resolvable::constPtr res)
 // package
 
 sqlite_int64
-DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool zmd_owned )
+DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner )
 {
     XXX <<  "DbAccess::writePackage(" << id << ", " << *pkg << ")" << endl;
     int rc;
@@ -613,8 +613,26 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, bool zmd_owned )
     const char *package_url = pkg->location().asString().c_str();
     if (package_url[0] == '.' && package_url[1] == '/') package_url += 2;		// strip leading "./"
 
-    sqlite3_bind_text( handle, 5, package_url, -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 6, zmd_owned ? NULL : "", -1, SQLITE_STATIC );
+    const char *url = package_url;
+    const char *filename = NULL;
+
+    switch( owner ) {
+	case ZYPP_OWNED:
+	    filename = "";
+	break;
+	case ZMD_OWNED:
+	break;
+	case LOCAL_FILE:
+	    url = NULL;
+	    filename = package_url;
+	break;
+	default:
+	    ERR << "Unknown ownership" << endl;
+	break;
+    }
+
+    sqlite3_bind_text( handle, 5, url, -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 6, filename, -1, SQLITE_STATIC );
 
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
@@ -802,7 +820,7 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
 //  return == 0 if this kind of resolvable is to be skipped
 
 sqlite_int64
-DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char *catalog, bool zmd_owned )
+DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char *catalog, Ownership owner )
 {
     XXX << "DbAccess::writeResObject (" << *obj << ", " << status << ")" << endl;
 
@@ -889,7 +907,7 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
 
     // now write the respective _details table
 
-    if (pkg != NULL) writePackage( rowid, pkg, zmd_owned );
+    if (pkg != NULL) writePackage( rowid, pkg, owner );
     else if (message != NULL) writeMessage( rowid, message );
     else if (script != NULL) writeScript( rowid, script );
     else if (patch != NULL) writePatch( rowid, patch );
@@ -1070,7 +1088,7 @@ DbAccess::removeCatalog( const std::string & catalog )
 // store
 
 void
-DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, bool zmd_owned )
+DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, Ownership owner )
 {
     XXX << "DbAccess::writeStore()" << endl;
 
@@ -1095,7 +1113,7 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 		|| obj->kind() == ResTraits<Atom>::kind		//  and atoms because we need them for multi-arch patch requirements
 		|| obj->arch().compatibleWith( sysarch ) ) )	//   and architecturally compatible ones
 	{
-	    rowid = writeResObject( obj, status, catalog, zmd_owned );
+	    rowid = writeResObject( obj, status, catalog, owner );
 	    if (rowid < 0)
 		break;
 	    if (rowid > 0)		// rowid == 0 means 'skip'

@@ -166,7 +166,7 @@ main (int argc, char **argv)
     if (!db.openDb( true ))
 	return 1;
 
-    db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system" );
+    db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system", ZYPP_OWNED );
 
     // sync SourceManager with sources table
     sync_sources( );

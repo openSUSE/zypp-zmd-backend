@@ -347,7 +347,7 @@ sync_source( DbAccess & db, Source_Ref source )
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str() );	// store all resolvables
+	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str(), ZYPP_OWNED );	// store all resolvables
 #if 0
     }
 #endif
@@ -421,11 +421,13 @@ main (int argc, char **argv)
     else {
 	MIL << "Doing a file/directory query" << endl;
 
-	Source_Ref source = DbSources::createDummy( Url("file:/"), argc == 4 ? argv[3] : "@local" );
+	string catalog( argc == 4 ? argv[3] : "@local" );
+
+	Source_Ref source = DbSources::createDummy( Url("file:/"), catalog );
 
 	ResStore store = query( argv[2], source );
 	if (!store.empty()) {
-	    db.writeStore( store, ResStatus::uninstalled );
+	    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), LOCAL_FILE );
 	}
     }
 

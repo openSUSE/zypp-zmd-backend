@@ -40,6 +40,16 @@ DEFINE_PTR_TYPE(DbAccess);
 
 typedef std::list<zypp::ResObject::constPtr> ResObjectList;
 typedef std::map<sqlite_int64, zypp::ResObject::constPtr> IdMap;
+
+//-----------------------------------------------------------------------------
+// filling of package_url and package_filename in package_details table
+
+typedef enum {
+  ZYPP_OWNED,		// fill _url, set _filename "" (empty)
+  ZMD_OWNED,		// fill _url, leave _filename NULL
+  LOCAL_FILE		// leave _url NULL, fill _filename
+} Ownership;
+
 //-----------------------------------------------------------------------------
 // relations
 
@@ -152,9 +162,9 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
 
     void commit();
 
-    sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, bool zmd_owned = false );
+    sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
 
-    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, bool zmd_owned = false );
+    sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, Ownership owner = ZYPP_OWNED );
     sqlite_int64 writeMessage( sqlite_int64 id, zypp::Message::constPtr message );
     sqlite_int64 writeScript( sqlite_int64 id, zypp::Script::constPtr script );
     sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch );
@@ -191,7 +201,7 @@ public:
     bool updateCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
 
     /** write resolvables from store to db */
-    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, bool zmd_owned = false );
+    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
     /** write resolvables from pool to db */
     void writePool( const zypp::ResPool & pool, const char *catalog = NULL );
 

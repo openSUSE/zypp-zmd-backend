@@ -83,9 +83,9 @@ restore_sources ()
 // zypp makes all information available to all zypp applications.
 //
 static void
-sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, bool zmd_owned )
+sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, Ownership owner )
 {
-    DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << ", zmd_owned " << zmd_owned << endl;
+    DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << ", owner " << owner << endl;
 
     ResStore store = source.resolvables();
     if (!url.getScheme().empty()) {
@@ -95,7 +95,7 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 
     DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), zmd_owned );	// store all resolvables as 'uninstalled'
+    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), owner );	// store all resolvables as 'uninstalled'
 
     return;
 }
@@ -125,14 +125,16 @@ main (int argc, char **argv)
     //				      database		owner		  uri		    path              catalog
     MIL << "START parse-metadata " << argv[1] << " " << argv[2] << " " << argv[3] << " " << argv[4] << " " << argv[5] << endl;
 
-    string owner( argv[2] );		// "zypp" or "yum"
+    string owned_by( argv[2] );		// "zypp" or "yum"
+    Ownership owner = ZYPP_OWNED;
 
-    if (owner == ZYPP)
+    if (owned_by == ZYPP)
     {
 	MIL << "Zypp owned" << endl;
     }
-    else if (owner == ZMD) {
+    else if (owned_by == ZMD) {
 	MIL << "ZMD owned" << endl;
+	owner = ZMD_OWNED;
     }
     else {
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
@@ -195,7 +197,7 @@ main (int argc, char **argv)
 
     // If the URL has an alias, it must be ZYPP owned.
 
-    if (owner == ZMD
+    if (owner == ZMD_OWNED
 	&& !urialias.empty())
     {
 	ERR << "Bad paremeters, yum-type url with alias" << endl;
@@ -238,13 +240,13 @@ main (int argc, char **argv)
 	    if (uri.asString() == it->url().asString()) {	// url already known ?
 
 		MIL << "Found url, source already known to zypp" << endl;
-		sync_source( db, *it, catalog, Url(), owner == ZMD );	// since its known by url, it already has a real Url, no need to pass one
+		sync_source( db, *it, catalog, Url(), owner );	// since its known by url, it already has a real Url, no need to pass one
 		break;
 	    }
 	}
 	else if (urialias == it->alias()) {			// urialias matches zypp one
 	    MIL << "Found alias, source already known to zypp" << endl;
-	    sync_source( db, *it, catalog, Url(), owner == ZMD );	// known by alias
+	    sync_source( db, *it, catalog, Url(), owner );	// known by alias
 	    break;
 	}
     }
@@ -263,15 +265,15 @@ main (int argc, char **argv)
 
 	Source_Ref source;
 	try {
-	    if (owner == ZMD) {		// use zmd downloaded metadata:
+	    if (owner == ZMD_OWNED) {		// use zmd downloaded metadata:
 		source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );
 		// zmd provided the data locally, 'source' has a local path, pass the real uri to sync_source
-		sync_source( db, source, catalog, uri, owner == ZMD );
+		sync_source( db, source, catalog, uri, owner );
 	    }
 	    else {			// let zypp do the download
 		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
 		// new zypp source, 'source' already has the real url, pass empty uri to sync_source
-		sync_source( db, source, catalog, Url(), owner == ZMD );
+		sync_source( db, source, catalog, Url(), owner );
 	    }
 	}
 	catch( const Exception & excpt_r ) {
@@ -283,7 +285,7 @@ main (int argc, char **argv)
 
 // See bug #168739 
 
-	if (owner == ZMD) {
+	if (owner == ZMD_OWNED) {
 	    MIL << "Owner is ZMD, *not* adding to zypp" << endl;
 	    goto finish;
 	}
