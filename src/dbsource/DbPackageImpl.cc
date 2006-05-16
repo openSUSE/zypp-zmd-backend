@@ -116,7 +116,7 @@ ByteCount DbPackageImpl::archivesize() const
 bool DbPackageImpl::installOnly() const
 { return _install_only; }
 
-unsigned DbPackageImpl::mediaId() const
+unsigned DbPackageImpl::sourceMediaNr() const
 { return _media_nr; }
 
 Vendor DbPackageImpl::vendor() const

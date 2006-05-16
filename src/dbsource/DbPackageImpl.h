@@ -53,7 +53,7 @@ public:
         /** */
 	virtual ZmdId zmdid() const;
         /** */
-	virtual unsigned mediaId() const;
+	virtual unsigned sourceMediaNr() const;
 
 	virtual Vendor vendor() const;
 

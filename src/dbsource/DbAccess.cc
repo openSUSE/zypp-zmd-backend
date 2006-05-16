@@ -637,7 +637,7 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
     sqlite3_bind_text( handle, 7, NULL, -1, SQLITE_STATIC );			// signature_filename
     sqlite3_bind_int( handle, 8, pkg->size() );
     sqlite3_bind_int( handle, 9, pkg->installOnly() ? 1 : 0 );
-    sqlite3_bind_int( handle, 10, pkg->mediaId() );
+    sqlite3_bind_int( handle, 10, pkg->sourceMediaNr() );
 
     rc = sqlite3_step( handle);
     sqlite3_reset( handle);
