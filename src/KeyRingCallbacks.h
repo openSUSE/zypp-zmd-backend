@@ -25,6 +25,25 @@
 namespace zypp {
 ///////////////////////////////////////////////////////////////////
 
+
+    // read callback answer
+    //   can either be '0\n' -> false
+    //   or '1\n' -> true
+    // reads characters from stdin until newline. Defaults to 'false'
+    static bool
+    readCallbackAnswer()
+    {
+	char c;
+	bool result = false;
+	while (std::cin.get( c )) {
+	    if (c == '\n')
+		break;
+	    if (c == '1')
+		result = true;
+	}
+	return result;
+    }
+
     ///////////////////////////////////////////////////////////////////
     // KeyRingReceive
     ///////////////////////////////////////////////////////////////////
@@ -32,23 +51,27 @@ namespace zypp {
     {
 	virtual bool askUserToAcceptUnsignedFile( const std::string &file )
 	{
-	  XXX << "(" << file << ")" << std::endl;
-	  return true;
+	  DBG << "1|" << file << std::endl;
+	  std::cout << "1|" << file << std::endl;
+	  return readCallbackAnswer();
 	}
 	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  XXX << "(" << file << ", " << keyid << ", " << keyname << ", " << fingerprint << ")" << std::endl;
-	  return true;
+	  DBG << "2|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  std::cout << "2|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  return readCallbackAnswer();
 	}
 	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  XXX << "(" << keyid << ", " << keyname <<  ", " << fingerprint << ")" << std::endl;
-	  return true;
+	  DBG << "3|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
+	  std::cout << "3|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
+	  return readCallbackAnswer();
 	}
 	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  XXX << "(" << file << ", " << keyid << ", " << keyname << ", " << fingerprint << ")" << std::endl;
-	  return true;
+	  DBG << "4|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  std::cout << "4|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  return readCallbackAnswer();
 	}
     };
 
@@ -57,18 +80,21 @@ namespace zypp {
     {
       virtual bool askUserToAcceptNoDigest( const zypp::Pathname &file )
       {
-	XXX << "(" << file << ")" << std::endl;
-	return true;
+	DBG << "5|" << file << std::endl;
+	std::cout << "5|" << file << std::endl;
+	return readCallbackAnswer();
       }
       virtual bool askUserToAccepUnknownDigest( const Pathname &file, const std::string &name )
       {
-	XXX << "(" << file << ", " << name << ")" << std::endl;
-	return true;
+	DBG << "6|" << file << "|" << name << std::endl;
+	std::cout << "6|" << file << "|" << name << std::endl;
+	return readCallbackAnswer();
       }
       virtual bool askUserToAcceptWrongDigest( const Pathname &file, const std::string &requested, const std::string &found )
       {
-	XXX << "(" << file << ", " << requested << ", " << found << ")" << std::endl;
-	return true;
+	DBG << "7|" << file << "|" << requested << "|" << found << std::endl;
+	std::cout << "7|" << file << "|" << requested << "|" << found << std::endl;
+	return readCallbackAnswer();
       }
     };
 
