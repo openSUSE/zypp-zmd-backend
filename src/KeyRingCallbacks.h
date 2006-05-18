@@ -51,26 +51,26 @@ namespace zypp {
     {
 	virtual bool askUserToAcceptUnsignedFile( const std::string &file )
 	{
-	  DBG << "1|" << file << std::endl;
-	  std::cout << "1|" << file << std::endl;
+	  DBG << "21|" << file << std::endl;
+	  std::cout << "21|" << file << std::endl;
 	  return readCallbackAnswer();
 	}
 	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  DBG << "2|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
-	  std::cout << "2|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  DBG << "22|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  std::cout << "22|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
 	  return readCallbackAnswer();
 	}
 	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  DBG << "3|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
-	  std::cout << "3|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
+	  DBG << "23|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
+	  std::cout << "23|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
 	  return readCallbackAnswer();
 	}
 	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
 	{
-	  DBG << "4|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
-	  std::cout << "4|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  DBG << "24|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  std::cout << "24|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
 	  return readCallbackAnswer();
 	}
     };
@@ -80,20 +80,20 @@ namespace zypp {
     {
       virtual bool askUserToAcceptNoDigest( const zypp::Pathname &file )
       {
-	DBG << "5|" << file << std::endl;
-	std::cout << "5|" << file << std::endl;
+	DBG << "25|" << file << std::endl;
+	std::cout << "25|" << file << std::endl;
 	return readCallbackAnswer();
       }
       virtual bool askUserToAccepUnknownDigest( const Pathname &file, const std::string &name )
       {
-	DBG << "6|" << file << "|" << name << std::endl;
-	std::cout << "6|" << file << "|" << name << std::endl;
+	DBG << "26|" << file << "|" << name << std::endl;
+	std::cout << "26|" << file << "|" << name << std::endl;
 	return readCallbackAnswer();
       }
       virtual bool askUserToAcceptWrongDigest( const Pathname &file, const std::string &requested, const std::string &found )
       {
-	DBG << "7|" << file << "|" << requested << "|" << found << std::endl;
-	std::cout << "7|" << file << "|" << requested << "|" << found << std::endl;
+	DBG << "27|" << file << "|" << requested << "|" << found << std::endl;
+	std::cout << "27|" << file << "|" << requested << "|" << found << std::endl;
 	return readCallbackAnswer();
       }
     };
