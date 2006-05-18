@@ -111,7 +111,7 @@ int
 main (int argc, char **argv)
 {
     if (argc < 5) {
-	cerr << "3|usage: " << argv[0] << " <database> <type> <uri> <catalog id>" << endl;
+	cerr << "3|usage: " << argv[0] << " <database> <owner> <uri> <path> <catalog id>" << endl;
 	return 1;
     }
 
