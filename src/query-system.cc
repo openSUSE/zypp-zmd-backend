@@ -22,123 +22,6 @@ using namespace zypp;
 
 //-----------------------------------------------------------------------------
 
-static void
-sync_sources( )
-{
-
-    MIL << "sync_sources" << endl;
-
-    sqlite3 *db;
-    int rc = sqlite3_open( "/var/lib/zypp/backend.db", &db );
-
-    if (rc != SQLITE_OK) {
-	ERR << "Can not open SQL database zsources.db: " << sqlite3_errmsg( db ) << endl;
-	return;
-    }
-
-    sqlite3_exec (db, "PRAGMA synchronous = 0", NULL, NULL, NULL);
-    sqlite3_exec (db, "BEGIN", NULL, NULL, NULL);
-
-    const char *query =
-	"CREATE TABLE zsources ("
-	"id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "
-	"zmd_id INTEGER DEFAULT 0, "		// reference to catalogs table for zmd, 0 for zypp
-	"alias VARCHAR, "
-	"type VARCHAR, "
-	"url VARCHAR, "
-	"path VARCHAR "
-	")";
-
-    rc = sqlite3_exec( db, query, NULL, NULL, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create 'zsources'[" << rc << "]: " << sqlite3_errmsg( db ) << endl;
-	ERR << query << endl;
-// ignore error, possibly already exists	return;
-    }
-
-    //                                                            1
-    query = "SELECT id FROM zsources WHERE zmd_id = 0 AND alias = ?";
-
-    sqlite3_stmt *select_h = NULL;
-    rc = sqlite3_prepare( db, query, -1, &select_h, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create select query: " << sqlite3_errmsg( db ) << endl;
-	return;
-    }
-
-    //                             1      2     3    4
-    query = "INSERT INTO zsources (alias, type, url, path) VALUES (?, ?, ?, ?)";
-
-    sqlite3_stmt *insert_h = NULL;
-    rc = sqlite3_prepare( db, query, -1, &insert_h, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not create insert query: " << sqlite3_errmsg( db ) << endl;
-	return;
-    }
-
-    SourceManager_Ptr manager = SourceManager::sourceManager();
-
-    try {
-	manager->restore( "/" );
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT( excpt_r );
-	ERR << "Couldn't restore sources" << endl;
-	return;
-    }
-
-    std::list<SourceManager::SourceId> sources = manager->allSources();
-    MIL << "Found " << sources.size() << " sources" << endl;
-
-    for (std::list<SourceManager::SourceId>::const_iterator it = sources.begin(); it != sources.end(); ++it) {
-	Source_Ref source = manager->findSource( *it );
-
-	if (!source) {
-	    ERR << "SourceManager can't find source " << *it << endl;
-	    continue;
-	}
-
-
-	sqlite3_bind_text( select_h, 1, source.alias().c_str(), -1, SQLITE_STATIC );
-	rc = sqlite3_step( select_h );
-
-	bool found = false;
-	if (rc == SQLITE_ROW) {
-	    found = true;
-	    DBG << "Source '" << source.alias() << "' already synched" << endl;
-	}
-	else if (rc != SQLITE_DONE) {
-	    ERR << "rc " << rc << ": " << sqlite3_errmsg( db ) << endl;
-	    break;
-	}
-	sqlite3_reset( select_h );
-
-	if (!found) {
-	    DBG << "Syncing source '" << source.alias() << "'" << endl;
-	    sqlite3_bind_text( insert_h, 1, source.alias().c_str(), -1, SQLITE_STATIC );
-	    std::string type = source.type();
-	    if (type.empty()) type = "YaST";
-	    sqlite3_bind_text( insert_h, 2, type.c_str(), -1, SQLITE_STATIC );
-	    sqlite3_bind_text( insert_h, 3, source.url().asString().c_str(), -1, SQLITE_STATIC );
-	    sqlite3_bind_text( insert_h, 4, source.path().asString().c_str(), -1, SQLITE_STATIC );
-	    rc = sqlite3_step( insert_h );
-	    if (rc != SQLITE_DONE) {
-		ERR << "rc " << rc << ": " << sqlite3_errmsg( db ) << endl;
-		break;
-	    }
-	    sqlite3_reset( insert_h );
-	}
-    }
-
-    sqlite3_finalize( select_h );
-    sqlite3_finalize( insert_h );
-    sqlite3_close( db );
-
-    return;
-}
-
-//-----------------------------------------------------------------------------
-
 int
 main (int argc, char **argv)
 {
@@ -167,9 +50,6 @@ main (int argc, char **argv)
 	return 1;
 
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system", ZYPP_OWNED );
-
-    // sync SourceManager with sources table
-    sync_sources( );
 
     db.closeDb();
 
