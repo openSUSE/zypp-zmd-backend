@@ -190,6 +190,16 @@ DbSources::sources( bool zypp_restore, bool refresh )
 		}
 		catch( const Exception & excpt_r ) {
 		    ZYPP_CAUGHT(excpt_r);
+
+		    // #177543
+		    MIL << "Try to find URL '" << id << "' as zypp source" << endl;
+		    try {
+			Url url = id;
+			zypp_source = _smgr->findSourceByUrl( url );
+		    }
+		    catch( const Exception & excpt_r ) {
+			ZYPP_CAUGHT(excpt_r);
+		    }
 		}
 	    }
 
