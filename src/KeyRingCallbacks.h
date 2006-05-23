@@ -33,6 +33,9 @@ namespace zypp {
     static bool
     readCallbackAnswer()
     {
+	return true;
+//FIXME zmd is not ready yet!, #173920
+#if 0
 	char c;
 	bool result = false;
 	while (std::cin.get( c )) {
@@ -42,6 +45,7 @@ namespace zypp {
 		result = true;
 	}
 	return result;
+#endif
     }
 
     ///////////////////////////////////////////////////////////////////
