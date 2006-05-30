@@ -132,11 +132,11 @@ main (int argc, char **argv)
 	    success = write_transactions( God->pool(), db.db(), context );
 	}
 	else {
-	    cerr << "Unresolved dependencies:" << endl;
+	    cout << "Unresolved dependencies:" << endl;
 
 	    context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, NULL );
 
-	    cerr.flush();
+	    cout.flush();
 	}
     }
 
