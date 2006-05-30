@@ -13,6 +13,7 @@
 #ifndef ZMD_BACKEND_KEYRINGCALLBACKS_H
 #define ZMD_BACKEND_KEYRINGCALLBACKS_H
 
+#include <stdlib.h>
 #include <iostream>
 
 #include <zypp/base/Logger.h>
@@ -33,9 +34,9 @@ namespace zypp {
     static bool
     readCallbackAnswer()
     {
-	return true;
-//FIXME zmd is not ready yet!, #173920
-#if 0
+	if (getenv( "KEYRING_CALLBACK" ) == NULL)
+	    return true;
+
 	char c;
 	bool result = false;
 	while (std::cin.get( c )) {
@@ -45,7 +46,7 @@ namespace zypp {
 		result = true;
 	}
 	return result;
-#endif
+
     }
 
     ///////////////////////////////////////////////////////////////////
