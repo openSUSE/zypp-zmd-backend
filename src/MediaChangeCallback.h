@@ -67,11 +67,15 @@ namespace ZyppRecipients {
 		    }	
 		}
 
+		// fall back to source url if source does not provide a product
 		if (product_name.empty()) {
-		    product_name = description;
+		    product_name = source.url().asString();
 		}
 
 		std::cout << "|" << product_name << std::endl;
+
+		// FIXME: prodive additonal details about WHY a media change is requested
+		// std::cout << "|" << description;
 	    }
 
 	    // and abort here.
