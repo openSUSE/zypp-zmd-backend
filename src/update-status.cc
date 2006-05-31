@@ -196,7 +196,7 @@ main (int argc, char **argv)
 
     db.closeDb();
 
-    MIL << "END update-status" << endl;
+    MIL << "END update-status, result " << (success ? 0 : 1) << endl;
 
     return (success ? 0 : 1);
 }
