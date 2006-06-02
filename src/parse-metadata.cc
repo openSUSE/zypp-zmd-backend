@@ -284,7 +284,7 @@ main (int argc, char **argv)
 	    }
 	}
 	catch( const Exception & excpt_r ) {
-	    cerr << "3|Can't add repository at " << uri << endl;
+	    cerr << "3|Can't add repository at " << uri << ": " << excpt_r.asUserString() << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
 	    goto finish;
