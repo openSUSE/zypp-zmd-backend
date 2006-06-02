@@ -240,6 +240,12 @@ main (int argc, char **argv)
 	    if (uri.asString() == it->url().asString()) {	// url already known ?
 
 		MIL << "Found url, source already known to zypp" << endl;
+
+		if (it->remote()) {
+		    Source_Ref source = manager->findSource( it->numericId() );	// get non-const reference
+		    source.refresh();				// refresh zypp-owned remote source
+		}
+
 		sync_source( db, *it, catalog, Url(), owner );	// since its known by url, it already has a real Url, no need to pass one
 		break;
 	    }
@@ -250,7 +256,7 @@ main (int argc, char **argv)
 
 	    if (it->remote()) {
 		Source_Ref source = manager->findSource( it->numericId() );	// get non-const reference
-		source.refresh();			// refresh zypp-owned remote source
+		source.refresh();				// refresh zypp-owned remote source
 	    }
 
 	    sync_source( db, *it, catalog, Url(), owner );	// known by alias
