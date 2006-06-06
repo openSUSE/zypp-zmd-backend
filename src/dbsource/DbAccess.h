@@ -199,6 +199,8 @@ public:
     bool removeCatalog( const std::string & catalog );
     /** update catalog, update all non-empty parameters (name, alias, description) */
     bool updateCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
+    /** empty catalog, remove all resolvables belonging to this catalog  */
+    bool emptyCatalog( const char *catalog );
 
     /** write resolvables from store to db */
     void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );

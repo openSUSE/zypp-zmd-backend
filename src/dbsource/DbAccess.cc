@@ -1084,6 +1084,30 @@ DbAccess::removeCatalog( const std::string & catalog )
 }
 
 
+/** empty catalog, remove all resolvables belonging to this catalog */
+/* parameter 'const char ** because of callers */
+bool
+DbAccess::emptyCatalog( const char *catalog )
+{
+    string query ("DELETE FROM resolvables where catalog = ? ");
+
+    sqlite3_stmt *handle = prepare_handle( _db, query );
+    if (handle == NULL) {
+	return false;
+    }
+
+    sqlite3_bind_text( handle, 1, catalog, -1, SQLITE_STATIC );
+
+    int rc = sqlite3_step( handle);
+    if (rc != SQLITE_DONE) {
+	ERR << "rc " << rc << ", Error emptying catalog: " << sqlite3_errmsg (_db) << endl;
+    }
+    sqlite3_reset( handle);
+
+    return (rc == SQLITE_DONE);
+}
+
+
 //----------------------------------------------------------------------------
 // store
 
@@ -1096,6 +1120,8 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 	ERR << "Store is empty." << endl;
 	return;
     }
+
+    emptyCatalog( catalog );
 
     Arch sysarch = getZYpp()->architecture();
 
@@ -1140,6 +1166,8 @@ DbAccess::writePool( const zypp::ResPool & pool, const char *catalog )
 	ERR << "Pool is empty" << endl;
 	return;
     }
+
+    emptyCatalog( catalog );
 
     int count = 0;
     sqlite_int64 rowid = 0;
