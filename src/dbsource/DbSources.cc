@@ -137,7 +137,16 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	return _sources;
     }
 
+
+    // assume all sources in sqlite are 'local' (resp. ZMD owned)
+    //  as ZMD does the download of packages to a local cache dir,
+    //  libzypp never downloads itself but assumes all packages are local
+    //  hence we set the base Url to "file:/" and attach package_filename
+    //  (attribute of package_details table) later, giving a complete,
+    //  local Url. See #176964
     media::MediaId mediaid = mmgr.open( Url( "file:/" ) );
+
+
     SourceFactory factory;
 
     // read catalogs table
@@ -172,6 +181,9 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	if (alias.empty()) alias = name;
 	if (desc.empty()) desc = alias;
 
+	// try to find a matching YaST source. This is needed for non-YUM type
+	// repositories, e.g. CD, DVD or local mounts (nfs, smb, ...)
+
 	Source_Ref zypp_source;
 
 	if (zypp_restore
@@ -203,9 +215,18 @@ DbSources::sources( bool zypp_restore, bool refresh )
 		}
 	    }
 
-	    if (zypp_source) {
-		zypp_source.setId( id );		// set id, to match resolvable catalog
-		MIL << "Found " << zypp_source << endl;
+
+	    // If the source exists in YaST and is not type "YUM", rewrite the mediaid to the
+	    // real Url (e.g. "cd://", "nfs://....", etc.)
+	    // However, a non-remote YUM source (e.g. a nfs-mounted repodata/) must be handled
+	    // by zypp. cf. #176964
+
+	    if (zypp_source
+		&& ((zypp_source.type() != "YUM")	// only treat (remote and yum) sources as ZMD owned
+		    || !zypp_source.remote()))		// -> treat (!remote or !yum) sources as zypp owned
+	    {
+		zypp_source.setId( id );		// set id, to match resolvable catalog -> change "file:/" to actual Url
+		MIL << "Found " << zypp_source << endl;	// -> treat as zypp owned !
 	    }
 	}
 
