@@ -293,6 +293,7 @@ main (int argc, char **argv)
 	    cerr << "3|Can't add repository at " << uri << ": " << excpt_r.asUserString() << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
+	    result = 1;
 	    goto finish;
 	}
 
