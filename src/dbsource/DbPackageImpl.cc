@@ -69,7 +69,7 @@ DbPackageImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
     if (text != NULL
 	&& *text != 0)
     {
-	_location = Pathname( text );				// if set, use this (zmd owned source)
+	_location = Pathname( text );				// if set, use this (zmd owned or local source)
     }
     else {
 	text = (const char *)sqlite3_column_text( handle, 14 );	// else use package_url
