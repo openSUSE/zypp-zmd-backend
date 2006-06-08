@@ -81,7 +81,7 @@ main (int argc, char **argv)
     KeyRingCallbacks keyring_callbacks;
     DigestCallbacks digest_callbacks;
 
-    Target_Ptr target = backend::initTarget( God, false );
+    Target_Ptr target = backend::initTarget( God );
 
     // load the catalogs and resolvables from sqlite db
 
