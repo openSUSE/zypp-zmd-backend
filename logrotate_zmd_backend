@@ -1,9 +1,9 @@
 /var/log/zmd-backend.log {
     compress
     dateext
-    maxage 365
-    rotate 9
-    size=+1024k
+    daily
+    rotate 7
+    size 1M
     notifempty
     missingok
     copytruncate
