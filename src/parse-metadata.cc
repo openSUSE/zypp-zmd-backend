@@ -63,6 +63,7 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
+	cerr << "3|Can't restore sources: " << excpt_r.asUserString() << endl;
 	ZYPP_CAUGHT (excpt_r);
 	ERR << "Couldn't restore sources" << endl;
 	return false;
@@ -137,6 +138,7 @@ main (int argc, char **argv)
 	owner = ZMD_OWNED;
     }
     else {
+	cerr << "3|Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
 	return 1;
     }
@@ -156,6 +158,7 @@ main (int argc, char **argv)
 
     if (!db.openDb( true ))		// open for writing
     {
+	cerr << "3|Cannot open database " << argv[1] << endl;
 	ERR << "Cannot open database" << endl;
 	return 1;
     }
