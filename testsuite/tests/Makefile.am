@@ -3,7 +3,8 @@
 
 noinst_PROGRAMS =	\
 	catalogs	\
-	sources
+	sources		\
+	linebreaks
 
 ## ##################################################
 
@@ -19,4 +20,4 @@ catalogs_SOURCES = catalogs.cc
 
 sources_SOURCES = sources.cc
 
-
+linebreaks_SOURCES = linebreaks.cc ../../src/zmd-backend.cc

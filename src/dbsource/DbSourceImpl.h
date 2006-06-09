@@ -80,6 +80,9 @@ class DbSourceImpl : public zypp::source::SourceImpl {
     virtual const bool valid() const
     { return true; }
 
+    virtual std::string type(void) const
+    { return "ZMD"; }
+
     void attachDatabase( sqlite3 *db );
     void attachIdMap (IdMap *idmap);
     void attachZyppSource( zypp::Source_Ref source );

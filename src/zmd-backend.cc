@@ -41,12 +41,27 @@ initTarget( ZYpp::Ptr Z, bool commit_only )
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
-	cout << "3|" << excpt_r.asUserString() << endl;
+	cout << "3|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	cerr << excpt_r.asString() << endl;
 	exit(1);
     }
     return T;
 }
+
+
+std::string
+striplinebreaks( const std::string & s )
+{
+    std::string result = s;
+    do {
+	string::size_type nlpos = result.find( "\n" );
+	if (nlpos == string::npos) break;
+	result = result.erase( nlpos, 1 );
+    }
+    while( 1 );
+    return result;
+}
+
 
 };
 

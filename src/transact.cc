@@ -203,14 +203,14 @@ main (int argc, char **argv)
 	    cerr << "Need media " << med_callback.mediaNr() << ": " << med_callback.description() << endl;
 	}
 	else {
-	    cout << "3|" << expt_r.asUserString() << endl;
+	    cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
 	    cerr << expt_r.asString() << endl;
 	}
     }
     catch ( const Exception & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
-	cout << "3|" << expt_r.asUserString() << endl;
+	cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
 	cerr << expt_r.asString() << endl;
     }
 

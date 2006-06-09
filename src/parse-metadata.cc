@@ -63,7 +63,7 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
-	cerr << "3|Can't restore sources: " << excpt_r.asUserString() << endl;
+	cerr << "3|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT (excpt_r);
 	ERR << "Couldn't restore sources" << endl;
 	return false;
@@ -194,7 +194,7 @@ main (int argc, char **argv)
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
-	cerr << "3|" << excpt_r.asUserString() << endl;
+	cerr << "3|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	return 1;
     }
 
@@ -293,7 +293,7 @@ main (int argc, char **argv)
 	    }
 	}
 	catch( const Exception & excpt_r ) {
-	    cerr << "3|Can't add repository at " << uri << ": " << excpt_r.asUserString() << endl;
+	    cerr << "3|Can't add repository at " << uri << ": " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
 	    result = 1;

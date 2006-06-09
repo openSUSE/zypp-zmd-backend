@@ -17,6 +17,9 @@ zypp::ZYpp::Ptr getZYpp( bool readonly = false );
 // init Target (root="/", commit_only=true), exit(1) on error
 zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z, bool commit_only = true );
 
+// remove line breaks
+std::string striplinebreaks( const std::string & s );
+
 }
 
 #endif // ZMD_BACKEND_H
