@@ -1,0 +1,4 @@
+# linebreaks.exp
+# run tests for linebreaks
+
+  shouldPass "linebreaks"
