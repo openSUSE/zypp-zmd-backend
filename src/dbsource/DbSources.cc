@@ -93,6 +93,8 @@ DbSources::createDummy( const Url & url, const string & catalog )
 // actually create sources from catalogs table
 // if zypp_restore == true, match catalogs entries with actual zypp sources
 //   and return zypp source on match
+//   this is needed by the 'transact' helper
+//
 // else create dummy file:/ source since a real source is either not needed
 //   or files are provided by zmd
 //
@@ -128,13 +130,17 @@ DbSources::sources( bool zypp_restore, bool refresh )
     media::MediaManager mmgr;
     _smgr = SourceManager::sourceManager();
 
-    try {
-	_smgr->restore("/");
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	ERR << "Couldn't restore sources" << endl;
-	return _sources;
+    // restore zypp cache only if needed (e.g. by transact helper)
+
+    if (zypp_restore) {
+	try {
+	    _smgr->restore("/");
+	}
+	catch (Exception & excpt_r) {
+	    ZYPP_CAUGHT (excpt_r);
+	    ERR << "Couldn't restore sources" << endl;
+	    return _sources;
+	}
     }
 
 
