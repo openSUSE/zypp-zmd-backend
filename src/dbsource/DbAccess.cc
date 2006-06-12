@@ -455,13 +455,13 @@ DbAccess::openDb( bool for_writing )
 	|| _db == NULL)
     {
 	ERR << "Can not open SQL database: " << sqlite3_errmsg (_db) << endl;
-	cerr << "Can't open " << _dbfile << endl;
+	cerr << "1|Can't open " << _dbfile << endl;
 	return false;
     }
 
     if (for_writing) {
 	if (!prepareWrite()) {
-	    cerr << "Can't prepare sql access handles" << endl;
+	    cerr << "1|Can't prepare sql access handles" << endl;
 	    return false;
 	}
     }

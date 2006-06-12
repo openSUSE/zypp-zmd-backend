@@ -23,8 +23,8 @@ getZYpp( bool readonly )
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
-	cout << "3|A transaction is already in progress." << endl;
-	cerr << "A transaction is already in progress." << endl;
+	cerr << "1|A transaction is already in progress." << endl;
+	cout << "A transaction is already in progress." << endl;
 	exit(1);
     }
     return Z;
@@ -41,8 +41,8 @@ initTarget( ZYpp::Ptr Z, bool commit_only )
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
-	cout << "3|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
-	cerr << excpt_r.asString() << endl;
+	cerr << "3|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cout << excpt_r.asString() << endl;
 	exit(1);
     }
     return T;

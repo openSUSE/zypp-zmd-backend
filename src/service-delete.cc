@@ -35,7 +35,7 @@ service_delete( ZYpp::Ptr Z, const string & name)
 	manager->restore( "/" );
     }
     catch (Exception & excpt_r) {
-	cerr << "3|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT( excpt_r );
 	ERR << "Couldn't restore sources" << endl;
 	return 1;

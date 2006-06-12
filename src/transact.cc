@@ -82,7 +82,7 @@ int
 main (int argc, char **argv)
 {
     if (argc < 2) {
-	cerr << "usage: " << argv[0] << " <database> [--test] [--nosignature] [--nopretest]" << endl;
+	cerr << "1|Usage: " << argv[0] << " <database> [--test] [--nosignature] [--nopretest]" << endl;
 	return 1;
     }
 
@@ -143,7 +143,7 @@ main (int argc, char **argv)
     int removals = 0;
     int count = read_transactions (God->pool(), db.db(), dbs, removals, items);
     if (count < 0) {
-	cerr << "Reading transactions failed." << endl;
+	cerr << "1|Reading transactions failed." << endl;
 	return 1;
     }
 
@@ -182,6 +182,9 @@ main (int argc, char **argv)
 	{
 	    result = 1;
 	    if (zres._errors.size() > 0) {
+
+		// write transaction progress to stdout
+
 		cout << "3|Incomplete transactions:" << endl;
 		for (PoolItemList::const_iterator it = zres._errors.begin(); it != zres._errors.end(); ++it) {
 		    cout << "3|" << it->resolvable() << endl;
@@ -200,20 +203,26 @@ main (int argc, char **argv)
 	if (med_callback.mediaNr() != 0			// exception due to MediaChange callback ?
 	    && !med_callback.description().empty())
 	{
-	    cerr << "Need media " << med_callback.mediaNr() << ": " << med_callback.description() << endl;
+	    // "4|" means 'message' to ZMD
+	    cerr << "4|Need media " << med_callback.mediaNr() << ": " << med_callback.description() << endl;
 	}
 	else {
+	    // "3|" is progress to stdout
 	    cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
-	    cerr << expt_r.asString() << endl;
+	    // report as message ("4|" is message) to stderr
+	    cerr << "4|" << expt_r.asString() << endl;
 	}
     }
     catch ( const Exception & expt_r ) {
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
+	// transact progress to stdout
 	cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
-	cerr << expt_r.asString() << endl;
+	// report as error
+	cerr << "1|" << expt_r.asString() << endl;
     }
 
+    // 'finish' transaction progress
     cout << "4" << endl;
 
     // now drop those transactions which are already committed

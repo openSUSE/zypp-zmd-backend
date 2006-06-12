@@ -363,7 +363,7 @@ sync_catalogs( DbAccess & db )
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
-	cerr << "3|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT (excpt_r);
 	ERR << "Couldn't restore sources" << endl;
 	return;
@@ -391,7 +391,7 @@ int
 main (int argc, char **argv)
 {
     if (argc < 3 || argc > 4) {
-	std::cerr << "3|usage: " << argv[0] << " <database> <uri> [catalog id]" << endl;
+	std::cerr << "1|usage: " << argv[0] << " <database> <uri> [catalog id]" << endl;
 	return 1;
     }
 

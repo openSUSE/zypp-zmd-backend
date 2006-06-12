@@ -63,7 +63,7 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
-	cerr << "3|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT (excpt_r);
 	ERR << "Couldn't restore sources" << endl;
 	return false;
@@ -112,7 +112,7 @@ int
 main (int argc, char **argv)
 {
     if (argc < 5) {
-	cerr << "3|usage: " << argv[0] << " <database> <owner> <uri> <path> <catalog id>" << endl;
+	cerr << "1|usage: " << argv[0] << " <database> <owner> <uri> <path> <catalog id>" << endl;
 	return 1;
     }
 
@@ -138,7 +138,7 @@ main (int argc, char **argv)
 	owner = ZMD_OWNED;
     }
     else {
-	cerr << "3|Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
+	cerr << "1|Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
 	ERR << "Invalid option " << argv[2] << ", expecting '" << ZYPP << "' or '" << ZMD << "'" << endl;
 	return 1;
     }
@@ -158,7 +158,7 @@ main (int argc, char **argv)
 
     if (!db.openDb( true ))		// open for writing
     {
-	cerr << "3|Cannot open database " << argv[1] << endl;
+	cerr << "1|Cannot open database " << argv[1] << endl;
 	ERR << "Cannot open database" << endl;
 	return 1;
     }
@@ -194,7 +194,7 @@ main (int argc, char **argv)
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
-	cerr << "3|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	return 1;
     }
 
@@ -204,7 +204,7 @@ main (int argc, char **argv)
 	&& !urialias.empty())
     {
 	ERR << "Bad paremeters, yum-type url with alias" << endl;
-	cerr << "3|Bad paremeters, yum-type url with alias" << endl;
+	cerr << "1|Bad paremeters, yum-type url with alias" << endl;
 	return 1;
     }
 
@@ -272,7 +272,7 @@ main (int argc, char **argv)
     if (it == manager->Source_end()) {
 
 	if (!urialias.empty()) {				// alias given but not found in zypp -> error
-	    cerr << "3|Unknown alias '" << urialias << "' passed." << endl;
+	    cerr << "1|Unknown alias '" << urialias << "' passed." << endl;
 	    ERR << "Unknown alias '" << urialias << "' passed." << endl;
 	    goto finish;
 	}
@@ -293,7 +293,7 @@ main (int argc, char **argv)
 	    }
 	}
 	catch( const Exception & excpt_r ) {
-	    cerr << "3|Can't add repository at " << uri << ": " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	    cerr << "1|Can't add repository at " << uri << ": " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
 	    result = 1;
@@ -320,7 +320,7 @@ main (int argc, char **argv)
 	    manager->store( "/", true /*metadata_cache*/ );
 	}
 	catch (Exception & excpt_r) {
-	    cerr << "3|Can't store source to zypp" << endl;
+	    cerr << "1|Can't store source to zypp" << endl;
 	    ZYPP_CAUGHT (excpt_r);
 	    ERR << "Couldn't store source to zypp" << endl;
 	    result = 1;

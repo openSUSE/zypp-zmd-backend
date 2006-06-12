@@ -46,8 +46,9 @@ main (int argc, char **argv)
     Target_Ptr target = backend::initTarget( God, false );
 
     DbAccess db( argv[1] );
-    if (!db.openDb( true ))
+    if (!db.openDb( true )) {
 	return 1;
+    }
 
     db.writeStore( God->target()->resolvables(), ResStatus::installed, "@system", ZYPP_OWNED );
 
