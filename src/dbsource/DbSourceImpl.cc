@@ -77,13 +77,13 @@ DbSourceImpl::attachDatabase( sqlite3 *db)
 void
 DbSourceImpl::attachIdMap (IdMap *idmap)
 {
-  _idmap = idmap;
+    _idmap = idmap;
 }
 
 void
 DbSourceImpl::attachZyppSource(zypp::Source_Ref source)
 {
-  _zyppsource = source;
+    _zyppsource = source;
 }
 
 //-----------------------------------------------------------------------------
