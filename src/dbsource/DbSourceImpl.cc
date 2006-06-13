@@ -55,9 +55,14 @@ DbSourceImpl::factoryInit()
     try {
 	media::MediaManager media_mgr;
 	MIL << "Adding no media verifier" << endl;
-	media::MediaAccessId _media = _media_set->getMediaAccessId(1);
-	media_mgr.delVerifier( _media);
-	media_mgr.addVerifier( _media, media::MediaVerifierRef( new media::NoVerifier()));
+	if (_media_set == NULL) {
+	    WAR << "_media_set is NULL" << endl;
+	}
+	else {
+	    media::MediaAccessId _media = _media_set->getMediaAccessId(1);
+	    media_mgr.delVerifier( _media);
+	    media_mgr.addVerifier( _media, media::MediaVerifierRef( new media::NoVerifier()));
+	}
     }
     catch (const Exception & excpt_r)
     {
