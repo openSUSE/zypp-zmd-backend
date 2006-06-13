@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "dbsource/utils.h"
+#include "../../src/dbsource/utils.h"
 
 int
 main(int argc, char *argv[])
