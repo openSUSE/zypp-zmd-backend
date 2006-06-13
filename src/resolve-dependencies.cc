@@ -127,10 +127,9 @@ main (int argc, char **argv)
 
 	solver::detail::ResolverContext_Ptr context = God->resolver()->context();
 	if (context == NULL) {
-	    ERR << "No context ?!" << endl;
-	    return 1;
+	    MIL << "Nothing to transact" << endl;
         }
-	if (success) {
+	else if (success) {
 	    success = write_transactions( God->pool(), db.db(), context );
 	}
 	else {
