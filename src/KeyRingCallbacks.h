@@ -50,6 +50,7 @@ namespace zypp {
 	    if (c == '1')
 		result = true;
 	}
+	DBG << "answer " << result << std::endl;
 	return result;
 
     }
