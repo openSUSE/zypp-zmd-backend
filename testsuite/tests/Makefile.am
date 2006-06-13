@@ -20,4 +20,5 @@ catalogs_SOURCES = catalogs.cc
 
 sources_SOURCES = sources.cc
 
-linebreaks_SOURCES = linebreaks.cc ../../src/zmd-backend.cc
+linebreaks_SOURCES = linebreaks.cc
+

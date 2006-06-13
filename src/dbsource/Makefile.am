@@ -9,7 +9,8 @@ INCLUDES = 					\
 
 pkginclude_HEADERS =				\
 	DbSources.h				\
-	DbAccess.h
+	DbAccess.h				\
+	utils.h
 
 noinst_HEADERS =				\
 	DbSourceImpl.h				\
@@ -35,7 +36,8 @@ lib@PACKAGE@_la_SOURCES =			\
 	DbPatternImpl.cc			\
 	DbProductImpl.cc			\
 	DbSources.cc				\
-	DbAccess.cc 
+	DbAccess.cc 				\
+	utils.cc
 
 lib@PACKAGE@_la_LDFLAGS =	@BACKEND_VERSION_INFO@
 
