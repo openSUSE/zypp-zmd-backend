@@ -36,10 +36,9 @@ service_delete( ZYpp::Ptr Z, const string & name)
 	manager->restore( "/" );
     }
     catch (Exception & excpt_r) {
-	cerr << "1|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
+	cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT( excpt_r );
-	ERR << "Couldn't restore sources" << endl;
-	return 1;
+	ERR << "Couldn't restore all sources" << endl;
     }
 
     Url uri;
@@ -48,7 +47,7 @@ service_delete( ZYpp::Ptr Z, const string & name)
 
     // Url() constructor might throw
     try {
-	uri = Url ( name );
+	uri = Url ( (name[0] == '/') ? (string("file:/") + name) : name );
 	uriparams = uri.getQueryStringMap();	// extract parameters
 	url::ParamMap::const_iterator it = uriparams.find( "alias" );
 	if (it != uriparams.end()) {
@@ -78,12 +77,14 @@ service_delete( ZYpp::Ptr Z, const string & name)
  	    manager->store ("/", true /*metadata_cache*/);
 	}
 	catch (Exception & excpt_r) {
+	    cerr << "2|Can't remove source '" << name << "': " << joinlines( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT (excpt_r);
 	    ERR << "Couldn't update source cache" << endl;
 	    return 1;
 	}
     }
     else {
+	cerr << "3|Source '" << name << "' already removed." << endl;
 	WAR << "Source '" << name << "' not found" << endl;
 	return 1;
     }
