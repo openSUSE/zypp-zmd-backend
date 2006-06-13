@@ -137,9 +137,9 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	    _smgr->restore("/");
 	}
 	catch (Exception & excpt_r) {
+	    cerr << "2|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT (excpt_r);
-	    ERR << "Couldn't restore sources" << endl;
-	    return _sources;
+	    ERR << "Couldn't restore all sources" << endl;
 	}
     }
 

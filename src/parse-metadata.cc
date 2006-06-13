@@ -63,10 +63,9 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
-	cerr << "1|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "2|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT (excpt_r);
-	ERR << "Couldn't restore sources" << endl;
-	return false;
+	ERR << "Couldn't restore all sources" << endl;
     }
     return true;
 }
