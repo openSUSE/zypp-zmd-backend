@@ -15,6 +15,8 @@
 
 #include <iostream>
 
+#include "dbsource/utils.h"
+
 #include <zypp/base/Logger.h>
 #include <zypp/ZYppCallbacks.h>
 #include <zypp/Package.h>
@@ -47,6 +49,17 @@ namespace ZyppRecipients {
 	    _description = description;
 
 	    DBG << "requestMedia(" << source << ", " << mediumNr << ", " << error << ", " << description << ")" << endl;
+
+	    string scheme( source.url().getScheme() );
+
+	    // if its not CD or DVD, report as normal error and abort
+
+	    if (scheme != "cd"
+		&& scheme != "dvd")
+	    {
+		cerr << "1|Error accessing package: " << error << " (" << joinlines( description ) << ")" << endl;
+		mediumNr = 0;	// force abort
+	    }
 
 	    if (mediumNr > 0) {
 

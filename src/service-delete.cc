@@ -47,7 +47,7 @@ service_delete( ZYpp::Ptr Z, const string & name)
 
     // Url() constructor might throw
     try {
-	uri = Url ( (name[0] == '/') ? (string("file:/") + name) : name );
+	uri = Url ( (name[0] == '/') ? (string("file:") + name) : name );
 	uriparams = uri.getQueryStringMap();	// extract parameters
 	url::ParamMap::const_iterator it = uriparams.find( "alias" );
 	if (it != uriparams.end()) {
