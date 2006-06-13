@@ -14,6 +14,7 @@
 #include <zypp/base/Exception.h>
 #include <zypp/base/Algorithm.h>
 
+#include "dbsource/utils.h"
 #include "KeyRingCallbacks.h"
 
 using namespace std;
@@ -35,7 +36,7 @@ service_delete( ZYpp::Ptr Z, const string & name)
 	manager->restore( "/" );
     }
     catch (Exception & excpt_r) {
-	cerr << "1|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT( excpt_r );
 	ERR << "Couldn't restore sources" << endl;
 	return 1;

@@ -31,6 +31,7 @@
 
 #include "zypp/media/MediaManager.h"
 
+#include "utils.h"
 #include "DbSources.h"
 #include "DbSourceImpl.h"
 #include <sqlite3.h>
@@ -123,6 +124,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
     sqlite3_stmt *handle = NULL;
     int rc = sqlite3_prepare (_db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
+	cerr << "1|Can not read 'channels': " << sqlite3_errmsg (_db) << endl;
 	ERR << "Can not read 'channels': " << sqlite3_errmsg (_db) << endl;
 	return _sources;
     }
@@ -137,7 +139,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	    _smgr->restore("/");
 	}
 	catch (Exception & excpt_r) {
-	    cerr << "2|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	    cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT (excpt_r);
 	    ERR << "Couldn't restore all sources" << endl;
 	}
@@ -151,7 +153,6 @@ DbSources::sources( bool zypp_restore, bool refresh )
     //  (attribute of package_details table) later, giving a complete,
     //  local Url. See #176964
     media::MediaId mediaid = mmgr.open( Url( "file:/" ) );
-
 
     SourceFactory factory;
 
@@ -254,6 +255,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	    _sources.push_back( src );
 	}
 	catch (Exception & excpt_r) {
+	    cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT(excpt_r);
 	    ERR << "Couldn't create zmd source" << endl;
 	}

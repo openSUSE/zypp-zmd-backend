@@ -49,6 +49,7 @@ using namespace zypp;
 
 #include <sys/stat.h>
 
+#include "dbsource/utils.h"
 #include "dbsource/DbAccess.h"
 #include "KeyRingCallbacks.h"
 
@@ -63,7 +64,7 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
-	cerr << "2|Can't restore sources: " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
 	ZYPP_CAUGHT (excpt_r);
 	ERR << "Couldn't restore all sources" << endl;
     }
@@ -193,7 +194,7 @@ main (int argc, char **argv)
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
-	cerr << "1|" << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	cerr << "1|" << joinlines( excpt_r.asUserString() ) << endl;
 	return 1;
     }
 
@@ -292,7 +293,7 @@ main (int argc, char **argv)
 	    }
 	}
 	catch( const Exception & excpt_r ) {
-	    cerr << "1|Can't add repository at " << uri << ": " << backend::striplinebreaks( excpt_r.asUserString() ) << endl;
+	    cerr << "1|Can't add repository at " << uri << ": " << joinlines( excpt_r.asUserString() ) << endl;
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
 	    result = 1;

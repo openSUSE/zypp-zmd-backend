@@ -19,6 +19,7 @@ using namespace std;
 using namespace zypp;
 
 #include <sqlite3.h>
+#include "dbsource/utils.h"
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 
@@ -208,7 +209,7 @@ main (int argc, char **argv)
 	}
 	else {
 	    // "3|" is progress to stdout
-	    cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
+	    cout << "3|" << joinlines( expt_r.asUserString() ) << endl;
 	    // report as message ("4|" is message) to stderr
 	    cerr << "4|" << expt_r.asString() << endl;
 	}
@@ -217,7 +218,7 @@ main (int argc, char **argv)
 	ZYPP_CAUGHT( expt_r );
 	result = 1;
 	// transact progress to stdout
-	cout << "3|" << backend::striplinebreaks( expt_r.asUserString() ) << endl;
+	cout << "3|" << joinlines( expt_r.asUserString() ) << endl;
 	// report as error
 	cerr << "1|" << expt_r.asString() << endl;
     }
