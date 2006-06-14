@@ -221,7 +221,15 @@ main (int argc, char **argv)
 
     if (source) {
 	if (source.remote()) {
-	    source.refresh();				// refresh zypp-owned remote source
+	    try {
+		source.refresh();				// refresh zypp-owned remote source
+	    }
+	    catch( const Exception & excpt_r ) {
+		cerr << "3|Can't refresh " << uri << ": " << joinlines( excpt_r.asUserString() ) << endl;
+		ZYPP_CAUGHT( excpt_r );
+		ERR << "Can't refresh " << uri << endl;
+		// continue with current data (unrefreshed)
+	    }
 	}
 	// since its known by url, it already has a real Url, no need to pass one
 	sync_source( db, source, catalog, Url(), owner );
