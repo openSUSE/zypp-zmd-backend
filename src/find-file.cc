@@ -12,14 +12,14 @@
 #include <zypp/target/rpm/RpmDb.h>
 #include <zypp/Target.h>
 
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "find-file"
+
 #include "dbsource/DbAccess.h"
 #include "KeyRingCallbacks.h"
 
 using namespace std;
 using namespace zypp;
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "find-file"
 
 #include <sqlite3.h>
 

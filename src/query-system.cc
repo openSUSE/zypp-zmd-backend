@@ -14,11 +14,11 @@ using namespace std;
 using namespace zypp;
 
 #include <sqlite3.h>
-#include "dbsource/DbAccess.h"
-#include "KeyRingCallbacks.h"
-
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "query-system"
+
+#include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 //-----------------------------------------------------------------------------
 

@@ -19,6 +19,9 @@ using namespace std;
 using namespace zypp;
 
 #include <sqlite3.h>
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "transact"
+
 #include "dbsource/utils.h"
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
@@ -34,9 +37,6 @@ using namespace zypp;
 using solver::detail::ResolverInfo_Ptr;
 
 typedef std::list<PoolItem> PoolItemList;
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "transact"
 
 //-----------------------------------------------------------------------------
 

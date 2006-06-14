@@ -14,14 +14,14 @@
 #include <zypp/base/Exception.h>
 #include <zypp/base/Algorithm.h>
 
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "service-delete"
+
 #include "dbsource/utils.h"
 #include "KeyRingCallbacks.h"
 
 using namespace std;
 using namespace zypp;
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "service-delete"
 
 //-----------------------------------------------------------------------------
 

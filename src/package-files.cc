@@ -34,11 +34,11 @@ using target::rpm::FileInfo;
 
 #include <sys/stat.h>
 
-#include "dbsource/DbAccess.h"
-#include "KeyRingCallbacks.h"
-
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "package-files"
+
+#include "dbsource/DbAccess.h"
+#include "KeyRingCallbacks.h"
 
 //-----------------------------------------------------------------------------
 

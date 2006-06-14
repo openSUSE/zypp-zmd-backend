@@ -28,13 +28,13 @@ using namespace std;
 
 #include <sys/stat.h>
 
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "query-files"
+
 #include "dbsource/utils.h"
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 #include "KeyRingCallbacks.h"
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "query-files"
 
 //-----------------------------------------------------------------------------
 

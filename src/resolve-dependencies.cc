@@ -14,6 +14,9 @@ using namespace std;
 using namespace zypp;
 
 #include <sqlite3.h>
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "resolve-dependencies"
+
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 #include "KeyRingCallbacks.h"
@@ -22,10 +25,6 @@ using namespace zypp;
 #include <zypp/solver/detail/ResolverInfo.h>
 
 using solver::detail::ResolverInfo_Ptr;
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "resolve-dependencies"
-
 
 //-----------------------------------------------------------------------------
 

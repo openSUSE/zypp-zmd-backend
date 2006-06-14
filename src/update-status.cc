@@ -14,6 +14,9 @@
 #include <zypp/base/Exception.h>
 
 #include <sqlite3.h>
+#undef ZYPP_BASE_LOGGER_LOGGROUP
+#define ZYPP_BASE_LOGGER_LOGGROUP "update-status"
+
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 #include "KeyRingCallbacks.h"
@@ -25,9 +28,6 @@ using namespace zypp;
 
 using solver::detail::ResolverInfo_Ptr;
 using solver::detail::ResolverContext_Ptr;
-
-#undef ZYPP_BASE_LOGGER_LOGGROUP
-#define ZYPP_BASE_LOGGER_LOGGROUP "update-status"
 
 //-----------------------------------------------------------------------------
 
