@@ -2,7 +2,7 @@
 // zmd-backend.cc
 // ZMD backend helpers
 
-#include "dbsource/utils.h"
+#include "utils.h"
 #include "zmd-backend.h"
 
 #include <zypp/zypp_detail/ZYppReadOnlyHack.h>

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include "zmd-backend.h"
+#include "dbsource/zmd-backend.h"
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>

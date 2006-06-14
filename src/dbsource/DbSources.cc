@@ -31,7 +31,7 @@
 
 #include "zypp/media/MediaManager.h"
 
-#include "../zmd-backend.h"
+#include "zmd-backend.h"
 #include "utils.h"
 #include "DbSources.h"
 #include "DbSourceImpl.h"

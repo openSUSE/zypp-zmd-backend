@@ -10,7 +10,8 @@ INCLUDES = 					\
 pkginclude_HEADERS =				\
 	DbSources.h				\
 	DbAccess.h				\
-	utils.h
+	utils.h					\
+	zmd-backend.h
 
 noinst_HEADERS =				\
 	DbSourceImpl.h				\
@@ -37,7 +38,8 @@ lib@PACKAGE@_la_SOURCES =			\
 	DbProductImpl.cc			\
 	DbSources.cc				\
 	DbAccess.cc 				\
-	utils.cc
+	utils.cc				\
+	zmd-backend.cc
 
 lib@PACKAGE@_la_LDFLAGS =	@BACKEND_VERSION_INFO@
 

@@ -9,7 +9,7 @@
 #include <cstring>
 #include <list>
 
-#include "zmd-backend.h"
+#include "dbsource/zmd-backend.h"
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>
