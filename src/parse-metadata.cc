@@ -57,21 +57,6 @@ using namespace zypp;
 static SourceManager_Ptr manager;
 // manager->store may be expensive
 
-static bool
-restore_sources ()
-{
-    try {
-	manager->restore("/");
-    }
-    catch (Exception & excpt_r) {
-	cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
-	ZYPP_CAUGHT (excpt_r);
-	ERR << "Couldn't restore all sources" << endl;
-    }
-    return true;
-}
-
-
 //----------------------------------------------------------------------------
 // upload all zypp sources as catalogs to the database
 
@@ -149,11 +134,6 @@ main (int argc, char **argv)
 
     backend::initTarget( God );
 
-    manager = SourceManager::sourceManager();
-    if (! restore_sources ()) {
-	return 1;
-    }
-
     DbAccess db( argv[1] );		// the zmd.db
 
     if (!db.openDb( true ))		// open for writing
@@ -215,6 +195,8 @@ main (int argc, char **argv)
 
     MIL << "Uri '" << uri << "', Alias '" << urialias << "', Path '" << pathurl << "'" << endl;
 
+    manager = SourceManager::sourceManager();
+
     //
     // find matching source and write its resolvables to the catalog
     //
@@ -235,41 +217,16 @@ main (int argc, char **argv)
     // used by applications linking against zypp.
     //
 
-    SourceManager::Source_const_iterator it;
-    for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
+    Source_Ref source = backend::findSource( manager, urialias, uri );
 
-	if (urialias.empty()) {					// urialias empty -> not coming from yast
-
-	    if (uri.asString() == it->url().asString()) {	// url already known ?
-
-		MIL << "Found url, source already known to zypp" << endl;
-
-		if (it->remote()) {
-		    Source_Ref source = manager->findSource( it->numericId() );	// get non-const reference
-		    source.refresh();				// refresh zypp-owned remote source
-		}
-
-		sync_source( db, *it, catalog, Url(), owner );	// since its known by url, it already has a real Url, no need to pass one
-		break;
-	    }
+    if (source) {
+	if (source.remote()) {
+	    source.refresh();				// refresh zypp-owned remote source
 	}
-	else if (urialias == it->alias()) {			// urialias matches zypp one
-
-	    MIL << "Found alias, source already known to zypp" << endl;
-
-	    if (it->remote()) {
-		Source_Ref source = manager->findSource( it->numericId() );	// get non-const reference
-		source.refresh();				// refresh zypp-owned remote source
-	    }
-
-	    sync_source( db, *it, catalog, Url(), owner );	// known by alias
-	    break;
-	}
+	// since its known by url, it already has a real Url, no need to pass one
+	sync_source( db, source, catalog, Url(), owner );
     }
-
-    // if the source is not known in zypp, add it
-
-    if (it == manager->Source_end()) {
+    else {    // if the source is not known in zypp, add it
 
 	if (!urialias.empty()) {				// alias given but not found in zypp -> error
 	    cerr << "1|Unknown alias '" << urialias << "' passed." << endl;
@@ -279,7 +236,6 @@ main (int argc, char **argv)
 
 	MIL << "Source not found, creating" << endl;
 
-	Source_Ref source;
 	try {
 	    if (owner == ZMD_OWNED) {		// use zmd downloaded metadata:
 		source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );

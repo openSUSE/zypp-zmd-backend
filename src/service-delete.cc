@@ -32,15 +32,6 @@ service_delete( ZYpp::Ptr Z, const string & name)
 
     MIL << "service_delete(" << name << ")" << endl;
 
-    try {
-	manager->restore( "/" );
-    }
-    catch (Exception & excpt_r) {
-	cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
-	ZYPP_CAUGHT( excpt_r );
-	ERR << "Couldn't restore all sources" << endl;
-    }
-
     Url uri;
     url::ParamMap uriparams;
     string urialias;
@@ -56,23 +47,15 @@ service_delete( ZYpp::Ptr Z, const string & name)
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
+	cerr << "1|" << joinlines( excpt_r.asUserString() ) << endl;
+	return 1;
     }
 
-    SourceManager::Source_const_iterator it;
-    for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	if (urialias.empty()) {
-	    if (name == it->url().asString()) {			// url already known ?
-		break;
-	    }
-	}
-	else if (urialias == it->alias()) {			// urialias matches zypp one
-	    break;
-	}
-    }
+    Source_Ref source = backend::findSource( manager, urialias, uri );
 
-    if (it != manager->Source_end()) {
+    if (source) {
 
-	manager->removeSource( it->alias() );
+	manager->removeSource( source.numericId() );
 	try {
  	    manager->store ("/", true /*metadata_cache*/);
 	}

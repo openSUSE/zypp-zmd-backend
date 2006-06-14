@@ -31,6 +31,7 @@
 
 #include "zypp/media/MediaManager.h"
 
+#include "../zmd-backend.h"
 #include "utils.h"
 #include "DbSources.h"
 #include "DbSourceImpl.h"
@@ -132,27 +133,14 @@ DbSources::sources( bool zypp_restore, bool refresh )
     media::MediaManager mmgr;
     _smgr = SourceManager::sourceManager();
 
-    // restore zypp cache only if needed (e.g. by transact helper)
-
-    if (zypp_restore) {
-	try {
-	    _smgr->restore("/");
-	}
-	catch (Exception & excpt_r) {
-	    cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
-	    ZYPP_CAUGHT (excpt_r);
-	    ERR << "Couldn't restore all sources" << endl;
-	}
-    }
-
-
     // assume all sources in sqlite are 'local' (resp. ZMD owned)
     //  as ZMD does the download of packages to a local cache dir,
     //  libzypp never downloads itself but assumes all packages are local
     //  hence we set the base Url to "file:/" and attach package_filename
     //  (attribute of package_details table) later, giving a complete,
     //  local Url. See #176964
-    media::MediaId mediaid = mmgr.open( Url( "file:/" ) );
+    Url url( "file:/" );
+    media::MediaId mediaid = mmgr.open( url );
 
     SourceFactory factory;
 
@@ -196,52 +184,51 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	if (zypp_restore
 	    && id[0] != '@')		// not for zmd '@system' and '@local'
 	{
-	    MIL << "Try to find '" << name << "' as zypp source" << endl;
-	    try {
-		zypp_source = _smgr->findSource( name );
-	    }
-	    catch( const Exception & excpt_r ) {
-		ZYPP_CAUGHT(excpt_r);
-
-		MIL << "Try to find '" << alias << "' as zypp source" << endl;
-		try {
-		    zypp_source = _smgr->findSource( alias );
-		}
-		catch( const Exception & excpt_r ) {
-		    ZYPP_CAUGHT(excpt_r);
-
-		    // #177543
-		    MIL << "Try to find URL '" << id << "' as zypp source" << endl;
-		    try {
-			Url url = id;
-			zypp_source = _smgr->findSourceByUrl( url );
-		    }
-		    catch( const Exception & excpt_r ) {
-			ZYPP_CAUGHT(excpt_r);
+	    SourceManager::SourceInfoList SIlist = _smgr->knownSourceInfos( "/" );
+	    for (SourceManager::SourceInfoList::const_iterator it = SIlist.begin(); it != SIlist.end(); ++it) {
+		MIL << "Try to find name '" << name << "' as zypp source" << endl;
+		if (it->alias != name) {
+		    MIL << "Try to find alias '" << alias << "' as zypp source" << endl;
+		    if (it->alias != alias) {
+			// #177543
+			MIL << "Try to find URL '" << id << "' as zypp source" << endl;
+			if (it->url.asString() != id) {
+			    continue;
+			}
 		    }
 		}
-	    }
 
+		MIL << "Found source: alias '" << it->alias << ", url '" << it->url << "', type '" << it->type << "'" << endl;
 
-	    // If the source exists in YaST and is not type "YUM", rewrite the mediaid to the
-	    // real Url (e.g. "cd://", "nfs://....", etc.)
-	    // However, a non-remote YUM source (e.g. a nfs-mounted repodata/) must be handled
-	    // by zypp. cf. #176964
+		// found it
 
-	    if (zypp_source
-		&& ((zypp_source.type() != "YUM")	// only treat (remote and yum) sources as ZMD owned
-		    || !zypp_source.remote()))		// -> treat (!remote or !yum) sources as zypp owned
-	    {
-		zypp_source.setId( id );		// set id, to match resolvable catalog -> change "file:/" to actual Url
-		MIL << "Found " << zypp_source << endl;	// -> treat as zypp owned !
+		// If the source exists in YaST and is not type "YUM", rewrite the mediaid to the
+		// real Url (e.g. "cd://", "nfs://....", etc.)
+		// However, a non-remote YUM source (e.g. a nfs-mounted repodata/) must be handled
+		// by zypp. cf. #176964
+
+		bool remote = mmgr.downloads( it->url );
+
+		if (it->type != "YUM"
+		    || !remote)
+		{
+		    MIL << "Use real zypp source" << endl;
+		    zypp_source = backend::findSource( _smgr, it->alias, it->url );
+		}
+
+		break;
 	    }
 	}
+
+	// now create the source from the database
+	//   and attach the zypp_source from above
 
 	try {
 
 	    DbSourceImpl *impl = new DbSourceImpl ();
 	    impl->factoryCtor( mediaid, Pathname(), alias );
 	    impl->setId( id );
+	    impl->setUrl( url );
 	    impl->setZmdName( name );
 	    impl->setZmdDescription ( desc );
 	    impl->setPriority( priority );
@@ -249,10 +236,11 @@ DbSources::sources( bool zypp_restore, bool refresh )
 
 	    impl->attachDatabase( _db );
 	    impl->attachIdMap( &_idmap );
-	    impl->attachZyppSource( zypp_source );
+	    impl->attachZyppSource( zypp_source );	// link to the real source if needed
 
 	    Source_Ref src( factory.createFrom( impl ) );
 	    _sources.push_back( src );
+	    MIL << "Created " << src << endl;
 	}
 	catch (Exception & excpt_r) {
 	    cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;

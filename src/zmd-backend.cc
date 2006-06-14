@@ -49,6 +49,56 @@ initTarget( ZYpp::Ptr Z, bool commit_only )
     return T;
 }
 
+
+// restore source by Alias or by Url
+// prefer by Alias, use Url if Alias is empty
+// will restore all sources if Alias and Url are empty
+
+bool
+restoreSources( SourceManager_Ptr manager, const string & alias, const string & url )
+{
+    try {
+	manager->restore( "/", true, alias, url );
+    }
+    catch (const Exception & excpt_r) {
+	cerr << "2|Can't restore sources: " << joinlines( excpt_r.asUserString() ) << endl;
+	ZYPP_CAUGHT (excpt_r);
+	ERR << "Couldn't restore sources, alias '" << alias << "', url '" << url << "'" << endl;
+	return false;
+    }
+    return true;
+}
+
+
+// find (and restore) source by Alias or by Url
+// prefer by Alias, use Url if Alias is empty
+
+Source_Ref
+findSource( SourceManager_Ptr manager, const string & alias, const Url & url )
+{
+    Source_Ref source;
+
+    // restore matching sources
+
+    if (backend::restoreSources( manager, alias, alias.empty() ? url.asString() : "" )) {
+	try {
+	    if (alias.empty()) {
+		source = manager->findSourceByUrl( url );
+	    }
+	    else {
+		source = manager->findSource( alias );
+	    }
+	}
+	catch (const Exception & excpt_r) {
+	    cerr << "1|Can't find source: " << joinlines( excpt_r.asUserString() ) << ", alias '" << alias << "', url '" << url << endl;
+	    ZYPP_CAUGHT (excpt_r);
+	    ERR << "Can't find source" << ", alias '" << alias << "', url '" << url << endl;
+	}
+    }
+
+    return source;
+}
+
 };
 
 // EOF
