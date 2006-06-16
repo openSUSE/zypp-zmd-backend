@@ -96,7 +96,7 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 int
 main (int argc, char **argv)
 {
-    if (argc < 5) {
+    if (argc < 6) {
 	cerr << "1|usage: " << argv[0] << " <database> <owner> <uri> <path> <catalog id>" << endl;
 	return 1;
     }
