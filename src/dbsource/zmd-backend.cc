@@ -90,9 +90,12 @@ findSource( SourceManager_Ptr manager, const string & alias, const Url & url )
 	    }
 	}
 	catch (const Exception & excpt_r) {
-	    cerr << "1|Can't find source: " << joinlines( excpt_r.asUserString() ) << ", alias '" << alias << "', url '" << url << endl;
+	    // dont log to ZMD, failing is actually ok since e.g. parse-metadata might just
+	    // create this source. There is currently no way to tell if the call to parse-metadata
+	    // is 'create' or 'refresh'.
+//	    cerr << "1|Can't find source: " << joinlines( excpt_r.asUserString() ) << ", alias '" << alias << "', url '" << url << endl;
 	    ZYPP_CAUGHT (excpt_r);
-	    ERR << "Can't find source" << ", alias '" << alias << "', url '" << url << endl;
+	    WAR << "Can't find source" << ", alias '" << alias << "', url '" << url << endl;
 	}
     }
 
