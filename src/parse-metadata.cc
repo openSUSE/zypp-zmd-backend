@@ -73,16 +73,22 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 {
     DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << ", owner " << owner << endl;
 
-    ResStore store = source.resolvables();
-    if (!url.getScheme().empty()) {
-	MIL << "Setting source URL  to " << url << endl;
-	source.setUrl( url );
+    try {
+	ResStore store = source.resolvables();
+	if (!url.getScheme().empty()) {
+	    MIL << "Setting source URL  to " << url << endl;
+	    source.setUrl( url );
+	}
+
+	DBG << "Source provides " << store.size() << " resolvables" << endl;
+
+	db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), owner );	// store all resolvables as 'uninstalled'
     }
-
-    DBG << "Source provides " << store.size() << " resolvables" << endl;
-
-    db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), owner );	// store all resolvables as 'uninstalled'
-
+    catch ( const Exception & excpt_r ) {
+	ZYPP_CAUGHT( excpt_r );
+	cerr << "1|Can't parse repository data: " << joinlines( excpt_r.asUserString() ) << endl;
+    }
+    
     return;
 }
 

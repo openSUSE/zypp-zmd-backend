@@ -43,9 +43,8 @@ restore_sources ()
 	manager->restore("/");
     }
     catch (Exception & excpt_r) {
+	cerr << "Couldn't restore all sources:" << excpt_r.asUserString() << endl;
 	ZYPP_CAUGHT (excpt_r);
-	ERR << "Couldn't restore sources" << endl;
-	return false;
     }
     return true;
 }
