@@ -201,6 +201,10 @@ main (int argc, char **argv)
 
     MIL << "Uri '" << uri << "', Alias '" << urialias << "', Path '" << pathurl << "'" << endl;
 
+    if (owner == ZYPP_OWNED) {
+	backend::addZyppOwned( catalog );
+    }
+
     manager = SourceManager::sourceManager();
 
     //
