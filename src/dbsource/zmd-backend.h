@@ -31,6 +31,14 @@ bool restoreSources( zypp::SourceManager_Ptr manager, const std::string & alias 
 // find (and restore) source by Alias or by Url
 zypp::Source_Ref findSource( zypp::SourceManager_Ptr manager, const std::string & alias, const zypp::Url & uri );
 
+// remember zypp owned catalog IDs passed to parse-metadata/service-delete
+typedef std::list<std::string> StringList;
+
+const std::string & zyppOwnedFilename( const std::string & name = std::string() );
+bool isZyppOwned( std::string catalog );
+void addZyppOwned( std::string catalog );
+void removeZyppOwned( std::string catalog );
+
 }
 
 #endif // ZMD_BACKEND_H

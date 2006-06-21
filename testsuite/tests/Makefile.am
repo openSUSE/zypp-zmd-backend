@@ -4,7 +4,8 @@
 noinst_PROGRAMS =	\
 	catalogs	\
 	sources		\
-	linebreaks
+	linebreaks	\
+	zyppowned
 
 ## ##################################################
 
@@ -22,3 +23,4 @@ sources_SOURCES = sources.cc
 
 linebreaks_SOURCES = linebreaks.cc
 
+zyppowned_SOURCES = zyppowned.cc

@@ -2,6 +2,14 @@
 // zmd-backend.cc
 // ZMD backend helpers
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <string>
+#include <list>
+#include <fstream>
+
 #include "utils.h"
 #include "zmd-backend.h"
 
@@ -102,6 +110,106 @@ findSource( SourceManager_Ptr manager, const string & alias, const Url & url )
     return source;
 }
 
-};
+
+#define ZYPP_CATALOGS "/var/lib/zmd/zypp-owned-catalogs"
+
+// make filename settable, used e.g. by testsuite
+const string &
+zyppOwnedFilename( const string & name )
+{
+    static string filename( ZYPP_CATALOGS );
+    if ( !name.empty() )
+	filename = name;
+
+    return filename;
+}
+
+
+// get list of current 'zypp' owned catalogs (output empty)
+// or write list (output non-empty)
+
+StringList
+zyppOwnedCatalogs( StringList output = StringList() )
+{
+    static StringList catalogs;
+    fstream file;
+
+    string filename( zyppOwnedFilename() );
+
+    if ( output.empty() ) {		// read catalogs
+	if ( !catalogs.empty() )
+	    return catalogs;		// return local copy if read before
+	struct stat st;
+	if ( stat( filename.c_str(), &st ) != 0 ) {
+	    MIL << filename << " not existing" << endl;
+	}
+	file.open( filename.c_str(), ios::in );
+	while ( file ) {
+	    string catalog;
+	    if (std::getline( file, catalog, '\n' ).eof())
+		break;
+	    catalogs.push_back( catalog );
+	}
+	file.close();
+    }
+    else {				// output set, write catalogs
+	catalogs = output;
+	file.open( filename.c_str(), ios::out | ios::trunc );
+	if ( file ) {
+	    cout << "+++" << endl;
+	    for (StringList::const_iterator it = catalogs.begin(); it != catalogs.end(); ++it) {
+		cout << *it << endl;
+		file << *it << endl;
+	    }
+	    file.close();
+	    cout << "---" << endl;
+	}
+	else {
+	    ERR << "Can not open " << filename << " for writing." << endl;
+	}
+    }
+    return catalogs;
+}
+
+
+// check if given catalog is zypp owned (-> transact)
+
+bool
+isZyppOwned( std::string catalog )
+{
+    StringList catalogs( zyppOwnedCatalogs( ) );
+    for (StringList::const_iterator it = catalogs.begin(); it != catalogs.end(); ++it) {
+	if ( *it == catalog ) return true;
+    }
+    return false;
+}
+
+
+// add catalog as zypp owned (-> parse-metadata)
+
+void
+addZyppOwned( std::string catalog )
+{
+    StringList catalogs( zyppOwnedCatalogs( ) );
+    for (StringList::const_iterator it = catalogs.begin(); it != catalogs.end(); ++it) {
+	if ( *it == catalog ) return;
+    }
+    catalogs.push_back( catalog );
+    zyppOwnedCatalogs( catalogs );
+
+    return;
+}
+
+// remove catalog from zypp owned (-> service-delete)
+void
+removeZyppOwned( std::string catalog )
+{
+    StringList catalogs( zyppOwnedCatalogs( ) );
+    catalogs.remove ( catalog );
+    zyppOwnedCatalogs( catalogs );
+    return;
+}
+
+}; // namespace backend
 
 // EOF
