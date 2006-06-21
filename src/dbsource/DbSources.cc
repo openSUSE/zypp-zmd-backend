@@ -202,15 +202,9 @@ DbSources::sources( bool zypp_restore, bool refresh )
 
 		// found it
 
-		// If the source exists in YaST and is not type "YUM", rewrite the mediaid to the
-		// real Url (e.g. "cd://", "nfs://....", etc.)
-		// However, a non-remote YUM source (e.g. a nfs-mounted repodata/) must be handled
-		// by zypp. cf. #176964
+		// If the source is zypp owned (passed to parse-metadata as type 'zypp' before), use the real zypp source
 
-		bool remote = mmgr.downloads( it->url );
-
-		if (it->type != "YUM"
-		    || !remote)
+		if ( backend::isZyppOwned( id ) )
 		{
 		    MIL << "Use real zypp source" << endl;
 		    zypp_source = backend::findSource( _smgr, it->alias, it->url );
