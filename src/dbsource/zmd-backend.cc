@@ -129,14 +129,14 @@ zyppOwnedFilename( const string & name )
 // or write list (output non-empty)
 
 StringList
-zyppOwnedCatalogs( StringList output = StringList() )
+zyppOwnedCatalogs( StringList *output = NULL )
 {
     static StringList catalogs;
     fstream file;
 
     string filename( zyppOwnedFilename() );
 
-    if ( output.empty() ) {		// read catalogs
+    if ( output == NULL ) {		// read catalogs
 	if ( !catalogs.empty() )
 	    return catalogs;		// return local copy if read before
 	struct stat st;
@@ -153,16 +153,13 @@ zyppOwnedCatalogs( StringList output = StringList() )
 	file.close();
     }
     else {				// output set, write catalogs
-	catalogs = output;
+	catalogs = *output;
 	file.open( filename.c_str(), ios::out | ios::trunc );
 	if ( file ) {
-	    cout << "+++" << endl;
 	    for (StringList::const_iterator it = catalogs.begin(); it != catalogs.end(); ++it) {
-		cout << *it << endl;
 		file << *it << endl;
 	    }
 	    file.close();
-	    cout << "---" << endl;
 	}
 	else {
 	    ERR << "Can not open " << filename << " for writing." << endl;
@@ -195,7 +192,8 @@ addZyppOwned( std::string catalog )
 	if ( *it == catalog ) return;
     }
     catalogs.push_back( catalog );
-    zyppOwnedCatalogs( catalogs );
+    MIL << "Adding '" << catalog << "' as zypp owned." << endl;
+    zyppOwnedCatalogs( &catalogs );
 
     return;
 }
@@ -206,7 +204,8 @@ removeZyppOwned( std::string catalog )
 {
     StringList catalogs( zyppOwnedCatalogs( ) );
     catalogs.remove ( catalog );
-    zyppOwnedCatalogs( catalogs );
+    MIL << "Removing '" << catalog << "' from zypp owned." << endl;
+    zyppOwnedCatalogs( &catalogs );
     return;
 }
 
