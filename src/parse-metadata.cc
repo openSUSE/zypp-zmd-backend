@@ -226,9 +226,9 @@ main (int argc, char **argv)
     Source_Ref source = backend::findSource( manager, urialias, uri );
 
     if (source) {
-	if (source.remote()) {
+	if (source.autorefresh()) {
 	    try {
-		source.refresh();				// refresh zypp-owned remote source
+		source.refresh();				// refresh zypp-known autorefresh source
 	    }
 	    catch( const Exception & excpt_r ) {
 		cerr << "3|Can't refresh " << uri << ": " << joinlines( excpt_r.asUserString() ) << endl;
