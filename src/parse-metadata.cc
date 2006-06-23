@@ -230,17 +230,18 @@ main (int argc, char **argv)
     Source_Ref source = backend::findSource( manager, urialias, uri );
 
     if (source) {
-	if (source.autorefresh()) {
-	    try {
-		source.refresh();				// refresh zypp-known autorefresh source
-	    }
-	    catch( const Exception & excpt_r ) {
-		cerr << "3|Can't refresh " << uri << ": " << joinlines( excpt_r.asUserString() ) << endl;
-		ZYPP_CAUGHT( excpt_r );
-		ERR << "Can't refresh " << uri << endl;
-		// continue with current data (unrefreshed)
-	    }
-	}
+// Done in sources factoryInit
+// 	if (source.autorefresh()) {
+// 	    try {
+// 		source.refresh();				// refresh zypp-known autorefresh source
+// 	    }
+// 	    catch( const Exception & excpt_r ) {
+// 		cerr << "3|Can't refresh " << uri << ": " << joinlines( excpt_r.asUserString() ) << endl;
+// 		ZYPP_CAUGHT( excpt_r );
+// 		ERR << "Can't refresh " << uri << endl;
+// 		// continue with current data (unrefreshed)
+// 	    }
+// 	}
 	// since its known by url, it already has a real Url, no need to pass one
 	sync_source( db, source, catalog, Url(), owner );
     }
