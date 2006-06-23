@@ -73,7 +73,7 @@ DbSources::createDummy( const Url & url, const string & catalog )
     try {
 
 	DbSourceImpl *impl = new DbSourceImpl ();
-	impl->factoryCtor( mediaid, Pathname(), catalog );
+        impl->factoryCtor( mediaid, Pathname(), catalog, Pathname(), false /* base_source */, false /* autorefresh */ );
 	impl->setId( catalog );
 	impl->setZmdName( catalog );
 	impl->setZmdDescription ( catalog );
