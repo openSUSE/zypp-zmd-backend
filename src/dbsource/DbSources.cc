@@ -220,7 +220,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	try {
 
 	    DbSourceImpl *impl = new DbSourceImpl ();
-	    impl->factoryCtor( mediaid, Pathname(), alias );
+            impl->factoryCtor( mediaid, Pathname(), alias, Pathname(), false, false );
 	    impl->setId( id );
 	    impl->setUrl( url );
 	    impl->setZmdName( name );
