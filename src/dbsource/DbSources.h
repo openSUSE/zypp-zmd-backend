@@ -29,6 +29,7 @@
 
 #include <sqlite3.h>
 #include <zypp/Source.h>
+#include <zypp/source/SourceInfo.h>
 #include <zypp/SourceManager.h>
 #include <zypp/Url.h>
 #include <zypp/PoolItem.h>

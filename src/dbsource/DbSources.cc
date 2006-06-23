@@ -184,8 +184,8 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	if (zypp_restore
 	    && id[0] != '@')		// not for zmd '@system' and '@local'
 	{
-	    SourceManager::SourceInfoList SIlist = _smgr->knownSourceInfos( "/" );
-	    for (SourceManager::SourceInfoList::const_iterator it = SIlist.begin(); it != SIlist.end(); ++it) {
+	    source::SourceInfoList SIlist = _smgr->knownSourceInfos( "/" );
+	    for (source::SourceInfoList::const_iterator it = SIlist.begin(); it != SIlist.end(); ++it) {
 		MIL << "Try to find name '" << name << "' as zypp source" << endl;
 		if (it->alias != name) {
 		    MIL << "Try to find alias '" << alias << "' as zypp source" << endl;
