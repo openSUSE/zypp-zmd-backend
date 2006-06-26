@@ -73,7 +73,7 @@ DbSources::createDummy( const Url & url, const string & catalog )
     try {
 
 	DbSourceImpl *impl = new DbSourceImpl ();
-	impl->factoryCtor( mediaid, Pathname(), catalog );
+	impl->factoryCtor( mediaid, Pathname(), catalog, "", false, false );
 	impl->setId( catalog );
 	impl->setZmdName( catalog );
 	impl->setZmdDescription ( catalog );
@@ -187,18 +187,18 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	    source::SourceInfoList SIlist = _smgr->knownSourceInfos( "/" );
 	    for (source::SourceInfoList::const_iterator it = SIlist.begin(); it != SIlist.end(); ++it) {
 		MIL << "Try to find name '" << name << "' as zypp source" << endl;
-		if (it->alias != name) {
+                if (it->alias() != name) {
 		    MIL << "Try to find alias '" << alias << "' as zypp source" << endl;
-		    if (it->alias != alias) {
+                    if (it->alias() != alias) {
 			// #177543
 			MIL << "Try to find URL '" << id << "' as zypp source" << endl;
-			if (it->url.asString() != id) {
+                        if (it->url().asString() != id) {
 			    continue;
 			}
 		    }
 		}
 
-		MIL << "Found source: alias '" << it->alias << ", url '" << it->url << "', type '" << it->type << "'" << endl;
+                MIL << "Found source: alias '" << it->alias() << ", url '" << it->url() << "', type '" << it->type() << "'" << endl;
 
 		// found it
 
@@ -207,13 +207,13 @@ DbSources::sources( bool zypp_restore, bool refresh )
 		// However, a non-remote YUM source (e.g. a nfs-mounted repodata/) must be handled
 		// by zypp. cf. #176964
 
-		bool remote = mmgr.downloads( it->url );
+                bool remote = mmgr.downloads( it->url() );
 
-		if (it->type != "YUM"
+                if (it->type() != "YUM"
 		    || !remote)
 		{
 		    MIL << "Use real zypp source" << endl;
-		    zypp_source = backend::findSource( _smgr, it->alias, it->url );
+                    zypp_source = backend::findSource( _smgr, it->alias(), it->url() );
 		}
 
 		break;
@@ -226,7 +226,7 @@ DbSources::sources( bool zypp_restore, bool refresh )
 	try {
 
 	    DbSourceImpl *impl = new DbSourceImpl ();
-	    impl->factoryCtor( mediaid, Pathname(), alias );
+	    impl->factoryCtor( mediaid, Pathname(), alias, "", false, false );
 	    impl->setId( id );
 	    impl->setUrl( url );
 	    impl->setZmdName( name );
