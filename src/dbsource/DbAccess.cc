@@ -538,13 +538,15 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
 	sqlite3_bind_text( handle, 3, iter->index().c_str(), -1, SQLITE_STATIC );	// tag
 
 	Edition edition = iter->edition();
+	string version = edition.version();
+	string release = edition.release();
 
 	if (iter->op() != Rel::NONE							// operator and edition given ?
 	    && iter->op() != Rel::ANY
 	    && edition != Edition::noedition)
 	{
-	    sqlite3_bind_text( handle, 4, edition.version().c_str(), -1, SQLITE_STATIC );	// version
-	    sqlite3_bind_text( handle, 5, edition.release().c_str(), -1, SQLITE_STATIC );	// release
+	    sqlite3_bind_text( handle, 4, version.c_str(), -1, SQLITE_STATIC );	// version
+	    sqlite3_bind_text( handle, 5, release.c_str(), -1, SQLITE_STATIC );	// release
 	    Edition::epoch_t epoch = edition.epoch();
 	    if (epoch != Edition::noepoch) {
 		sqlite3_bind_int( handle, 6, epoch);						// epoch
