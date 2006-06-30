@@ -1142,7 +1142,7 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 		|| obj->arch().compatibleWith( sysarch ) ) )	//   and architecturally compatible ones
 	{
 	    rowid = writeResObject( obj, status, catalog, owner );
-	    if (rowid < 0)
+	    if (rowid < 0)		// rowid < 0 means 'error'
 		break;
 	    if (rowid > 0)		// rowid == 0 means 'skip'
 		++count;

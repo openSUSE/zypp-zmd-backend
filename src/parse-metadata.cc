@@ -68,9 +68,11 @@ static SourceManager_Ptr manager;
 // real url is passed here and set in the source. This way, storing the source in
 // zypp makes all information available to all zypp applications.
 //
-static void
+static int
 sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url & url, Ownership owner )
 {
+    int result = 0;
+
     DBG << "sync_source, catalog '" << catalog << "', url '" << url << "', alias '" << source.alias() << ", owner " << owner << endl;
 
     try {
@@ -82,14 +84,23 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
+	// clean up db if we fail here
+	result = 1;
 	db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), owner );	// store all resolvables as 'uninstalled'
+	result = 0;
     }
     catch ( const Exception & excpt_r ) {
 	ZYPP_CAUGHT( excpt_r );
 	cerr << "1|Can't parse repository data: " << joinlines( excpt_r.asUserString() ) << endl;
+	// don't (!) set result=1 here. If we fail in source.resolvables() above, we simply leave
+	// the db untouched.
     }
-    
-    return;
+
+    if (result != 0) {	// failed in db.writeStore(), see #189308
+	ERR << "Write to database failed, cleaning up" << endl;
+    	db.emptyCatalog( catalog.c_str() );
+    }
+    return result;
 }
 
 
@@ -243,7 +254,7 @@ main (int argc, char **argv)
 // 	    }
 // 	}
 	// since its known by url, it already has a real Url, no need to pass one
-	sync_source( db, source, catalog, Url(), owner );
+	result = sync_source( db, source, catalog, Url(), owner );
     }
     else {    // if the source is not known in zypp, add it
 
@@ -259,12 +270,12 @@ main (int argc, char **argv)
 	    if (owner == ZMD_OWNED) {		// use zmd downloaded metadata:
 		source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );
 		// zmd provided the data locally, 'source' has a local path, pass the real uri to sync_source
-		sync_source( db, source, catalog, uri, owner );
+		result = sync_source( db, source, catalog, uri, owner );
 	    }
 	    else {			// let zypp do the download
 		source = SourceFactory().createFrom( uri, Pathname(), catalog, Pathname() );
 		// new zypp source, 'source' already has the real url, pass empty uri to sync_source
-		sync_source( db, source, catalog, Url(), owner );
+		result = sync_source( db, source, catalog, Url(), owner );
 	    }
 	}
 	catch( const Exception & excpt_r ) {
@@ -272,8 +283,10 @@ main (int argc, char **argv)
 	    ZYPP_CAUGHT( excpt_r );
 	    ERR << "Can't add repository at " << uri << endl;
 	    result = 1;
-	    goto finish;
 	}
+
+	if (result != 0)
+	    goto finish;
 
 // See bug #168739 
 
