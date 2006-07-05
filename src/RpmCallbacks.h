@@ -104,10 +104,26 @@ DBG << "problem(" << *resolvable << "," << description << ")" << std::endl;
 
 	virtual void finish(zypp::Resolvable::constPtr resolvable, Error error, std::string reason, zypp::target::rpm::InstallResolvableReport::RpmLevel level)
 	{
-DBG << "finish(" << *resolvable << "," << reason << ")" << std::endl;
-	    if (level == zypp::target::rpm::InstallResolvableReport::RPM_NODEPS_FORCE) {
-		std::cout << "3|" << reason << std::endl;
+DBG << "finish(" << *resolvable << "," << error << ", " << reason << ")" << std::endl;
+	    string errmsg;
+	    switch (error) {
+		case NO_ERROR:
+		    return;
+		break;
+		case NOT_FOUND:
+		    errmsg = "Package not found";
+		break;
+		case IO:
+		    errmsg = "I/O error";
+		break;
+		case INVALID:
+		    errmsg = "Invalid package";
+		break;
 	    }
+	    if (level == RPM_NODEPS_FORCE) {
+		std::cout << "3|" << errmsg << ": " << reason << std::endl;
+	    }
+	    return;
 	}
     };
 
