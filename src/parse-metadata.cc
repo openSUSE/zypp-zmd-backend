@@ -17,8 +17,20 @@
 // The helper is guaranteed to find /var/cache/zmd/foo/repodata/repomd.xml
 // and all the other files referenced from the repomd.xml. For example, if
 // the repomd.xml has
+//  <location href="repodata/primary.xml"/>
+// then the file is locally at /var/cache/zmd/foo/repodata/primary.xml.
 //
-// FIXME rest of sentence missing!
+// The helper would parse all metadata, and write all resolvables to the
+// database, using the catalog id as a catalog for the resolvables. 
+// At refresh, zmd would remove the catalog from the database, triggering
+// the removal of all resolvables which which have the same catalog id,
+// re-download all metadata (if needed) and call the helper the same way.
+// package_details.package_url will be added and it should be set by the
+// helper without the base url so that the daemon could construct the full
+// path from url + "/" + package_details.package_url.
+// After downloading the package, zmd fills in package_details.package_filename
+// with the full path on the local file system.
+//
 
 #include <sys/types.h>
 #include <sys/stat.h>
