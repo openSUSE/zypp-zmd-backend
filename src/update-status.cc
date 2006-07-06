@@ -72,10 +72,7 @@ update_db( PoolItem_Ref item, const ResStatus & status, void *data )
 
 
 //
-// write 'EstablishField' value back to tables
-// FIXME: it only writes patch_details currently
-//        but status is computed for _all_ kinds of resolvables
-//	  ( just uncomment the second 'const char *sql = ...' statement and remove the first)
+// write 'EstablishField' value back to resolvables table 'status' column
 //
 
 static bool
