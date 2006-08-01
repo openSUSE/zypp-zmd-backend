@@ -119,7 +119,7 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 	obj = sources.getById( id );						// get the ResObject by Id
 	if (obj == NULL) {
 	    ERR << "Can't find res object id " << id << endl;
-	    cerr << "2|Resolvable id " << id << " does not exist." << endl;
+	    cerr << "1|Resolvable id " << id << " does not exist." << endl;
 	    break;
 	}
 

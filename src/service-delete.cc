@@ -91,9 +91,12 @@ main (int argc, char **argv)
 	exit( 1 );
     }
     string db( argv[1] );
-    string alias( argv[2] );
+    string name( argv[2] );
 
-    MIL << "START service-delete " << db << " " << alias << endl;
+    MIL << "START service-delete " << db << " " << name << endl;
+
+    // if its listed as zypp owned, remove it
+    backend::removeZyppOwned( name );
 
     struct stat st;
     if (stat( "/var/lib/zypp/sources-being-processed-by-yast", &st ) == 0) {
@@ -107,7 +110,7 @@ main (int argc, char **argv)
 
     Target_Ptr target = backend::initTarget( Z );
 
-    int result = service_delete( Z, alias );
+    int result = service_delete( Z, name );
 
     MIL << "END service-delete, result " << result << endl;
 

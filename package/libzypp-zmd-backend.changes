@@ -5,6 +5,21 @@ Wed Jul 26 12:10:54 CEST 2006 - ma@suse.de
 - rev 3710
 
 -------------------------------------------------------------------
+Fri Jun 23 17:42:37 CEST 2006 - dmacvicar@suse.de
+
+- adapt to libzypp refresh fixes. No need to refresh here
+
+-------------------------------------------------------------------
+Thu Jun 22 00:14:54 CEST 2006 - kkaempf@suse.de
+
+- 'transact' could not clearly deduce ownership of source (zypp or
+  zmd) from available data. Now keep a list of type 'zypp' catalog
+  ids in a file, add via parse-metadata (if called with 'zypp'),
+  remove via service-delete (if catalog matches), use in transact.
+  (#187212)
+- rev 3685
+
+-------------------------------------------------------------------
 Wed Jun 21 17:03:42 CEST 2006 - kkaempf@suse.de
 
 - Honor 'autorefresh' flag from YaST instead checking the URL
