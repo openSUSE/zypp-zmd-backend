@@ -5,6 +5,13 @@ Wed Jul 26 12:10:54 CEST 2006 - ma@suse.de
 - rev 3710
 
 -------------------------------------------------------------------
+Fri Jun 30 13:54:59 CEST 2006 - kkaempf@suse.de
+
+- clean up database if an error occurs during writing
+  and report such an error to zmd (#189308)
+- rev 3753
+
+-------------------------------------------------------------------
 Tue Jun 27 15:17:53 CEST 2006 - kkaempf@suse.de
 
 - ensure version and release strings stay in scope.
