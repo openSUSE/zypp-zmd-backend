@@ -5,6 +5,42 @@ Wed Jul 26 12:10:54 CEST 2006 - ma@suse.de
 - rev 3710
 
 -------------------------------------------------------------------
+Wed Jun 21 17:03:42 CEST 2006 - kkaempf@suse.de
+
+- Honor 'autorefresh' flag from YaST instead checking the URL
+  for source refresh (#181613)
+- rev 3678
+
+-------------------------------------------------------------------
+Fri Jun 16 11:36:25 CEST 2006 - kkaempf@suse.de
+
+- fix argument check in parse-metadata.
+- dont log error to zmd if parse-metadata can't restore the source,
+  it might be a new, to-be-created one.
+- catch exceptions from Source::resolvables() (#185593)
+- rev 3648
+
+-------------------------------------------------------------------
+Wed Jun 14 16:15:04 CEST 2006 - kkaempf@suse.de
+
+- catch exceptions from refresh() (#183131)
+- rev 3635
+
+-------------------------------------------------------------------
+Wed Jun 14 14:01:59 CEST 2006 - kkaempf@suse.de
+
+- refactor initialization of Sources for parse-metadata and
+  service-delete, both use the same function now. (#176301, 155591)
+- dont mix-up zypp source URL with zmd pathname (#176964)
+- rev 3627
+
+-------------------------------------------------------------------
+Wed Jun 14 10:20:52 CEST 2006 - kkaempf@suse.de
+
+- move LOGGROUP definition up, so it appears properly in logs.
+- rev 3614
+
+-------------------------------------------------------------------
 Tue Jun 13 13:01:50 CEST 2006 - kkaempf@suse.de
 
 - log all exceptions to stderr as a single line (#180382)
