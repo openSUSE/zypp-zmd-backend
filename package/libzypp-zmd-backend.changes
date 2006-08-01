@@ -1,8 +1,26 @@
 -------------------------------------------------------------------
+Tue Aug  1 12:25:39 CEST 2006 - kkaempf@suse.de
+
+- fix off by one error when removing trailing whitespace (#193584)
+- rev 3848
+
+-------------------------------------------------------------------
 Wed Jul 26 12:10:54 CEST 2006 - ma@suse.de
 
 - Adapt to libzypp changes.
 - rev 3710
+
+-------------------------------------------------------------------
+Mon Jul 10 13:17:44 CEST 2006 - kkaempf@suse.de
+
+- Require minimal libzypp version which is existing during build.
+
+-------------------------------------------------------------------
+Wed Jul  5 21:50:08 CEST 2006 - kkaempf@suse.de
+
+- check error value of rpm transaction before reporting error
+  to zmd (#190338)
+- rev 3766
 
 -------------------------------------------------------------------
 Fri Jun 30 13:54:59 CEST 2006 - kkaempf@suse.de
