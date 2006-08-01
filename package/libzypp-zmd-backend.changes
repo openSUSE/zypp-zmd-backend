@@ -5,6 +5,12 @@ Wed Jul 26 12:10:54 CEST 2006 - ma@suse.de
 - rev 3710
 
 -------------------------------------------------------------------
+Tue Jun 27 15:17:53 CEST 2006 - kkaempf@suse.de
+
+- ensure version and release strings stay in scope.
+- rev 3715
+
+-------------------------------------------------------------------
 Fri Jun 23 17:42:37 CEST 2006 - dmacvicar@suse.de
 
 - adapt to libzypp refresh fixes. No need to refresh here
