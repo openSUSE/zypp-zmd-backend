@@ -150,19 +150,25 @@ DbAccess::Rc2Arch (RCArch rc)
 }
 
 
-// convert description Text (list<string>) to a single string
+// remove Authors from description Text
 static string
 desc2str (const Text t)
 {
     static string s;		// static so we can use sqlite STATIC below
     s.clear();
     string::size_type authors = t.find ("Authors:");		// strip off 'Authors:'
-    if (authors != string::npos) {
-	do {
-	    --authors;
-	} while (t[authors] == ' ' || t[authors] == '\n');
+
+    if (authors == string::npos) {	// if no "Authors", point to end of string
+	authors = t.size();
     }
-    s = string (t, 0, authors);
+
+    // now remove trailing whitespace
+
+    do {
+	--authors;
+    } while (t[authors] == ' ' || t[authors] == '\n');
+    s = string( t, 0, authors+1 );
+
     return s;
 }
 
