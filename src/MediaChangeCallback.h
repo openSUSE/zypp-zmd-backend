@@ -85,10 +85,7 @@ namespace ZyppRecipients {
 		    product_name = source.url().asString();
 		}
 
-		std::cout << "|" << product_name << std::endl;
-
-		// FIXME: prodive additonal details about WHY a media change is requested
-		// std::cout << "|" << description;
+		std::cout << "|" << product_name << " (" << joinlines( description ) << ")" << std::endl;
 	    }
 
 	    // and abort here.
