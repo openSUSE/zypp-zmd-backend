@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl ==================================================
-
-AC_INIT(zmd-backend,7.1.1.0)
+m4_include([VERSION])
+AC_INIT(zmd-backend,[BACKEND_VERSION])
 AC_CONFIG_SRCDIR(src/Makefile.am)
 
 AC_PREFIX_DEFAULT(/usr)
@@ -42,15 +42,12 @@ dnl
 dnl 6) If any interfaces have been removed since the last public release, then
 dnl    set age to 0.
 dnl
+dnl BACKEND_CURRENT=0
+dnl BACKEND_REVISION=0
+dnl BACKEND_AGE=0
+dnl BACKEND_VERSION_INFO="-version-info $BACKEND_CURRENT:$BACKEND_REVISION:$BACKEND_AGE"
 
-BACKEND_CURRENT=0
-BACKEND_REVISION=0
-BACKEND_AGE=0
-
-BACKEND_VERSION=$BACKEND_CURRENT.$BACKEND_REVISION.$BACKEND_AGE
-AC_SUBST(BACKEND_VERSION)
-
-BACKEND_VERSION_INFO="-version-info $BACKEND_CURRENT:$BACKEND_REVISION:$BACKEND_AGE"
+BACKEND_VERSION_INFO="-version-info 0:0:0"
 AC_SUBST(BACKEND_VERSION_INFO)
 
 dnl ==================================================
@@ -161,6 +158,7 @@ dnl checks for system services
 dnl ==================================================
 dnl AC_CONFIG_FILES([FILE...])
 AC_OUTPUT(Makefile			\
+	libzypp-zmd-backend.spec	\
 	src/Makefile			\
 	testsuite/Makefile		\
 	testsuite/tests/Makefile	\
