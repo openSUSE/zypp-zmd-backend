@@ -45,8 +45,10 @@ initTarget( ZYpp::Ptr Z, bool commit_only )
     Target_Ptr T;
 
     try {
-	Z->initTarget( "/", commit_only );	// its always "/", and we never populate the pool (commit_only = true)
+	Z->initTarget( "/" );	// its always "/", and we never populate the pool (commit_only = true)
 	T = Z->target();
+        if ( ! commit_only )
+          Z->addResolvables( T->resolvables(), true );
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
