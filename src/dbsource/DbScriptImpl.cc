@@ -13,6 +13,10 @@
 #include <fstream>
 
 #include "DbScriptImpl.h"
+
+#include <zypp/ZYpp.h>
+#include <zypp/ZYppFactory.h>
+
 #include "zypp/source/SourceImpl.h"
 #include "zypp/TranslatedText.h"
 #include "zypp/base/String.h"
@@ -48,27 +52,50 @@ DbScriptImpl::source() const
 Pathname
 DbScriptImpl::do_script() const
 {
-    if (_do_script.empty()) {
-	return Pathname();
-    }
-    _tmp_file = filesystem::TmpFile();
-    Pathname path = _tmp_file.path();
-    ofstream st( path.asString().c_str() );
-    st << _do_script << endl;
-    return path;
+  if ( ! _do_script.empty() )
+    return Pathname();
+  
+  if ( !_tmp_do_script )
+    _tmp_do_script.reset(new filesystem::TmpFile(zypp::getZYpp()->tmpPath(), "zmd-backend-do-script-"));
+
+  Pathname pth = _tmp_do_script->path();
+  // FIXME check success
+  ofstream st(pth.asString().c_str());
+
+  if ( !st )
+  {
+    //ZYPP_THROW(Exception(N_("Can't write the patch script to a temporary file.")));
+    ERR << "Can't write the patch script to a temporary file." << std::endl;
+    return Pathname();
+  }
+  st << _do_script << endl;
+  st.close();
+  return pth;
 }
 
 Pathname
 DbScriptImpl::undo_script() const
 {
-    if (_undo_script.empty()) {
-	return Pathname();
-    }
-    _tmp_file = filesystem::TmpFile();
-    Pathname path = _tmp_file.path();
-    ofstream st( path.asString().c_str() );
-    st << _undo_script << endl;
-    return path;
+  if ( ! _undo_script.empty() )
+    return Pathname();
+  
+  if ( !_tmp_undo_script )
+    _tmp_undo_script.reset(new filesystem::TmpFile(zypp::getZYpp()->tmpPath(), "zmd-backend-undo-script-"));
+
+  Pathname pth = _tmp_undo_script->path();
+  // FIXME check success
+  ofstream st(pth.asString().c_str());
+
+  if ( !st )
+  {
+    //ZYPP_THROW(Exception(N_("Can't write the patch script to a temporary file.")));
+    ERR << "Can't write the patch script to a temporary file." << std::endl;
+    return Pathname();
+  }
+  
+  st << _undo_script << endl;
+  st.close();
+  return pth;
 }
 
 bool
