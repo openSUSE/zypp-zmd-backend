@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Aug  9 11:48:58 CEST 2006 - dmacvicar@suse.de
+
+- adapt to new zypp target initialization 
+
+-------------------------------------------------------------------
 Tue Aug  1 12:25:39 CEST 2006 - kkaempf@suse.de
 
 - fix off by one error when removing trailing whitespace (#193584)
