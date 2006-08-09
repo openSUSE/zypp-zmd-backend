@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Aug  9 17:58:26 CEST 2006 - dmacvicar@suse.de
+
+- backport 
+- fix for stalle /var/tmp/TmpFile.xxxxx (#195567)
+- r3923 
+
+-------------------------------------------------------------------
 Tue Aug  1 12:25:39 CEST 2006 - kkaempf@suse.de
 
 - fix off by one error when removing trailing whitespace (#193584)
