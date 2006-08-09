@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug  9 17:16:52 CEST 2006 - dmacvicar@suse.de
+
+- fix for stalle /var/tmp/TmpFile.xxxxx #195567
+- r3918
+
+-------------------------------------------------------------------
 Wed Aug  9 11:48:58 CEST 2006 - dmacvicar@suse.de
 
 - adapt to new zypp target initialization 
