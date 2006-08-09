@@ -49,7 +49,8 @@ protected:
 	std::string _undo_script;
 	ZmdId _zmdid;
 
-	mutable filesystem::TmpFile _tmp_file;
+        mutable shared_ptr<filesystem::TmpFile> _tmp_do_script;
+        mutable shared_ptr<filesystem::TmpFile> _tmp_undo_script;     
  };
   /////////////////////////////////////////////////////////////////
 } // namespace zypp
