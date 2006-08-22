@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Aug 22 13:25:14 CEST 2006 - dmacvicar@suse.de
+
+- don't require zypp-devel 
+- r4014
+
+-------------------------------------------------------------------
 Wed Aug  9 17:16:52 CEST 2006 - dmacvicar@suse.de
 
 - fix for stalle /var/tmp/TmpFile.xxxxx #195567
