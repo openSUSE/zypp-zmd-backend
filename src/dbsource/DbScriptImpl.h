@@ -33,7 +33,7 @@ public:
 	/** Default ctor
 	*/
 	DbScriptImpl( Source_Ref source_r, std::string do_script, std::string undo_script, ZmdId zmdid );
-
+                                       
 	/** */
 	virtual Source_Ref source() const;
 	virtual Pathname do_script() const;
