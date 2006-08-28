@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Mon Aug 28 14:13:46 CEST 2006 - dmacvicar@suse.de
+
+- adapt to zypp 2.1.0 Keyring callbacks
+- r4039 
+
+-------------------------------------------------------------------
 Tue Aug 22 13:25:14 CEST 2006 - dmacvicar@suse.de
 
 - don't require zypp-devel (#200809)
