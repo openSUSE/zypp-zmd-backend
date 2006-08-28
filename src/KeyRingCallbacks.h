@@ -79,25 +79,32 @@ namespace zypp {
 	  std::cout << "21|" << file << std::endl;
 	  return readCallbackAnswer();
 	}
-	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &id )
 	{
 	  if (!_enabled) return true;
-	  DBG << "22|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
-	  std::cout << "22|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+	  DBG << "22|" << file << "|" << id << "|" << keyname << "|" << fingerprint << std::endl;
+	  std::cout << "22|" << file << "|" << id << "|" << "Unknown name" << "|" << "unknown fingerprint" << std::endl;
 	  return readCallbackAnswer();
 	}
-	virtual bool askUserToTrustKey( const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+  
+  virtual bool askUserToImportKey( const PublicKey &key )
+  {
+    DBG << "By default backend does not import keys for now." << std::endl;
+    return false;
+  }
+  
+  virtual bool askUserToTrustKey(  const PublicKey &key  )
 	{
 	  if (!_enabled) return true;
-	  DBG << "23|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
-	  std::cout << "23|" << keyid << "|" << keyname <<  "|" << fingerprint << std::endl;
+    DBG << "23|" << key.id() << "|" << key.name() <<  "|" << key.fingerprint() << std::endl;
+    std::cout << "23|" << key.id() << "|" << key.name() <<  "|" << key.fingerprint() << std::endl;
 	  return readCallbackAnswer();
 	}
-	virtual bool askUserToAcceptVerificationFailed( const std::string &file, const std::string &keyid, const std::string &keyname, const std::string &fingerprint )
+  virtual bool askUserToAcceptVerificationFailed( const std::string &file,  const PublicKey &key  )
 	{
 	  if (!_enabled) return true;
-	  DBG << "24|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
-	  std::cout << "24|" << file << "|" << keyid << "|" << keyname << "|" << fingerprint << std::endl;
+    DBG << "24|" << file << "|" << key.id() << "|" << key.name() << "|" << key.fingerprint() << std::endl;
+    std::cout << "24|" << file << "|" << key.id() << "|" << key.name() << "|" << key.fingerprint() << std::endl;
 	  return readCallbackAnswer();
 	}
     };
