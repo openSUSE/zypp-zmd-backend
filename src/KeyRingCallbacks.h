@@ -82,7 +82,7 @@ namespace zypp {
 	virtual bool askUserToAcceptUnknownKey( const std::string &file, const std::string &id )
 	{
 	  if (!_enabled) return true;
-	  DBG << "22|" << file << "|" << id << "|" << keyname << "|" << fingerprint << std::endl;
+	  DBG << "22|" << file << "|" << id << "|" << "" << "|" << "" << std::endl;
 	  std::cout << "22|" << file << "|" << id << "|" << "Unknown name" << "|" << "unknown fingerprint" << std::endl;
 	  return readCallbackAnswer();
 	}
