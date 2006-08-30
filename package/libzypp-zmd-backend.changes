@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Aug 30 11:34:08 CEST 2006 - dmacvicar@suse.de
+
+- compile fixes for new zypp keyring callbacks
+- r4055 
+
+-------------------------------------------------------------------
 Mon Aug 28 14:13:46 CEST 2006 - dmacvicar@suse.de
 
 - adapt to zypp 2.1.0 Keyring callbacks
