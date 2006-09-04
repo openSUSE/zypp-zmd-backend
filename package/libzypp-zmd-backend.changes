@@ -14,7 +14,7 @@ Tue Aug  1 12:25:39 CEST 2006 - kkaempf@suse.de
 -------------------------------------------------------------------
 Mon Jul 10 13:17:44 CEST 2006 - kkaempf@suse.de
 
-- Require minimal libzypp version which existing during build.
+- Require minimal libzypp version which is existing during build.
 
 -------------------------------------------------------------------
 Wed Jul  5 21:50:08 CEST 2006 - kkaempf@suse.de
