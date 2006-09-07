@@ -10,6 +10,7 @@
 #include <zypp/ZYppFactory.h>
 #include <zypp/SourceManager.h>
 #include <zypp/Source.h>
+#include <zypp/Pathname.h>
 #include <zypp/Url.h>
 
 #define ZMD_BACKEND_LOG "/var/log/zmd-backend.log"
@@ -20,7 +21,7 @@ namespace backend {
 zypp::ZYpp::Ptr getZYpp( bool readonly = false );
 
 // init Target (root="/", commit_only=true), exit(1) on error
-zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z, bool commit_only = true );
+zypp::Target_Ptr initTarget( zypp::ZYpp::Ptr Z, const zypp::Pathname &root = "/" );
 
 // remove line breaks
 std::string striplinebreaks( const std::string & s );

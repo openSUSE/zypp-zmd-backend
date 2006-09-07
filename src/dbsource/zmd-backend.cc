@@ -40,23 +40,23 @@ getZYpp( bool readonly )
 }
 
 Target_Ptr
-initTarget( ZYpp::Ptr Z, bool commit_only )
+initTarget( ZYpp::Ptr Z, const Pathname &root )
 {
-    Target_Ptr T;
+  Target_Ptr T;
 
-    try {
-	Z->initializeTarget( "/" );	// its always "/", and we never populate the pool
-	T = Z->target();
-        if ( ! commit_only )
-          Z->addResolvables( T->resolvables(), true );
-    }
-    catch (Exception & excpt_r) {
-	ZYPP_CAUGHT (excpt_r);
-	cerr << "3|" << joinlines( excpt_r.asUserString() ) << endl;
-	cout << excpt_r.asString() << endl;
-	exit(1);
-    }
-    return T;
+  try
+  {
+    Z->initializeTarget(root);	// its always "/", and we never populate the pool
+    T = Z->target();
+  }
+  catch (Exception & excpt_r)
+  {
+    ZYPP_CAUGHT (excpt_r);
+    cerr << "3|" << joinlines( excpt_r.asUserString() ) << endl;
+    cout << excpt_r.asString() << endl;
+    exit(1);
+  }
+  return T;
 }
 
 

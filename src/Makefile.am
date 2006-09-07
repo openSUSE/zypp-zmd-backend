@@ -16,7 +16,6 @@ noinst_PROGRAMS = \
 
 bin_PROGRAMS =	\
 	query-pool		\
-	query-system		\
 	resolve-dependencies	\
 	service-delete		\
 	parse-metadata		\
@@ -26,7 +25,6 @@ bin_PROGRAMS =	\
 zypp_sources_SOURCES = zypp-sources.cc
 service_delete_SOURCES = service-delete.cc
 query_pool_SOURCES = query-pool.cc
-query_system_SOURCES = query-system.cc
 resolve_dependencies_SOURCES = resolve-dependencies.cc transactions.cc transactions.h
 transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h MediaChangeCallback.h MessageResolvableReportCallback.h KeyRingCallbacks.h
 parse_metadata_SOURCES = parse-metadata.cc KeyRingCallbacks.h
