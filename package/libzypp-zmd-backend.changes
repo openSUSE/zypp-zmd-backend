@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Sep  7 14:51:54 CEST 2006 - dmacvicar@suse.de
+
+- Get rid of query-system
+  ( fate: #300917 )
+- r4102
+
+-------------------------------------------------------------------
 Thu Sep  7 12:31:14 CEST 2006 - dmacvicar@suse.de
 
 - Get rid of helpers find-file, package-files, and query-files.
