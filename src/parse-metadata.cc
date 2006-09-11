@@ -216,7 +216,8 @@ parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string 
 
   Source_Ref source = backend::findSource( manager, urialias, uri );
 
-  if (source) {
+  if (source)
+  {
 	// since its known by url, it already has a real Url, no need to pass one
     result = sync_source( db, source, catalog, Url(), owner );
   }

@@ -16,6 +16,8 @@
 #include "zypp/base/Logger.h"
 #include "zypp/ZYppFactory.h"
 #include "zypp/Source.h"
+#include "zypp/detail/ImplConnect.h"
+#include "zypp/source/PackageDelta.h"
 #include "DbAccess.h"
 
 IMPL_PTR_TYPE(DbAccess);
@@ -25,7 +27,7 @@ IMPL_PTR_TYPE(DbAccess);
 
 using namespace std;
 using namespace zypp;
-
+using namespace zypp::packagedelta;
 
 static struct archrc {
 	char *arch;
@@ -214,6 +216,9 @@ DbAccess::DbAccess( const std::string & dbfile_r )
     , _db( NULL )
     , _insert_res_handle( NULL )
     , _insert_pkg_handle( NULL )
+    , _insert_patch_package_handle(0L)
+    , _insert_patch_package_baseversion_handle(0L)
+    , _insert_delta_package_handle(0L)
     , _insert_message_handle( NULL )
     , _insert_script_handle( NULL )
     , _insert_patch_handle( NULL )
@@ -370,6 +375,40 @@ prepare_product_insert (sqlite3 *db)
     return prepare_handle( db, query );
 }
 
+static sqlite3_stmt *
+prepare_patch_package_insert( sqlite3 *db )
+{
+  string query(
+      "INSERT INTO patch_packages "
+      //  1           2         3         4         5              6
+      " ( package_id, media_nr, location, checksum, download_size, build_time ) "
+      " VALUES (?, ?, ?, ?, ?, ?)");
+  return prepare_handle( db, query );
+}
+
+static sqlite3_stmt *
+prepare_patch_package_baseversion_insert( sqlite3 *db )
+{
+  string query(
+      "INSERT INTO patch_packages_baseversions "
+      //  1                   2         3         4
+      " ( patch_package_id, version, release, epoch ) "
+      " VALUES (?, ?, ?, ?, ?, ?)");
+  return prepare_handle( db, query );
+}
+
+static sqlite3_stmt *
+prepare_delta_package_insert( sqlite3 *db )
+{
+  string query(
+      "INSERT INTO delta_packages "
+      //    1           2         3         4         5           
+      " ( package_id, media_nr, location, checksum, download_size"
+      //    6                     7                     8                     9                  10                     11
+      "  , baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time, baseversion_sequence_info ) "
+      " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  return prepare_handle( db, query );
+}
 
 static sqlite3_stmt *
 prepare_dep_insert (sqlite3 *db)
@@ -383,7 +422,6 @@ prepare_dep_insert (sqlite3 *db)
     return prepare_handle( db, query );
 }
 
-
 bool
 DbAccess::prepareWrite(void)
 {
@@ -395,49 +433,68 @@ DbAccess::prepareWrite(void)
 
     _insert_res_handle = prepare_res_insert (_db);
     if (_insert_res_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_pkg_handle = prepare_pkg_insert (_db);
     if (_insert_pkg_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
+    }
+    
+    _insert_patch_package_handle = prepare_patch_package_insert (_db);
+    if (_insert_patch_package_handle == NULL) {
+      goto cleanup;
     }
 
+    _insert_patch_package_baseversion_handle = prepare_patch_package_baseversion_insert (_db);
+    if (_insert_patch_package_baseversion_handle == NULL) {
+      goto cleanup;
+    }
+    
+    _insert_delta_package_handle = prepare_delta_package_insert (_db);
+    if (_insert_delta_package_handle == NULL) {
+      goto cleanup;
+    }
+    
+    _insert_patch_package_handle = prepare_patch_package_insert (_db);
+    if (_insert_patch_package_handle == NULL) {
+      goto cleanup;
+    }
     _insert_message_handle = prepare_message_insert (_db);
     if (_insert_message_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_script_handle = prepare_script_insert (_db);
     if (_insert_script_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_patch_handle = prepare_patch_insert (_db);
     if (_insert_patch_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_pattern_handle = prepare_pattern_insert (_db);
     if (_insert_pattern_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_product_handle = prepare_product_insert (_db);
     if (_insert_product_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     _insert_dep_handle = prepare_dep_insert (_db);
     if (_insert_dep_handle == NULL) {
-	goto cleanup;
+      goto cleanup;
     }
 
     result = true;
 
  cleanup:
     if (result == false) {
-	closeDb();
+      closeDb();
     }
 
     return result;
@@ -498,6 +555,9 @@ DbAccess::closeDb(void)
 
     close_handle( &_insert_res_handle );
     close_handle( &_insert_pkg_handle );
+    close_handle( &_insert_patch_package_handle );
+    close_handle( &_insert_patch_package_baseversion_handle );
+    close_handle( &_insert_delta_package_handle );
     close_handle( &_insert_message_handle );
     close_handle( &_insert_script_handle );
     close_handle( &_insert_patch_handle );
@@ -625,18 +685,18 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
     const char *filename = NULL;
 
     switch( owner ) {
-	case ZYPP_OWNED:
-	    filename = "";
-	break;
-	case ZMD_OWNED:
-	break;
-	case LOCAL_FILE:
-	    url = NULL;
-	    filename = package_url;
-	break;
-	default:
-	    ERR << "Unknown ownership" << endl;
-	break;
+      case ZYPP_OWNED:
+        filename = "";
+      break;
+      case ZMD_OWNED:
+      break;
+      case LOCAL_FILE:
+        url = NULL;
+        filename = package_url;
+      break;
+      default:
+        ERR << "Unknown ownership" << endl;
+      break;
     }
 
     sqlite3_bind_text( handle, 5, url, -1, SQLITE_STATIC );
@@ -654,9 +714,140 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
 	ERR << "Error adding package to SQL: " << sqlite3_errmsg (_db) << endl;
 	return -1;
     }
-    sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+    sqlite_int64 package_rowid = sqlite3_last_insert_rowid (_db);
+    
+    // access package implementation to get delta and patch rpm info
+    detail::ResImplTraits<Package::Impl>::constPtr pipp( detail::ImplConnect::resimpl( pkg ) );
+    
+    // save patch rpms
+    for ( std::list<DeltaRpm>::const_iterator it = pipp->deltaRpms().begin(); it != pipp->deltaRpms().end(); ++it )
+    {
+      writeDeltaPackage ( package_rowid, *it );
+    }
+    
+    // save delta rpms
+    for ( std::list<PatchRpm>::const_iterator it = pipp->patchRpms().begin(); it != pipp->patchRpms().end(); ++it )
+    {
+      writePatchPackage ( package_rowid, *it );
+    }
+    
+    
+    return package_rowid;
+}
 
-    return rowid;
+// patch rpm
+//----------------------------------------------------------------------------
+sqlite_int64
+DbAccess::writePatchPackage (sqlite_int64 package_id, const PatchRpm &patch_pkg )
+{ 
+/*  " ( package_id, media_nr, location, checksum, download_size, build_time ) "
+      " VALUES (?, ?, ?, ?, ?, ?)");*/
+  //XXX << package_id << ", " << patch_pkg << ")" << endl;
+  int rc;
+  sqlite3_stmt *handle = _insert_patch_package_handle;
+
+  sqlite3_bind_int64( handle, 1, package_id);
+  
+  // on media location data
+  sqlite3_bind_int( handle, 2, patch_pkg.location().medianr() );
+  sqlite3_bind_text( handle, 3, patch_pkg.location().filename().asString().c_str(), -1, SQLITE_STATIC );
+  std::string checksum_encoded_string = patch_pkg.location().checksum().type() + ":" + patch_pkg.location().checksum().checksum();
+  sqlite3_bind_text( handle, 4, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+  sqlite3_bind_int( handle, 5, patch_pkg.location().downloadsize() );
+  
+  // buildtime data
+  sqlite3_bind_int( handle, 6, patch_pkg.buildtime() );
+
+  rc = sqlite3_step( handle);
+  sqlite3_reset( handle);
+
+  if (rc != SQLITE_DONE) {
+    ERR << "Error adding patch package to SQL: " << sqlite3_errmsg (_db) << endl;
+    return -1;
+  }
+  sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+
+  // base version data
+  for ( PatchRpm::BaseVersions::const_iterator it = patch_pkg.baseversions().begin(); it != patch_pkg.baseversions().end(); ++it)
+  {
+    writePatchPackageBaseversion( rowid, *it );
+  }
+  
+  return rowid;
+}
+
+sqlite_int64
+DbAccess::writePatchPackageBaseversion(sqlite_int64 patch_package_id, const PatchRpm::BaseVersion &baseversion )
+{ 
+  int rc;
+  sqlite3_stmt *handle = _insert_patch_package_handle;
+
+  sqlite3_bind_int64( handle, 1, patch_package_id);
+  
+  sqlite3_bind_text( handle, 2, baseversion.version().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 3, baseversion.release().c_str(), -1, SQLITE_STATIC );
+  if ( baseversion.epoch() == Edition::noepoch) {
+    sqlite3_bind_int( handle, 4, 0);
+  } else {
+    sqlite3_bind_int( handle, 4,  baseversion.epoch() );
+  }
+
+  rc = sqlite3_step( handle);
+  sqlite3_reset( handle);
+
+  if (rc != SQLITE_DONE) {
+    ERR << "Error adding patch package baseversion to SQL: " << sqlite3_errmsg (_db) << endl;
+    return -1;
+  }
+  sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+  return rowid;
+}
+
+
+// delta rpm
+//----------------------------------------------------------------------------
+sqlite_int64
+DbAccess::writeDeltaPackage (sqlite_int64 package_id, const DeltaRpm &delta_pkg )
+{ 
+  //XXX << package_id << ", " << delta_pkg << ")" << endl;
+  int rc;
+  sqlite3_stmt *handle = _insert_delta_package_handle;
+
+  sqlite3_bind_int64( handle, 1, package_id);
+  
+  // on media location data
+  sqlite3_bind_int( handle, 2, delta_pkg.location().medianr() );
+  sqlite3_bind_text( handle, 3, delta_pkg.location().filename().asString().c_str(), -1, SQLITE_STATIC );
+  std::string checksum_encoded_string = delta_pkg.location().checksum().type() + ":" + delta_pkg.location().checksum().checksum();
+  sqlite3_bind_text( handle, 4, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+  sqlite3_bind_int( handle, 5, delta_pkg.location().downloadsize() );
+  
+  // base version data
+  sqlite3_bind_text( handle, 6, delta_pkg.baseversion().edition().version().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 7, delta_pkg.baseversion().edition().release().c_str(), -1, SQLITE_STATIC );
+  if (delta_pkg.baseversion().edition().epoch() == Edition::noepoch) {
+    sqlite3_bind_int( handle, 8, 0);
+  } else {
+    sqlite3_bind_int( handle, 8, delta_pkg.baseversion().edition().epoch() );
+  }
+  checksum_encoded_string = delta_pkg.baseversion().checksum().type() + ":" + delta_pkg.baseversion().checksum().checksum();
+  sqlite3_bind_text( handle, 9, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+  sqlite3_bind_int( handle, 10, delta_pkg.baseversion().buildtime() );
+  sqlite3_bind_text( handle, 11, delta_pkg.baseversion().sequenceinfo().c_str() , -1, SQLITE_STATIC );
+  
+  //FIXME add build time data
+  
+  
+  rc = sqlite3_step( handle);
+  sqlite3_reset( handle);
+
+  if (rc != SQLITE_DONE) {
+    ERR << "Error adding delta package to SQL: " << sqlite3_errmsg (_db) << endl;
+    return -1;
+  }
+  sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+
+  return rowid;
 }
 
 
@@ -954,10 +1145,14 @@ DbAccess::haveCatalog( const std::string & catalog )
     return (rc == SQLITE_ROW);
 }
 
+DBCatalogEntry DbAccess::getCatalogEntry( const std::string &catalog )
+{
+
+}
 
 /** insert catalog */
 bool
-DbAccess::insertCatalog( const std::string & catalog, const string & name, const string & alias, const string & description )
+DbAccess::insertCatalog( const DBCatalogEntry &entry  )
 {
     string query ("INSERT INTO catalogs(id,name,alias,description) VALUES (?,?,?,?) ");
 
@@ -966,10 +1161,10 @@ DbAccess::insertCatalog( const std::string & catalog, const string & name, const
 	return false;
     }
 
-    sqlite3_bind_text( handle, 1, catalog.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 2, name.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 3, alias.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( handle, 4, description.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 1, entry.catalog.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 2, entry.name.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 3, entry.alias.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 4, entry.description.c_str(), -1, SQLITE_STATIC );
 
     int rc = sqlite3_step( handle);
     if (rc != SQLITE_DONE) {
@@ -983,33 +1178,33 @@ DbAccess::insertCatalog( const std::string & catalog, const string & name, const
 
 /** update catalog */
 bool
-DbAccess::updateCatalog( const std::string & catalog, const string & name, const string & alias, const string & description )
+DbAccess::updateCatalog( const DBCatalogEntry &entry )
 {
 
-    DBG << "updateCatalog(" << catalog << ", " << name << ", " << alias << ", " << description << ")" << endl;
+    DBG << "updateCatalog(" << entry.catalog << ", " << entry.name << ", " << entry.alias << ", " << entry.description << ")" << endl;
 
     //                    0    1     2
     string query ("SELECT name,alias,description FROM catalogs WHERE id = ? ");
 
     sqlite3_stmt *sel_handle = prepare_handle( _db, query );
     if (sel_handle == NULL) {
-	ERR << "Can't prepare SELECT query: " << sqlite3_errmsg (_db) << endl;
-	return false;
+      ERR << "Can't prepare SELECT query: " << sqlite3_errmsg (_db) << endl;
+      return false;
     }
 
-    sqlite3_bind_text( sel_handle, 1, catalog.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( sel_handle, 1, entry.catalog.c_str(), -1, SQLITE_STATIC );
 
     int rc = sqlite3_step( sel_handle);
     if (rc == SQLITE_ROW) {
-	DBG << "Found catalog" << endl;
+      DBG << "Found catalog" << endl;
     }
     else if (rc != SQLITE_DONE) {
-	ERR << "rc " << rc << ": " << sqlite3_errmsg (_db) << endl;
+      ERR << "rc " << rc << ": " << sqlite3_errmsg (_db) << endl;
     }
 
     if (rc != SQLITE_ROW) {
-	sqlite3_reset( sel_handle );
-	return false;
+      sqlite3_reset( sel_handle );
+      return false;
     }
 
     string c_name, c_alias, c_description;
@@ -1017,49 +1212,49 @@ DbAccess::updateCatalog( const std::string & catalog, const string & name, const
     // now set the c_* string to either the original or the updated (if non-empty) values
 
     const char *text;
-    if (name.empty()) {
-	text = (const char *) sqlite3_column_text( sel_handle, 0 );
-	if (text != NULL)
-	    c_name = text;
+    if (entry.name.empty()) {
+      text = (const char *) sqlite3_column_text( sel_handle, 0 );
+      if (text != NULL)
+        c_name = text;
     }
     else {
-	c_name = name;
+      c_name = entry.name;
     }
 
-    if (alias.empty()) {
-	text = (const char *) sqlite3_column_text( sel_handle, 1 );
-	if (text != NULL)
-	    c_alias = text;
+    if (entry.alias.empty()) {
+      text = (const char *) sqlite3_column_text( sel_handle, 1 );
+      if (text != NULL)
+        c_alias = text;
     }
     else {
-	c_alias = alias;
+      c_alias = entry.alias;
     }
 
-    if (description.empty()) {
-	text = (const char *) sqlite3_column_text( sel_handle, 2 );
-	if (text != NULL)
-	    c_description = text;
+    if (entry.description.empty()) {
+      text = (const char *) sqlite3_column_text( sel_handle, 2 );
+      if (text != NULL)
+        c_description = text;
     }
     else {
-	c_description = description;
+      c_description = entry.description;
     }
 
     //                                  1          2                3            4
     query = "UPDATE catalogs SET name = ?, alias = ?, description = ? WHERE id = ?";
     sqlite3_stmt *upd_handle = prepare_handle( _db, query );
     if (upd_handle == NULL) {
-	ERR << "Can't prepare UPDATE query: " << sqlite3_errmsg (_db) << endl;
-	return false;
+      ERR << "Can't prepare UPDATE query: " << sqlite3_errmsg (_db) << endl;
+      return false;
     }
 
     sqlite3_bind_text( upd_handle, 1, c_name.c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( upd_handle, 2, c_alias.c_str(), -1, SQLITE_STATIC );
     sqlite3_bind_text( upd_handle, 3, c_description.c_str(), -1, SQLITE_STATIC );
-    sqlite3_bind_text( upd_handle, 4, catalog.c_str(), -1, SQLITE_STATIC );
+    sqlite3_bind_text( upd_handle, 4, entry.catalog.c_str(), -1, SQLITE_STATIC );
 
     rc = sqlite3_step( upd_handle );
     if (rc != SQLITE_DONE) {
-	ERR << "rc " << rc << "Error writing catalog: " << sqlite3_errmsg (_db) << endl;
+      ERR << "rc " << rc << "Error writing catalog: " << sqlite3_errmsg (_db) << endl;
     }
 
     sqlite3_reset( sel_handle );
@@ -1095,7 +1290,7 @@ DbAccess::removeCatalog( const std::string & catalog )
 /** empty catalog, remove all resolvables belonging to this catalog */
 /* parameter 'const char ** because of callers */
 bool
-DbAccess::emptyCatalog( const char *catalog )
+DbAccess::emptyCatalog( const std::string &catalog )
 {
     string query ("DELETE FROM resolvables where catalog = ? ");
 
@@ -1104,7 +1299,7 @@ DbAccess::emptyCatalog( const char *catalog )
 	return false;
     }
 
-    sqlite3_bind_text( handle, 1, catalog, -1, SQLITE_STATIC );
+    sqlite3_bind_text( handle, 1, catalog.c_str(), -1, SQLITE_STATIC );
 
     int rc = sqlite3_step( handle);
     if (rc != SQLITE_DONE) {

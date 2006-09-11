@@ -75,7 +75,7 @@ DBG << "start(" << *resolvable << ")" << std::endl;
 	virtual Action problem(
 	  zypp::Resolvable::constPtr resolvable
 	  , zypp::target::rpm::InstallResolvableReport::Error error
-	  , std::string description
+	  , const std::string &description
 	  , zypp::target::rpm::InstallResolvableReport::RpmLevel level
 	)
 	{
@@ -102,7 +102,7 @@ DBG << "problem(" << *resolvable << "," << description << ")" << std::endl;
 	    return zypp::target::rpm::InstallResolvableReport::problem( resolvable, error, description, level );
 	}
 
-	virtual void finish(zypp::Resolvable::constPtr resolvable, Error error, std::string reason, zypp::target::rpm::InstallResolvableReport::RpmLevel level)
+	virtual void finish(zypp::Resolvable::constPtr resolvable, Error error, const std::string &reason, zypp::target::rpm::InstallResolvableReport::RpmLevel level)
 	{
 DBG << "finish(" << *resolvable << "," << error << ", " << reason << ")" << std::endl;
 	    string errmsg;
@@ -162,7 +162,7 @@ DBG << "finish(" << *resolvable << "," << error << ", " << reason << ")" << std:
 	    return true;
 	}
 
-	virtual void finish(zypp::Resolvable::constPtr resolvable, zypp::target::rpm::RemoveResolvableReport::Error error, std::string reason)
+	virtual void finish(zypp::Resolvable::constPtr resolvable, zypp::target::rpm::RemoveResolvableReport::Error error, const std::string &reason)
 	{
 	    if (error != NO_ERROR) {
 		std::cout << "3|" << reason << std::endl;

@@ -23,8 +23,10 @@
 #include <zypp/ResStore.h>
 #include <zypp/Resolvable.h>
 #include <zypp/Package.h>
+#include "zypp/source/PackageDelta.h"
 #include <zypp/Message.h>
 #include <zypp/Script.h>
+#include <zypp/Date.h>
 #include <zypp/Patch.h>
 #include <zypp/Selection.h>
 #include <zypp/Pattern.h>
@@ -138,6 +140,21 @@ typedef enum {
 	RC_RES_STATUS_BROKEN			// needed, dependencies incomplete
 } RCResolvableStatus;
 
+struct DBCatalogEntry
+{
+  DBCatalogEntry( const std::string & p_catalog, const std::string & p_name, const std::string & p_alias, const std::string & p_description )
+    : catalog(p_catalog), name(p_name), alias(p_alias), description(p_description)
+  {}
+
+  std::string catalog;
+  std::string name;
+  std::string alias;
+  std::string description;
+  std::string checksum;
+  zypp::Date timestamp;
+  
+};
+
 ///////////////////////////////////////////////////////////////////
 //
 //	CLASS NAME : DbAccess
@@ -152,7 +169,12 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
 
     sqlite3 *_db;
     sqlite3_stmt *_insert_res_handle;
+    
     sqlite3_stmt *_insert_pkg_handle;
+    sqlite3_stmt *_insert_patch_package_handle;
+    sqlite3_stmt *_insert_patch_package_baseversion_handle;
+    sqlite3_stmt *_insert_delta_package_handle;
+    
     sqlite3_stmt *_insert_message_handle;
     sqlite3_stmt *_insert_script_handle;
     sqlite3_stmt *_insert_patch_handle;
@@ -165,6 +187,10 @@ class DbAccess : public zypp::base::ReferenceCounted, public zypp::base::NonCopy
     sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
 
     sqlite_int64 writePackage( sqlite_int64 id, zypp::Package::constPtr package, Ownership owner = ZYPP_OWNED );
+    sqlite_int64 writeDeltaPackage (sqlite_int64 package_id, const zypp::packagedelta::DeltaRpm &delta_pkg );
+    sqlite_int64 writePatchPackage (sqlite_int64 package_id, const zypp::packagedelta::PatchRpm &patch_pkg );
+    sqlite_int64 writePatchPackageBaseversion(sqlite_int64 patch_package_id, const zypp::packagedelta::PatchRpm::BaseVersion &baseversion );
+        
     sqlite_int64 writeMessage( sqlite_int64 id, zypp::Message::constPtr message );
     sqlite_int64 writeScript( sqlite_int64 id, zypp::Script::constPtr script );
     sqlite_int64 writePatch( sqlite_int64 id, zypp::Patch::constPtr patch );
@@ -194,13 +220,16 @@ public:
     /** check if catalog exists */
     bool haveCatalog( const std::string & catalog );
     /** insert catalog */
-    bool insertCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
+    bool insertCatalog( const DBCatalogEntry &entry );
     /** remove catalog, remove all resolvables of this catalog */
     bool removeCatalog( const std::string & catalog );
     /** update catalog, update all non-empty parameters (name, alias, description) */
-    bool updateCatalog( const std::string & catalog, const std::string & name, const std::string & alias, const std::string & description );
+    bool updateCatalog( const DBCatalogEntry &entry );
     /** empty catalog, remove all resolvables belonging to this catalog  */
-    bool emptyCatalog( const char *catalog );
+    bool emptyCatalog( const std::string &catalog );
+    
+    /** get catalog properties  */
+    DBCatalogEntry getCatalogEntry( const std::string &catalog );
 
     /** write resolvables from store to db */
     void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
