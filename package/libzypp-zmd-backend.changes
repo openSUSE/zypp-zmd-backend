@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Sep 11 19:10:55 CEST 2006 - dmacvicar@suse.de
+
+- Save delta and patch rpm informaton in zmd database
+  needed for (#199434) (patch and delta rpms in rug/zmd)
+- r4117
+
+-------------------------------------------------------------------
 Thu Sep  7 14:51:54 CEST 2006 - dmacvicar@suse.de
 
 - Get rid of query-system
