@@ -42,19 +42,20 @@ DbScriptImpl::DbScriptImpl (Source_Ref source_r, std::string do_script, std::str
     , _do_script( do_script )
     , _undo_script( undo_script )
     , _zmdid( zmdid )
-{
-}
+{}
 
 Source_Ref
 DbScriptImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 Pathname
 DbScriptImpl::do_script() const
 {
   if ( ! _do_script.empty() )
     return Pathname();
-  
+
   if ( !_tmp_do_script )
     _tmp_do_script.reset(new filesystem::TmpFile(zypp::getZYpp()->tmpPath(), "zmd-backend-do-script-"));
 
@@ -78,7 +79,7 @@ DbScriptImpl::undo_script() const
 {
   if ( ! _undo_script.empty() )
     return Pathname();
-  
+
   if ( !_tmp_undo_script )
     _tmp_undo_script.reset(new filesystem::TmpFile(zypp::getZYpp()->tmpPath(), "zmd-backend-undo-script-"));
 
@@ -92,7 +93,7 @@ DbScriptImpl::undo_script() const
     ERR << "Can't write the patch script to a temporary file." << std::endl;
     return Pathname();
   }
-  
+
   st << _undo_script << endl;
   st.close();
   return pth;
@@ -101,12 +102,14 @@ DbScriptImpl::undo_script() const
 bool
 DbScriptImpl::undo_available() const
 {
-    return !_undo_script.empty();
+  return !_undo_script.empty();
 }
 
 ZmdId DbScriptImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

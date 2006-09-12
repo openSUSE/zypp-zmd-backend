@@ -29,24 +29,24 @@ class DbMessageImpl : public detail::MessageImplIf
 {
 public:
 
-	/** Default ctor
-	*/
-	DbMessageImpl( Source_Ref source_r, TranslatedText text, ZmdId zmdid );
+  /** Default ctor
+  */
+  DbMessageImpl( Source_Ref source_r, TranslatedText text, ZmdId zmdid );
 
-	/** */
-	virtual Source_Ref source() const;
-	virtual TranslatedText text() const;
-	virtual ByteCount size() const;
-        /** */
-	virtual ZmdId zmdid() const;
+  /** */
+  virtual Source_Ref source() const;
+  virtual TranslatedText text() const;
+  virtual ByteCount size() const;
+  /** */
+  virtual ZmdId zmdid() const;
 
 protected:
-	Source_Ref _source;
-	TranslatedText _text;
-	ZmdId _zmdid;
+  Source_Ref _source;
+  TranslatedText _text;
+  ZmdId _zmdid;
 
- };
-  /////////////////////////////////////////////////////////////////
+};
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
 #endif // ZMD_BACKEND_DBSOURCE_DBMESSAGEIMPL_H

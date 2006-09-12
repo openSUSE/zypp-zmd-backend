@@ -41,21 +41,26 @@
 
 class DbSourceImplPolicy
 {
+public:
   DbSourceImplPolicy()
-    : _create_dependencies(true)
+      : _create_dependencies(true)
   {}
-  
+
   /**
    * For transaction it is not needed 
    * to create dependencies
    */
   bool createDependencies() const
-  { return _create_dependencies; }
-  
+  {
+    return _create_dependencies;
+  }
+
   void setCreateDependenciesEnabled( bool enabled )
-  { _create_dependencies = enabled ; }
-  
-  private:
+  {
+    _create_dependencies = enabled ;
+  }
+
+private:
   bool _create_dependencies;
 };
 
@@ -63,55 +68,70 @@ class DbSourceImplPolicy
 //
 //	CLASS NAME : DbSourceImpl
 
-class DbSourceImpl : public zypp::source::SourceImpl {
+class DbSourceImpl : public zypp::source::SourceImpl
+{
 
- public:
-    /** Default ctor */
-    DbSourceImpl();
+public:
+  /** Default ctor */
+  DbSourceImpl( DbSourceImplPolicy policy = DbSourceImplPolicy() );
 
- private:
-    /** Ctor substitute.
-     * Actually get the metadata.
-     * \throw EXCEPTION on fail
-     */
-    virtual void factoryInit();
+private:
+  /** Ctor substitute.
+   * Actually get the metadata.
+   * \throw EXCEPTION on fail
+   */
+  virtual void factoryInit();
 
-    sqlite3 *_db;
-    sqlite3_stmt *_dependency_handle;
-    sqlite3_stmt *_message_handle;
-    sqlite3_stmt *_script_handle;
-    sqlite3_stmt *_patch_handle;
-    sqlite3_stmt *_pattern_handle;
-    sqlite3_stmt *_product_handle;
+  sqlite3 *_db;
+  sqlite3_stmt *_dependency_handle;
+  sqlite3_stmt *_message_handle;
+  sqlite3_stmt *_script_handle;
+  sqlite3_stmt *_patch_handle;
+  sqlite3_stmt *_pattern_handle;
+  sqlite3_stmt *_product_handle;
 
-    void createPackages(void);
-    void createAtoms(void);
-    void createMessages(void);
-    void createScripts(void);
-    void createLanguages(void);
-    void createPatches(void);
-    void createPatterns(void);
-    void createProducts(void);
+  void createPackages(void);
+  void createAtoms(void);
+  void createMessages(void);
+  void createScripts(void);
+  void createLanguages(void);
+  void createPatches(void);
+  void createPatterns(void);
+  void createProducts(void);
 
-    zypp::Dependencies createDependencies (sqlite_int64 resolvable_id);
+  /**
+   * if policy says so, creates dependencies, otherwise returns a
+   * empty dependencies set
+   */
+  zypp::Dependencies createDependenciesOnPolicy(sqlite_int64 resolvable_id);
 
- public:
+  /**
+   * creates dependencies
+   */
+  zypp::Dependencies createDependencies (sqlite_int64 resolvable_id);
 
-    virtual const bool valid() const
-    { return true; }
+public:
 
-    virtual std::string type(void) const
-    { return "ZMD"; }
+  virtual const bool valid() const
+  {
+    return true;
+  }
 
-    void attachDatabase( sqlite3 *db );
-    void attachIdMap (IdMap *idmap);
-    void attachZyppSource( zypp::Source_Ref source );
+  virtual std::string type(void) const
+  {
+    return "ZMD";
+  }
 
-  private:
-    zypp::Source_Ref _source;		// reference to DbSource for this Impl
-    zypp::Source_Ref _zyppsource;	// reference to real zypp source, if exists
-    IdMap *_idmap;			// map sqlite resolvable.id to actual objects
-    void createResolvables( zypp::Source_Ref source_r );
+  void attachDatabase( sqlite3 *db );
+  void attachIdMap (IdMap *idmap);
+  void attachZyppSource( zypp::Source_Ref source );
+
+private:
+  zypp::Source_Ref _source;		// reference to DbSource for this Impl
+  zypp::Source_Ref _zyppsource;	// reference to real zypp source, if exists
+  IdMap *_idmap;			// map sqlite resolvable.id to actual objects
+  void createResolvables( zypp::Source_Ref source_r );
+  DbSourceImplPolicy _policy;
 };
 
 

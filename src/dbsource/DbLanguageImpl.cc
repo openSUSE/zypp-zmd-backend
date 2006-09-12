@@ -34,16 +34,19 @@ namespace zypp
 DbLanguageImpl::DbLanguageImpl (Source_Ref source_r, ZmdId zmdid)
     : _source( source_r )
     , _zmdid( zmdid )
-{
-}
+{}
 
 Source_Ref
 DbLanguageImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 ZmdId DbLanguageImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

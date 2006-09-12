@@ -39,14 +39,16 @@ static SourceManager_Ptr manager;
 static bool
 restore_sources ()
 {
-    try {
-	manager->restore("/");
-    }
-    catch (Exception & excpt_r) {
-	cerr << "Couldn't restore all sources:" << excpt_r.asUserString() << endl;
-	ZYPP_CAUGHT (excpt_r);
-    }
-    return true;
+  try
+  {
+    manager->restore("/");
+  }
+  catch (Exception & excpt_r)
+  {
+    cerr << "Couldn't restore all sources:" << excpt_r.asUserString() << endl;
+    ZYPP_CAUGHT (excpt_r);
+  }
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -54,28 +56,29 @@ restore_sources ()
 int
 main (int argc, char **argv)
 {
-    const char *logfile = getenv("ZYPP_LOGFILE");
-    if (logfile != NULL)
-	zypp::base::LogControl::instance().logfile( logfile );
-    else
-	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
+  const char *logfile = getenv("ZYPP_LOGFILE");
+  if (logfile != NULL)
+    zypp::base::LogControl::instance().logfile( logfile );
+  else
+    zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
-    ZYpp::Ptr God = backend::getZYpp( true );
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
+  ZYpp::Ptr God = backend::getZYpp( true );
+  KeyRingCallbacks keyring_callbacks;
+  DigestCallbacks digest_callbacks;
 
-    backend::initTarget( God );
+  backend::initTarget( God );
 
-    manager = SourceManager::sourceManager();
-    if (! restore_sources ())
-	return 1;
+  manager = SourceManager::sourceManager();
+  if (! restore_sources ())
+    return 1;
 
-    SourceManager::Source_const_iterator it;
-    int count = 0;
-    for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it) {
-	cout << ++count << ". Url '" << it->url().asString() << "', Alias '" << it->alias() << "'" << endl;
-    }
-    if (count == 0)
-	cout << "No zypp sources found" << endl;
-    return 0;
+  SourceManager::Source_const_iterator it;
+  int count = 0;
+  for (it = manager->Source_begin(); it !=  manager->Source_end(); ++it)
+  {
+    cout << ++count << ". Url '" << it->url().asString() << "', Alias '" << it->alias() << "'" << endl;
+  }
+  if (count == 0)
+    cout << "No zypp sources found" << endl;
+  return 0;
 }

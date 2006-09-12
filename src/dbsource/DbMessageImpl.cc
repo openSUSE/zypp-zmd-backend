@@ -35,23 +35,30 @@ DbMessageImpl::DbMessageImpl (Source_Ref source_r, TranslatedText text, ZmdId zm
     : _source( source_r )
     , _text( text )
     , _zmdid( zmdid )
-{
-}
+{}
 
 Source_Ref
 DbMessageImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 TranslatedText DbMessageImpl::text() const
-{ return _text; }
+{
+  return _text;
+}
 
 ByteCount DbMessageImpl::size() const
-{ return _text.asString().size(); }
+{
+  return _text.asString().size();
+}
 
 
 ZmdId DbMessageImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

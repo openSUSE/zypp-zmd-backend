@@ -36,8 +36,7 @@ DbPackageImpl::DbPackageImpl (Source_Ref source_r)
     , _install_only(false)
     , _size_installed(0)
     , _size_archive(0)
-{
-}
+{}
 
 /**
  * read package specific data from handle
@@ -48,80 +47,103 @@ DbPackageImpl::DbPackageImpl (Source_Ref source_r)
 void
 DbPackageImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
 {
-    _zmdid = id;
+  _zmdid = id;
 
-    // 1-5: nvra, see DbSourceImpl
-    _size_installed = sqlite3_column_int( handle, 6 );
-    // 7: catalog
-    // 8: installed
-    // 9: local
-    const char * text = ((const char *) sqlite3_column_text( handle, 10 ));
-    if (text != NULL)
-	_group = text;
-    _size_archive = sqlite3_column_int( handle, 11 );
-    text = (const char *) sqlite3_column_text( handle, 12 );
-    if (text != NULL)
-	_summary = TranslatedText( string( text ) );
-    text = (const char *) sqlite3_column_text( handle, 13 );
-    if (text != NULL)
-	_description = TranslatedText( string( text ) );
-    text = (const char *) sqlite3_column_text( handle, 15 );	// package_filename
-    if (text != NULL
-	&& *text != 0)
-    {
-	_location = Pathname( text );				// if set, use this (zmd owned or local source)
-    }
-    else {
-	text = (const char *)sqlite3_column_text( handle, 14 );	// else use package_url
-	if (text == NULL)
-	    ERR << "package_url NULL for id " << id << endl;
-	else
-	    _location = Pathname( text );
-    }
-    _install_only = (sqlite3_column_int( handle, 16 ) != 0);
-    _media_nr = sqlite3_column_int( handle, 17 );
+  // 1-5: nvra, see DbSourceImpl
+  _size_installed = sqlite3_column_int( handle, 6 );
+  // 7: catalog
+  // 8: installed
+  // 9: local
+  const char * text = ((const char *) sqlite3_column_text( handle, 10 ));
+  if (text != NULL)
+    _group = text;
+  _size_archive = sqlite3_column_int( handle, 11 );
+  text = (const char *) sqlite3_column_text( handle, 12 );
+  if (text != NULL)
+    _summary = TranslatedText( string( text ) );
+  text = (const char *) sqlite3_column_text( handle, 13 );
+  if (text != NULL)
+    _description = TranslatedText( string( text ) );
+  text = (const char *) sqlite3_column_text( handle, 15 );	// package_filename
+  if (text != NULL
+      && *text != 0)
+  {
+    _location = Pathname( text );				// if set, use this (zmd owned or local source)
+  }
+  else
+  {
+    text = (const char *)sqlite3_column_text( handle, 14 );	// else use package_url
+    if (text == NULL)
+      ERR << "package_url NULL for id " << id << endl;
+    else
+      _location = Pathname( text );
+  }
+  _install_only = (sqlite3_column_int( handle, 16 ) != 0);
+  _media_nr = sqlite3_column_int( handle, 17 );
 
-    return;
+  return;
 }
 
 
 Source_Ref
 DbPackageImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 /** Package summary */
 TranslatedText DbPackageImpl::summary() const
-{ return _summary; }
+{
+  return _summary;
+}
 
 /** Package description */
 TranslatedText DbPackageImpl::description() const
-{ return _description; }
+{
+  return _description;
+}
 
 PackageGroup DbPackageImpl::group() const
-{ return _group; }
+{
+  return _group;
+}
 
 Pathname DbPackageImpl::location() const
-{ return _location; }
+{
+  return _location;
+}
 
 ByteCount DbPackageImpl::size() const
-{ return _size_installed; }
+{
+  return _size_installed;
+}
 
 ZmdId DbPackageImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
 /** */
 ByteCount DbPackageImpl::archivesize() const
-{ return _size_archive; }
+{
+  return _size_archive;
+}
 
 bool DbPackageImpl::installOnly() const
-{ return _install_only; }
+{
+  return _install_only;
+}
 
 unsigned DbPackageImpl::sourceMediaNr() const
-{ return _media_nr; }
+{
+  return _media_nr;
+}
 
 Vendor DbPackageImpl::vendor() const
-{ return "suse"; }
+{
+  return "suse";
+}
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

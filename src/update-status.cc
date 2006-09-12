@@ -31,10 +31,12 @@ using solver::detail::ResolverContext_Ptr;
 
 //-----------------------------------------------------------------------------
 
-typedef struct {
-    sqlite3 *db;
-    sqlite3_stmt *handle;
-} DbHandle;
+typedef struct
+{
+  sqlite3 *db;
+  sqlite3_stmt *handle;
+}
+DbHandle;
 
 //
 // update 'status' field from item.status()
@@ -51,23 +53,24 @@ typedef struct {
 void
 update_db( PoolItem_Ref item, const ResStatus & status, void *data )
 {
-    DbHandle *dbh = (DbHandle *)data;
+  DbHandle *dbh = (DbHandle *)data;
 
-    int value = 0;		// default to undetermined
-    if (status.isEstablishedUneeded()) value = 1;
-    else if (status.isEstablishedSatisfied()) value = 2;
-    else if (status.isEstablishedIncomplete()) value = 3;
+  int value = 0;		// default to undetermined
+  if (status.isEstablishedUneeded()) value = 1;
+  else if (status.isEstablishedSatisfied()) value = 2;
+  else if (status.isEstablishedIncomplete()) value = 3;
 
-    sqlite3_bind_int( dbh->handle, 1, value );
-    sqlite3_bind_int( dbh->handle, 2, item->zmdid() );
+  sqlite3_bind_int( dbh->handle, 1, value );
+  sqlite3_bind_int( dbh->handle, 2, item->zmdid() );
 
-    int rc = sqlite3_step( dbh->handle );
-    if (rc != SQLITE_DONE) {
-	ERR << "Error updating status: " << sqlite3_errmsg( dbh->db ) << endl;
-    }
-    sqlite3_reset( dbh->handle );
+  int rc = sqlite3_step( dbh->handle );
+  if (rc != SQLITE_DONE)
+  {
+    ERR << "Error updating status: " << sqlite3_errmsg( dbh->db ) << endl;
+  }
+  sqlite3_reset( dbh->handle );
 
-    return;
+  return;
 }
 
 
@@ -81,25 +84,26 @@ update_db( PoolItem_Ref item, const ResStatus & status, void *data )
 static bool
 write_status( const ResPool & pool, sqlite3 *db, ResolverContext_Ptr context )
 {
-    MIL << "write_status" << endl;
+  MIL << "write_status" << endl;
 
-    sqlite3_stmt *handle = NULL;
+  sqlite3_stmt *handle = NULL;
 
-    const char *sql = "UPDATE resolvables SET status = ? WHERE id = ?";
+  const char *sql = "UPDATE resolvables SET status = ? WHERE id = ?";
 
-    int rc = sqlite3_prepare( db, sql, -1, &handle, NULL );
-    if (rc != SQLITE_OK) {
-	ERR << "Can not prepare update resolvables clause: " << sqlite3_errmsg (db) << endl;
-        return false;
-    }
+  int rc = sqlite3_prepare( db, sql, -1, &handle, NULL );
+  if (rc != SQLITE_OK)
+  {
+    ERR << "Can not prepare update resolvables clause: " << sqlite3_errmsg (db) << endl;
+    return false;
+  }
 
-    DbHandle dbh = { db, handle };
+  DbHandle dbh = { db, handle };
 
-    context->foreachMarked( update_db, &dbh );
+  context->foreachMarked( update_db, &dbh );
 
-    sqlite3_finalize( handle );
+  sqlite3_finalize( handle );
 
-    return true;
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -107,26 +111,28 @@ write_status( const ResPool & pool, sqlite3 *db, ResolverContext_Ptr context )
 static void
 append_dep_info (ResolverInfo_Ptr info, void *user_data)
 {
-    string *dep_failure_info = (string *)user_data;
-    bool debug = false;
+  string *dep_failure_info = (string *)user_data;
+  bool debug = false;
 
-    if (info == NULL) {
-	ERR << "append_dep_info(NULL)" << endl;
-	return;
-    }
-
-    if (getenv ("RCD_DEBUG_DEPS"))
-        debug = true;
-
-    if (debug || info->important()) {
-	dep_failure_info->append( "\n" );
-	if (debug && info->error())
-	    dep_failure_info->append( "ERR " );
-	if (debug && info->important())
-	    dep_failure_info->append( "IMP " );
-	dep_failure_info->append( info->message() );
-    }
+  if (info == NULL)
+  {
+    ERR << "append_dep_info(NULL)" << endl;
     return;
+  }
+
+  if (getenv ("RCD_DEBUG_DEPS"))
+    debug = true;
+
+  if (debug || info->important())
+  {
+    dep_failure_info->append( "\n" );
+    if (debug && info->error())
+      dep_failure_info->append( "ERR " );
+    if (debug && info->important())
+      dep_failure_info->append( "IMP " );
+    dep_failure_info->append( info->message() );
+  }
+  return;
 }
 
 
@@ -135,70 +141,75 @@ append_dep_info (ResolverInfo_Ptr info, void *user_data)
 int
 main (int argc, char **argv)
 {
-    if (argc != 2) {
-	cerr << "usage: " << argv[0] << " <database>" << endl;
-	return 1;
-    }
+  if (argc != 2)
+  {
+    cerr << "usage: " << argv[0] << " <database>" << endl;
+    return 1;
+  }
 
-    const char *logfile = getenv("ZYPP_LOGFILE");
-    if (logfile != NULL)
-	zypp::base::LogControl::instance().logfile( logfile );
-    else
-	zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
+  const char *logfile = getenv("ZYPP_LOGFILE");
+  if (logfile != NULL)
+    zypp::base::LogControl::instance().logfile( logfile );
+  else
+    zypp::base::LogControl::instance().logfile( ZMD_BACKEND_LOG );
 
-    MIL << "-------------------------------------" << endl;
-    MIL << "START update-status " << argv[1] << endl;
+  MIL << "-------------------------------------" << endl;
+  MIL << "START update-status " << argv[1] << endl;
 
-    // access the sqlite db
+  // access the sqlite db
 
-    DbAccess db (argv[1]);
-    if (!db.openDb(false))
-	return 1;
+  DbAccess db (argv[1]);
+  if (!db.openDb(false))
+    return 1;
 
-    // start ZYPP
+  // start ZYPP
 
-    ZYpp::Ptr God = backend::getZYpp( true );
-    KeyRingCallbacks keyring_callbacks;
-    DigestCallbacks digest_callbacks;
+  ZYpp::Ptr God = backend::getZYpp( true );
+  KeyRingCallbacks keyring_callbacks;
+  DigestCallbacks digest_callbacks;
 
-    Target_Ptr target = backend::initTarget( God );
+  Target_Ptr target = backend::initTarget( God );
 
-    // load the catalogs and resolvables from sqlite db
+  // load the catalogs and resolvables from sqlite db
 
-    DbSources dbs(db.db());
+  DbSources dbs(db.db());
 
-    const SourcesList & sources = dbs.sources();
+  const SourcesList & sources = dbs.sources();
 
-    for (SourcesList::const_iterator it = sources.begin(); it != sources.end(); ++it) {
-	zypp::ResStore store = it->resolvables();
-	MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
-	God->addResolvables( store, (it->id() == "@system") );
-    }
+  for (SourcesList::const_iterator it = sources.begin(); it != sources.end(); ++it)
+  {
+    zypp::ResStore store = it->resolvables();
+    MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
+    God->addResolvables( store, (it->id() == "@system") );
+  }
 
-    bool success = God->resolver()->establishPool();
+  bool success = God->resolver()->establishPool();
 
-    MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
+  MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
 
-    solver::detail::ResolverContext_Ptr context = God->resolver()->context();
-    if (context == NULL) {
-	ERR << "No context ?!" << endl;
-	return 1;
-    }
-    if (success) {
-	success = write_status( God->pool(), db.db(), context );
-    }
-    else {
-	string dep_failure_info( "Unresolved dependencies:\n" );
+  solver::detail::ResolverContext_Ptr context = God->resolver()->context();
+  if (context == NULL)
+  {
+    ERR << "No context ?!" << endl;
+    return 1;
+  }
+  if (success)
+  {
+    success = write_status( God->pool(), db.db(), context );
+  }
+  else
+  {
+    string dep_failure_info( "Unresolved dependencies:\n" );
 
-	context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, &dep_failure_info );
+    context->foreachInfo( PoolItem_Ref(), -1, append_dep_info, &dep_failure_info );
 
-	cout << dep_failure_info;
-	cout.flush();
-    }
+    cout << dep_failure_info;
+    cout.flush();
+  }
 
-    db.closeDb();
+  db.closeDb();
 
-    MIL << "END update-status, result " << (success ? 0 : 1) << endl;
+  MIL << "END update-status, result " << (success ? 0 : 1) << endl;
 
-    return (success ? 0 : 1);
+  return (success ? 0 : 1);
 }

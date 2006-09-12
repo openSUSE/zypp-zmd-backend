@@ -30,29 +30,29 @@ class DbScriptImpl : public detail::ScriptImplIf
 {
 public:
 
-	/** Default ctor
-	*/
-	DbScriptImpl( Source_Ref source_r, std::string do_script, std::string undo_script, ZmdId zmdid );
-                                       
-	/** */
-	virtual Source_Ref source() const;
-	virtual Pathname do_script() const;
-	virtual Pathname undo_script() const;
-	virtual bool undo_available() const;
+  /** Default ctor
+  */
+  DbScriptImpl( Source_Ref source_r, std::string do_script, std::string undo_script, ZmdId zmdid );
 
-        /** */
-	virtual ZmdId zmdid() const;
+  /** */
+  virtual Source_Ref source() const;
+  virtual Pathname do_script() const;
+  virtual Pathname undo_script() const;
+  virtual bool undo_available() const;
+
+  /** */
+  virtual ZmdId zmdid() const;
 
 protected:
-	Source_Ref _source;
-	std::string _do_script;
-	std::string _undo_script;
-	ZmdId _zmdid;
+  Source_Ref _source;
+  std::string _do_script;
+  std::string _undo_script;
+  ZmdId _zmdid;
 
-        mutable shared_ptr<filesystem::TmpFile> _tmp_do_script;
-        mutable shared_ptr<filesystem::TmpFile> _tmp_undo_script;     
- };
-  /////////////////////////////////////////////////////////////////
+  mutable shared_ptr<filesystem::TmpFile> _tmp_do_script;
+  mutable shared_ptr<filesystem::TmpFile> _tmp_undo_script;
+};
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
 #endif // ZMD_BACKEND_DBSOURCE_DBSCRIPTIMPL_H

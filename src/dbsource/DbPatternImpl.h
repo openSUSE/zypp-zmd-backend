@@ -30,45 +30,45 @@ class DbPatternImpl : public detail::PatternImplIf
 {
 public:
 
-	/** Default ctor
-	*/
-	DbPatternImpl( Source_Ref source_r );
-	void readHandle( sqlite_int64 id, sqlite3_stmt *handle );
+  /** Default ctor
+  */
+  DbPatternImpl( Source_Ref source_r );
+  void readHandle( sqlite_int64 id, sqlite3_stmt *handle );
 
-	/** Pattern summary */
-	virtual TranslatedText summary() const;
-	/** Pattern description */
-	virtual TranslatedText description() const;
+  /** Pattern summary */
+  virtual TranslatedText summary() const;
+  /** Pattern description */
+  virtual TranslatedText description() const;
 
-	virtual bool isDefault() const;
+  virtual bool isDefault() const;
 
-	virtual bool userVisible() const;
+  virtual bool userVisible() const;
 
-	virtual TranslatedText category() const;
+  virtual TranslatedText category() const;
 
-	virtual Pathname icon() const;
+  virtual Pathname icon() const;
 
-	virtual Pathname script() const;
-      
-	virtual Label order() const;
-	/** */
-	virtual Source_Ref source() const;
-        /** */
-	virtual ZmdId zmdid() const;
+  virtual Pathname script() const;
+
+  virtual Label order() const;
+  /** */
+  virtual Source_Ref source() const;
+  /** */
+  virtual ZmdId zmdid() const;
 
 protected:
-	Source_Ref _source;
-	TranslatedText _summary;
-	TranslatedText _description;
-	ZmdId _zmdid;
-	bool _default;
-	bool _visible;
-	TranslatedText _category;
-	Pathname _icon;
-	Pathname _script;
-	Label _order;
- };
-  /////////////////////////////////////////////////////////////////
+  Source_Ref _source;
+  TranslatedText _summary;
+  TranslatedText _description;
+  ZmdId _zmdid;
+  bool _default;
+  bool _visible;
+  TranslatedText _category;
+  Pathname _icon;
+  Pathname _script;
+  Label _order;
+};
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
 #endif // ZMD_BACKEND_DBSOURCE_DBPATTERNIMPL_H

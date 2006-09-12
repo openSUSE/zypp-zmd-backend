@@ -36,8 +36,7 @@ DbPatchImpl::DbPatchImpl (Source_Ref source_r)
     , _reboot_needed( false )
     , _affects_pkg_manager( false )
     , _interactive( false )
-{
-}
+{}
 
 /**
  * read patch specific data from handle
@@ -58,59 +57,77 @@ DbPatchImpl::DbPatchImpl (Source_Ref source_r)
 void
 DbPatchImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
 {
-    _zmdid = id;
+  _zmdid = id;
 
-    // 1-5: nvra, see DbSourceImpl
-    _size_installed = sqlite3_column_int( handle, 6 );
-    // 7: catalog
-    // 8: installed
-    // 9: local
-    const char * text = ((const char *) sqlite3_column_text( handle, 10 ));
-    if (text != NULL)
-	_id = text;
-    // 11: status (will re recomputed anyways)
-    _timestamp = sqlite3_column_int64( handle, 12 );
-    text = (const char *) sqlite3_column_text( handle, 13 );
-    if (text != NULL)
-	_category = text;
+  // 1-5: nvra, see DbSourceImpl
+  _size_installed = sqlite3_column_int( handle, 6 );
+  // 7: catalog
+  // 8: installed
+  // 9: local
+  const char * text = ((const char *) sqlite3_column_text( handle, 10 ));
+  if (text != NULL)
+    _id = text;
+  // 11: status (will re recomputed anyways)
+  _timestamp = sqlite3_column_int64( handle, 12 );
+  text = (const char *) sqlite3_column_text( handle, 13 );
+  if (text != NULL)
+    _category = text;
 
-    _reboot_needed = (sqlite3_column_int( handle, 14 ) != 0);
-    _affects_pkg_manager = (sqlite3_column_int( handle, 15 ) != 0);
-    _interactive = (sqlite3_column_int( handle, 16 ) != 0);
+  _reboot_needed = (sqlite3_column_int( handle, 14 ) != 0);
+  _affects_pkg_manager = (sqlite3_column_int( handle, 15 ) != 0);
+  _interactive = (sqlite3_column_int( handle, 16 ) != 0);
 
-    return;
+  return;
 }
 
 
 Source_Ref
 DbPatchImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 ZmdId DbPatchImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
 ByteCount DbPatchImpl::size() const
-{ return _size_installed; }
+{
+  return _size_installed;
+}
 
 /** Patch ID */
 std::string DbPatchImpl::id() const
-{ return _id; }
+{
+  return _id;
+}
 /** Patch time stamp */
 Date DbPatchImpl::timestamp() const
-{ return _timestamp; }
+{
+  return _timestamp;
+}
 /** Patch category (recommended, security,...) */
 std::string DbPatchImpl::category() const
-{ return _category; }
+{
+  return _category;
+}
 /** Does the system need to reboot to finish the update process? */
 bool DbPatchImpl::reboot_needed() const
-{ return _reboot_needed; }
+{
+  return _reboot_needed;
+}
 /** Does the patch affect the package manager itself? */
 bool DbPatchImpl::affects_pkg_manager() const
-{ return _affects_pkg_manager; }
+{
+  return _affects_pkg_manager;
+}
 /** Is the patch installation interactive? (does it need user input?) */
 bool DbPatchImpl::interactive() const
-{ return _interactive; }
+{
+  return _interactive;
+}
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

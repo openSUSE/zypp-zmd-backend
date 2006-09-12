@@ -36,8 +36,7 @@ DbPatternImpl::DbPatternImpl (Source_Ref source_r)
     , _zmdid(0)
     , _default(false)
     , _visible(false)
-{
-}
+{}
 
 /**
  * read package specific data from handle
@@ -47,50 +46,70 @@ DbPatternImpl::DbPatternImpl (Source_Ref source_r)
 void
 DbPatternImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
 {
-    _zmdid = id;
+  _zmdid = id;
 
-    // 1-5: nvra, see DbSourceImpl
+  // 1-5: nvra, see DbSourceImpl
 
-    // 6: status (don't care, its recomputed anyways)
+  // 6: status (don't care, its recomputed anyways)
 
-    return;
+  return;
 }
 
 
 Source_Ref
 DbPatternImpl::source() const
-{ return _source; }
+{
+  return _source;
+}
 
 /** Pattern summary */
 TranslatedText DbPatternImpl::summary() const
-{ return _summary; }
+{
+  return _summary;
+}
 
 /** Pattern description */
 TranslatedText DbPatternImpl::description() const
-{ return _description; }
+{
+  return _description;
+}
 
 bool DbPatternImpl::isDefault() const
-{ return _default; }
+{
+  return _default;
+}
 
 bool DbPatternImpl::userVisible() const
-{ return _visible; }
+{
+  return _visible;
+}
 
 TranslatedText DbPatternImpl::category() const
-{ return _category; }
+{
+  return _category;
+}
 
 Pathname DbPatternImpl::icon() const
-{ return _icon; }
+{
+  return _icon;
+}
 
 Pathname DbPatternImpl::script() const
-{ return _script; }
-      
+{
+  return _script;
+}
+
 Label DbPatternImpl::order() const
-{ return _order; }
+{
+  return _order;
+}
 
 ZmdId DbPatternImpl::zmdid() const
-{ return _zmdid; }
+{
+  return _zmdid;
+}
 
 
-  /////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////

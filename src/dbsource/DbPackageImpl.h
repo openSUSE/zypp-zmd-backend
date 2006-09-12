@@ -30,49 +30,49 @@ class DbPackageImpl : public detail::PackageImplIf
 {
 public:
 
-	/** Default ctor
-	*/
-	DbPackageImpl( Source_Ref source_r );
-	void readHandle( sqlite_int64 id, sqlite3_stmt *handle );
+  /** Default ctor
+  */
+  DbPackageImpl( Source_Ref source_r );
+  void readHandle( sqlite_int64 id, sqlite3_stmt *handle );
 
-	/** Package summary */
-	virtual TranslatedText summary() const;
-	/** Package description */
-	virtual TranslatedText description() const;
-	virtual ByteCount size() const;
-	/** */
-	virtual PackageGroup group() const;
-	/** */
-	virtual ByteCount archivesize() const;
-	/** */
-	virtual Pathname location() const;
-	/** */
-	virtual bool installOnly() const;
-	/** */
-	virtual Source_Ref source() const;
-        /** */
-	virtual ZmdId zmdid() const;
-        /** */
-	virtual unsigned sourceMediaNr() const;
+  /** Package summary */
+  virtual TranslatedText summary() const;
+  /** Package description */
+  virtual TranslatedText description() const;
+  virtual ByteCount size() const;
+  /** */
+  virtual PackageGroup group() const;
+  /** */
+  virtual ByteCount archivesize() const;
+  /** */
+  virtual Pathname location() const;
+  /** */
+  virtual bool installOnly() const;
+  /** */
+  virtual Source_Ref source() const;
+  /** */
+  virtual ZmdId zmdid() const;
+  /** */
+  virtual unsigned sourceMediaNr() const;
 
-	virtual Vendor vendor() const;
+  virtual Vendor vendor() const;
 
 protected:
-	Source_Ref _source;
-	TranslatedText _summary;
-	TranslatedText _description;
-	PackageGroup _group;
-	Pathname _location;
-	bool _install_only;
-	ZmdId _zmdid;
-	unsigned _media_nr;
+  Source_Ref _source;
+  TranslatedText _summary;
+  TranslatedText _description;
+  PackageGroup _group;
+  Pathname _location;
+  bool _install_only;
+  ZmdId _zmdid;
+  unsigned _media_nr;
 
-	ByteCount _size_installed;
-	ByteCount _size_archive;
+  ByteCount _size_installed;
+  ByteCount _size_archive;
 
 
- };
-  /////////////////////////////////////////////////////////////////
+};
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
 #endif // ZMD_BACKEND_DBSOURCE_DBPACKAGEIMPL_H

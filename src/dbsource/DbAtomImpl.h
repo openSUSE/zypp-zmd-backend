@@ -29,21 +29,21 @@ class DbAtomImpl : public detail::AtomImplIf
 {
 public:
 
-	/** Default ctor
-	*/
-	DbAtomImpl( Source_Ref source_r, ZmdId zmdid );
+  /** Default ctor
+  */
+  DbAtomImpl( Source_Ref source_r, ZmdId zmdid );
 
-	/** */
-	virtual Source_Ref source() const;
-        /** */
-	virtual ZmdId zmdid() const;
+  /** */
+  virtual Source_Ref source() const;
+  /** */
+  virtual ZmdId zmdid() const;
 
 protected:
-	Source_Ref _source;
-	ZmdId _zmdid;
+  Source_Ref _source;
+  ZmdId _zmdid;
 
- };
-  /////////////////////////////////////////////////////////////////
+};
+/////////////////////////////////////////////////////////////////
 } // namespace zypp
 ///////////////////////////////////////////////////////////////////
 #endif // ZMD_BACKEND_DBSOURCE_DBATOMIMPL_H
