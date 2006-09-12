@@ -57,6 +57,12 @@ public:
 
   virtual Vendor vendor() const;
 
+  virtual std::list<zypp::packagedelta::DeltaRpm> deltaRpms() const;
+  virtual std::list<zypp::packagedelta::PatchRpm> patchRpms() const;
+  
+  void addDeltaRpm( const zypp::packagedelta::DeltaRpm &delta );
+  void addPatchRpm( const zypp::packagedelta::PatchRpm &patch );
+  
 protected:
   Source_Ref _source;
   TranslatedText _summary;
@@ -70,7 +76,8 @@ protected:
   ByteCount _size_installed;
   ByteCount _size_archive;
 
-
+  std::list<PatchRpm> _patch_rpms;
+  std::list<DeltaRpm> _delta_rpms;
 };
 /////////////////////////////////////////////////////////////////
 } // namespace zypp

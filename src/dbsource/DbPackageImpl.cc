@@ -18,6 +18,7 @@
 
 using namespace std;
 using namespace zypp::detail;
+using namespace zypp::packagedelta;
 
 ///////////////////////////////////////////////////////////////////
 namespace zypp
@@ -142,6 +143,26 @@ unsigned DbPackageImpl::sourceMediaNr() const
 Vendor DbPackageImpl::vendor() const
 {
   return "suse";
+}
+
+std::list<DeltaRpm> DbPackageImpl::deltaRpms() const
+{
+  return _delta_rpms;
+}
+
+std::list<PatchRpm> DbPackageImpl::patchRpms() const
+{
+  return _patch_rpms;
+}
+  
+void DbPackageImpl::addDeltaRpm( const DeltaRpm &delta )
+{
+  _delta_rpms.push_back(delta);
+}
+
+void DbPackageImpl::addPatchRpm( const PatchRpm &patch )
+{
+  _patch_rpms.push_back(patch);
 }
 
 /////////////////////////////////////////////////////////////////

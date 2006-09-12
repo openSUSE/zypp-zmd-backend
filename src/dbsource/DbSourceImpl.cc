@@ -38,6 +38,19 @@
 using namespace std;
 using namespace zypp;
 
+static CheckSum encoded_string_to_checksum( const std::string &encoded )
+{
+  vector<string> words;
+  if ( str::split( encoded, std::back_inserter(words), ":" ) != 2 )
+  {
+    return CheckSum();
+  }
+  else
+  {
+    return CheckSum( words[0], words[1] );
+  }
+}
+
 //---------------------------------------------------------------------------
 
 DbSourceImpl::DbSourceImpl( DbSourceImplPolicy policy )
@@ -220,11 +233,11 @@ create_delta_package_handle(sqlite3 *db)
 {
   const char *query;
   query =
-    //       1      2          3        4         5              6                      7                      8                 9                     10
-    "SELECT id, media_nr, location, checksum, download_size, baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time "
-    //    11
+    //       1      2          3        4         5              6                      7                      8                 9                     10          11
+    "SELECT id, media_nr, location, checksum, download_size, build_time,  baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time "
+    //    12
     ", baseversion_sequence_info "
-    "FROM patch_packages WHERE package_id = ?";
+    "FROM delta_packages WHERE package_id = ?";
 
   return create_select_handle( db, query );
 }
@@ -444,7 +457,7 @@ DbSourceImpl::createAtoms(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Atom::Ptr atom = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( atom );
@@ -455,12 +468,12 @@ DbSourceImpl::createAtoms(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create atom object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -496,7 +509,7 @@ DbSourceImpl::createMessages(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Message::Ptr message = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( message );
@@ -507,12 +520,12 @@ DbSourceImpl::createMessages(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create message object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -549,7 +562,7 @@ DbSourceImpl::createScripts(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Script::Ptr script = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( script );
@@ -560,12 +573,12 @@ DbSourceImpl::createScripts(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create script object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -600,7 +613,7 @@ DbSourceImpl::createLanguages(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Language::Ptr language = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( language );
@@ -611,12 +624,12 @@ DbSourceImpl::createLanguages(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create language object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -626,7 +639,16 @@ DbSourceImpl::createPackages(void)
 {
   sqlite3_stmt *handle = create_package_handle ( _db);
   if (handle == NULL) return;
+  
+  sqlite3_stmt *delta_handle = create_delta_package_handle ( _db);
+  if (delta_handle == NULL) return;
 
+  sqlite3_stmt *patch_handle = create_patch_package_handle( _db );
+  if ( patch_handle = NULL ) return;
+  
+  sqlite3_stmt *baseversion_handle = create_patch_package_baseversion_handle( _db );
+  if ( baseversion_handle = NULL ) return;
+  
   sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
 
   int rc;
@@ -648,11 +670,91 @@ DbSourceImpl::createPackages(void)
 
       impl->readHandle( id, handle );
 
+      // delta rpms
+      int delta_rc;
+      // bind the master package id to the query
+      sqlite3_bind_int64 (delta_handle, 1, id );
+      while ((delta_rc = sqlite3_step (delta_handle)) == SQLITE_ROW)
+      {
+        zypp::source::OnMediaLocation on_media;
+        on_media.medianr( sqlite3_column_int( delta_handle, 2 ) );
+        on_media.filename( Pathname((const char *) sqlite3_column_text( delta_handle, 3 )) );
+        
+        string checksum_string( (const char *) sqlite3_column_text( delta_handle, 4 ) );
+        CheckSum checksum = encoded_string_to_checksum(checksum_string);
+        if ( checksum.empty() )
+        {
+          ERR << "Wrong checksum for delta, skipping..." << endl;
+          continue;
+        }
+        on_media.checksum(checksum);
+        on_media.downloadsize(sqlite3_column_int( delta_handle, 5 ));
+        
+        packagedelta::DeltaRpm::BaseVersion baseversion;
+        baseversion.edition( Edition( (const char *) sqlite3_column_text( delta_handle, 7 ) , (const char *) sqlite3_column_text( delta_handle, 8 ), sqlite3_column_int( delta_handle, 9 ) ));
+        
+        checksum_string = (const char *) sqlite3_column_text( delta_handle, 10 );
+        checksum = encoded_string_to_checksum(checksum_string);
+        if ( checksum.empty() )
+        {
+          ERR << "Wrong checksum for delta, skipping..." << endl;
+          continue;
+        }
+        baseversion.checksum(checksum);
+        baseversion.buildtime( sqlite3_column_int( delta_handle, 11 ) );
+        baseversion.sequenceinfo( (const char *) sqlite3_column_text( delta_handle, 12 ) );
+         
+        zypp::packagedelta::DeltaRpm delta;
+        delta.location( on_media );
+        delta.baseversion( baseversion );
+        delta.buildtime( sqlite3_column_int( delta_handle, 6 ) );
+        
+        impl->addDeltaRpm(delta);
+      }
+      
+      // patch rpms
+      int patch_rc;
+      // bind the master package id to the query
+      sqlite3_bind_int64(patch_handle, 1, id );
+      while ((patch_rc = sqlite3_step (patch_handle)) == SQLITE_ROW)
+      {
+        sqlite_int64 patch_package_id = sqlite3_column_int64( patch_handle, 1 );
+        
+        zypp::source::OnMediaLocation on_media;
+        on_media.medianr( sqlite3_column_int( patch_handle, 2 ) );
+        on_media.filename( Pathname((const char *) sqlite3_column_text( patch_handle, 3 )) );
+        
+        string checksum_string( (const char *) sqlite3_column_text( patch_handle, 4 ) );
+        CheckSum checksum = encoded_string_to_checksum(checksum_string);
+        if ( checksum.empty() )
+        {
+          ERR << "Wrong checksum for delta, skipping..." << endl;
+          continue;
+        }
+        on_media.checksum(checksum);
+        on_media.downloadsize(sqlite3_column_int( patch_handle, 5 ));
+        
+        zypp::packagedelta::PatchRpm patch;
+        patch.location( on_media );
+        patch.buildtime( sqlite3_column_int( patch_handle, 6 ) );
+        
+        int baseversion_rc;
+        sqlite3_bind_int ( baseversion_handle, 1, patch_package_id );
+        while (( baseversion_rc = sqlite3_step(baseversion_handle) ) == SQLITE_ROW )
+        {
+          packagedelta::PatchRpm::BaseVersion baseversion = packagedelta::PatchRpm::BaseVersion( (const char *) sqlite3_column_text( baseversion_handle, 1 ) , (const char *) sqlite3_column_text( baseversion_handle, 2 ), sqlite3_column_int( baseversion_handle, 3 ) );
+          patch.baseversion(baseversion);
+        }
+        sqlite3_reset(baseversion_handle);
+         
+        impl->addPatchRpm(patch);
+      }
+      
       // Collect basic Resolvable data
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Package::Ptr package = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( package );
@@ -662,12 +764,17 @@ DbSourceImpl::createPackages(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create package object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
+    // next package
+    sqlite3_reset(delta_handle);
+    sqlite3_reset(patch_handle);
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize(delta_handle);
+  sqlite3_finalize(baseversion_handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -703,7 +810,7 @@ DbSourceImpl::createPatches(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( patch );
@@ -714,12 +821,12 @@ DbSourceImpl::createPatches(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create patch object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -755,7 +862,7 @@ DbSourceImpl::createPatterns(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( pattern );
@@ -766,12 +873,12 @@ DbSourceImpl::createPatterns(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create pattern object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -807,7 +914,7 @@ DbSourceImpl::createProducts(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependencies (id ) );
+                         createDependenciesOnPolicy (id ) );
 
       Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( product );
@@ -818,12 +925,12 @@ DbSourceImpl::createProducts(void)
     catch (const Exception & excpt_r)
     {
       ERR << "Cannot create product object '" << name << "' from catalog '" << _source.id() << "'" << endl;
-      sqlite3_reset (handle);
+      sqlite3_finalize (handle);
       ZYPP_RETHROW (excpt_r);
     }
   }
 
-  sqlite3_reset (handle);
+  sqlite3_finalize (handle);
   return;
 }
 
@@ -979,7 +1086,7 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
     }
   }
 
-  sqlite3_reset ( _dependency_handle);
+  sqlite3_finalize ( _dependency_handle);
   return deps;
 }
 
