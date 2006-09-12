@@ -94,6 +94,21 @@ DbSourceImpl::attachZyppSource(zypp::Source_Ref source)
 //-----------------------------------------------------------------------------
 
 static sqlite3_stmt *
+create_select_handle( sqlite3 *db, const char *query )
+{
+  int rc;
+  sqlite3_stmt *handle = NULL;
+
+  rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
+  if (rc != SQLITE_OK) {
+    ERR << "Can not prepare selection clause: " << endl << query << endl << sqlite3_errmsg ( db) << endl;
+    sqlite3_finalize (handle);
+    return NULL;
+  }
+  return handle;
+}
+
+static sqlite3_stmt *
 create_dependency_handle (sqlite3 *db)
 {
     const char *query;
@@ -151,25 +166,61 @@ create_message_handle (sqlite3 *db)
     sqlite3_stmt *handle = NULL;
 
     query =
-	//      0   1     2        3        4      5
-	"SELECT id, name, version, release, epoch, arch, "
-	//      6               7
-	"       installed_size, catalog,"
-	//      8          9      10
-	"       installed, local, content "
-	"FROM messages "
-	"WHERE catalog = ?";
+    //      0   1     2        3        4      5
+    "SELECT id, name, version, release, epoch, arch, "
+    //      6               7
+    "       installed_size, catalog,"
+    //      8          9      10
+    "       installed, local, content "
+    "FROM messages "
+    "WHERE catalog = ?";
 
     rc = sqlite3_prepare ( db, query, -1, &handle, NULL);
     if (rc != SQLITE_OK) {
-	ERR << "Can not prepare messages selection clause: " << sqlite3_errmsg ( db) << endl;
-	sqlite3_finalize (handle);
-	return NULL;
+      ERR << "Can not prepare messages selection clause: " << sqlite3_errmsg ( db) << endl;
+      sqlite3_finalize (handle);
+      return NULL;
     }
 
     return handle;
 }
 
+static sqlite3_stmt *
+create_patch_package_handle(sqlite3 *db)
+{
+  const char *query;
+  query =
+   //     1       2          3         4        5            6
+  "SELECT id, media_nr, location, checksum, download_size, build_time "
+  "FROM patch_packages WHERE package_id = ?";
+  
+  return create_select_handle( db, query );
+}
+
+static sqlite3_stmt *
+create_patch_package_baseversion_handle(sqlite3 *db)
+{
+  const char *query;
+  query =
+      "SELECT version, release, epoch "
+      "FROM patch_packages_baseversions WHERE patch_package_id = ?";
+  
+  return create_select_handle( db, query );
+}
+
+static sqlite3_stmt *
+create_delta_package_handle(sqlite3 *db)
+{
+  const char *query;
+  query =
+      //       1      2          3        4         5              6                      7                      8                 9                     10
+      "SELECT id, media_nr, location, checksum, download_size, baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time "
+      //    11
+      ", baseversion_sequence_info "
+      "FROM patch_packages WHERE package_id = ?";
+  
+  return create_select_handle( db, query );
+}
 
 static sqlite3_stmt *
 create_script_handle (sqlite3 *db)

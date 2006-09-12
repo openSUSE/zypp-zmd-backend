@@ -38,7 +38,27 @@
 #include "zypp/Patch.h"
 #include "zypp/Product.h"
 #include "zypp/Pattern.h"
-       
+
+class DbSourceImplPolicy
+{
+  DbSourceImplPolicy()
+    : _create_dependencies(true)
+  {}
+  
+  /**
+   * For transaction it is not needed 
+   * to create dependencies
+   */
+  bool createDependencies() const
+  { return _create_dependencies; }
+  
+  void setCreateDependenciesEnabled( bool enabled )
+  { _create_dependencies = enabled ; }
+  
+  private:
+  bool _create_dependencies;
+};
+
 ///////////////////////////////////////////////////////////////////
 //
 //	CLASS NAME : DbSourceImpl

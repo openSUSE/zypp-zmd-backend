@@ -402,9 +402,9 @@ prepare_delta_package_insert( sqlite3 *db )
 {
   string query(
       "INSERT INTO delta_packages "
-      //    1           2         3         4         5           
-      " ( package_id, media_nr, location, checksum, download_size"
-      //    6                     7                     8                     9                  10                     11
+      //    1           2         3         4         5              6
+      " ( package_id, media_nr, location, checksum, download_size, build_time"
+      //    7                     8                     9                     10                  11                    12
       "  , baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time, baseversion_sequence_info ) "
       " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   return prepare_handle( db, query );
@@ -821,19 +821,20 @@ DbAccess::writeDeltaPackage (sqlite_int64 package_id, const DeltaRpm &delta_pkg 
   std::string checksum_encoded_string = delta_pkg.location().checksum().type() + ":" + delta_pkg.location().checksum().checksum();
   sqlite3_bind_text( handle, 4, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
   sqlite3_bind_int( handle, 5, delta_pkg.location().downloadsize() );
+  sqlite3_bind_int( handle, 6, delta_pkg.location().build_time() );
   
   // base version data
-  sqlite3_bind_text( handle, 6, delta_pkg.baseversion().edition().version().c_str(), -1, SQLITE_STATIC );
-  sqlite3_bind_text( handle, 7, delta_pkg.baseversion().edition().release().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 7, delta_pkg.baseversion().edition().version().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 8, delta_pkg.baseversion().edition().release().c_str(), -1, SQLITE_STATIC );
   if (delta_pkg.baseversion().edition().epoch() == Edition::noepoch) {
-    sqlite3_bind_int( handle, 8, 0);
+    sqlite3_bind_int( handle, 9, 0);
   } else {
-    sqlite3_bind_int( handle, 8, delta_pkg.baseversion().edition().epoch() );
+    sqlite3_bind_int( handle, 9, delta_pkg.baseversion().edition().epoch() );
   }
   checksum_encoded_string = delta_pkg.baseversion().checksum().type() + ":" + delta_pkg.baseversion().checksum().checksum();
-  sqlite3_bind_text( handle, 9, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
-  sqlite3_bind_int( handle, 10, delta_pkg.baseversion().buildtime() );
-  sqlite3_bind_text( handle, 11, delta_pkg.baseversion().sequenceinfo().c_str() , -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 10, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+  sqlite3_bind_int( handle, 11, delta_pkg.baseversion().buildtime() );
+  sqlite3_bind_text( handle, 12, delta_pkg.baseversion().sequenceinfo().c_str() , -1, SQLITE_STATIC );
   
   //FIXME add build time data
   
