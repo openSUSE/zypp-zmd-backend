@@ -4,7 +4,7 @@ Wed Sep 13 13:02:25 CEST 2006 - dmacvicar@suse.de
 - clean catalog before writing it, as new zmd does not empty them
   this allows for introducing a smarter algorithm later.
 - bump 7.1.1.0_0.4
-- r4125
+- r4127
 
 -------------------------------------------------------------------
 Wed Sep 13 12:10:26 CEST 2006 - dmacvicar@suse.de
