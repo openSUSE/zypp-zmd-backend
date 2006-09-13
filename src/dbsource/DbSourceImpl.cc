@@ -60,6 +60,11 @@ DbSourceImpl::DbSourceImpl( DbSourceImplPolicy policy )
 {}
 
 
+DbSourceImpl::~DbSourceImpl()
+{
+  sqlite3_finalize( _dependency_handle);
+}
+
 void
 DbSourceImpl::factoryInit()
 {
@@ -133,7 +138,7 @@ create_dependency_handle (sqlite3 *db)
   sqlite3_stmt *handle = NULL;
 
   query =
-    //	0         1     2        3        4      5     6         7
+    //	      0         1     2        3        4      5     6         7
     "SELECT dep_type, name, version, release, epoch, arch, relation, dep_target "
     "FROM dependencies "
     "WHERE resolvable_id = ?";
@@ -210,7 +215,7 @@ create_patch_package_handle(sqlite3 *db)
 {
   const char *query;
   query =
-    //     1       2          3         4        5            6
+    //     0       1          2         3        4            5
     "SELECT id, media_nr, location, checksum, download_size, build_time "
     "FROM patch_packages WHERE package_id = ?";
 
@@ -233,9 +238,9 @@ create_delta_package_handle(sqlite3 *db)
 {
   const char *query;
   query =
-    //       1      2          3        4         5              6                      7                      8                 9                     10          11
+    //       0     1      2          3        4         5              6                      7                      8                 9                     10
     "SELECT id, media_nr, location, checksum, download_size, build_time,  baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time "
-    //    12
+    //    11
     ", baseversion_sequence_info "
     "FROM delta_packages WHERE package_id = ?";
 
@@ -457,7 +462,7 @@ DbSourceImpl::createAtoms(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Atom::Ptr atom = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( atom );
@@ -509,7 +514,7 @@ DbSourceImpl::createMessages(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Message::Ptr message = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( message );
@@ -562,7 +567,7 @@ DbSourceImpl::createScripts(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Script::Ptr script = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( script );
@@ -613,7 +618,7 @@ DbSourceImpl::createLanguages(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Language::Ptr language = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( language );
@@ -669,7 +674,7 @@ DbSourceImpl::createPackages(void)
       Arch arch( DbAccess::Rc2Arch( (RCArch)(sqlite3_column_int( handle, 5 )) ) );
 
       impl->readHandle( id, handle );
-
+      
       // delta rpms
       int delta_rc;
       // bind the master package id to the query
@@ -677,10 +682,10 @@ DbSourceImpl::createPackages(void)
       while ((delta_rc = sqlite3_step (delta_handle)) == SQLITE_ROW)
       {
         zypp::source::OnMediaLocation on_media;
-        on_media.medianr( sqlite3_column_int( delta_handle, 2 ) );
-        on_media.filename( Pathname((const char *) sqlite3_column_text( delta_handle, 3 )) );
+        on_media.medianr( sqlite3_column_int( delta_handle, 1 ) );
+        on_media.filename( Pathname((const char *) sqlite3_column_text( delta_handle, 2 )) );
         
-        string checksum_string( (const char *) sqlite3_column_text( delta_handle, 4 ) );
+        string checksum_string( (const char *) sqlite3_column_text( delta_handle, 3 ) );
         CheckSum checksum = encoded_string_to_checksum(checksum_string);
         if ( checksum.empty() )
         {
@@ -688,12 +693,12 @@ DbSourceImpl::createPackages(void)
           continue;
         }
         on_media.checksum(checksum);
-        on_media.downloadsize(sqlite3_column_int( delta_handle, 5 ));
+        on_media.downloadsize(sqlite3_column_int( delta_handle, 4 ));
         
         packagedelta::DeltaRpm::BaseVersion baseversion;
-        baseversion.edition( Edition( (const char *) sqlite3_column_text( delta_handle, 7 ) , (const char *) sqlite3_column_text( delta_handle, 8 ), sqlite3_column_int( delta_handle, 9 ) ));
+        baseversion.edition( Edition( (const char *) sqlite3_column_text( delta_handle, 6 ) , (const char *) sqlite3_column_text( delta_handle, 7 ), sqlite3_column_int( delta_handle, 8 ) ));
         
-        checksum_string = (const char *) sqlite3_column_text( delta_handle, 10 );
+        checksum_string = (const char *) sqlite3_column_text( delta_handle, 9 );
         checksum = encoded_string_to_checksum(checksum_string);
         if ( checksum.empty() )
         {
@@ -701,13 +706,13 @@ DbSourceImpl::createPackages(void)
           continue;
         }
         baseversion.checksum(checksum);
-        baseversion.buildtime( sqlite3_column_int( delta_handle, 11 ) );
-        baseversion.sequenceinfo( (const char *) sqlite3_column_text( delta_handle, 12 ) );
+        baseversion.buildtime( sqlite3_column_int( delta_handle, 10 ) );
+        baseversion.sequenceinfo( (const char *) sqlite3_column_text( delta_handle, 11 ) );
          
         zypp::packagedelta::DeltaRpm delta;
         delta.location( on_media );
         delta.baseversion( baseversion );
-        delta.buildtime( sqlite3_column_int( delta_handle, 6 ) );
+        delta.buildtime( sqlite3_column_int( delta_handle, 5 ) );
         
         impl->addDeltaRpm(delta);
       }
@@ -718,13 +723,13 @@ DbSourceImpl::createPackages(void)
       sqlite3_bind_int64(patch_handle, 1, id );
       while ((patch_rc = sqlite3_step (patch_handle)) == SQLITE_ROW)
       {
-        sqlite_int64 patch_package_id = sqlite3_column_int64( patch_handle, 1 );
+        sqlite_int64 patch_package_id = sqlite3_column_int64( patch_handle, 0 );
         
         zypp::source::OnMediaLocation on_media;
-        on_media.medianr( sqlite3_column_int( patch_handle, 2 ) );
-        on_media.filename( Pathname((const char *) sqlite3_column_text( patch_handle, 3 )) );
+        on_media.medianr( sqlite3_column_int( patch_handle, 1 ) );
+        on_media.filename( Pathname((const char *) sqlite3_column_text( patch_handle, 2 )) );
         
-        string checksum_string( (const char *) sqlite3_column_text( patch_handle, 4 ) );
+        string checksum_string( (const char *) sqlite3_column_text( patch_handle, 3 ) );
         CheckSum checksum = encoded_string_to_checksum(checksum_string);
         if ( checksum.empty() )
         {
@@ -732,29 +737,29 @@ DbSourceImpl::createPackages(void)
           continue;
         }
         on_media.checksum(checksum);
-        on_media.downloadsize(sqlite3_column_int( patch_handle, 5 ));
+        on_media.downloadsize(sqlite3_column_int( patch_handle, 4 ));
         
         zypp::packagedelta::PatchRpm patch;
         patch.location( on_media );
-        patch.buildtime( sqlite3_column_int( patch_handle, 6 ) );
+        patch.buildtime( sqlite3_column_int( patch_handle, 5 ) );
         
         int baseversion_rc;
         sqlite3_bind_int ( baseversion_handle, 1, patch_package_id );
         while (( baseversion_rc = sqlite3_step(baseversion_handle) ) == SQLITE_ROW )
         {
-          packagedelta::PatchRpm::BaseVersion baseversion = packagedelta::PatchRpm::BaseVersion( (const char *) sqlite3_column_text( baseversion_handle, 1 ) , (const char *) sqlite3_column_text( baseversion_handle, 2 ), sqlite3_column_int( baseversion_handle, 3 ) );
+          packagedelta::PatchRpm::BaseVersion baseversion = packagedelta::PatchRpm::BaseVersion( (const char *) sqlite3_column_text( baseversion_handle, 0 ) , (const char *) sqlite3_column_text( baseversion_handle, 1 ), sqlite3_column_int( baseversion_handle, 2 ) );
           patch.baseversion(baseversion);
         }
         sqlite3_reset(baseversion_handle);
          
         impl->addPatchRpm(patch);
       }
-      
+     
       // Collect basic Resolvable data
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Package::Ptr package = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( package );
@@ -810,7 +815,7 @@ DbSourceImpl::createPatches(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( patch );
@@ -862,7 +867,7 @@ DbSourceImpl::createPatterns(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Pattern::Ptr pattern = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( pattern );
@@ -914,7 +919,7 @@ DbSourceImpl::createProducts(void)
       NVRAD dataCollect( name,
                          Edition( version, release, epoch ),
                          arch,
-                         createDependenciesOnPolicy (id ) );
+                         createDependencies (id ) );
 
       Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( product );
@@ -999,9 +1004,18 @@ DbSourceImpl::createDependenciesOnPolicy(sqlite_int64 resolvable_id)
 Dependencies
 DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
 {
+  //FIXME
+  //return Dependencies();
   Dependencies deps;
   CapFactory factory;
 
+  if (  _dependency_handle == NULL )
+  {
+    ERR << "sqlite dependency statement not prepared." << endl;
+    return Dependencies();
+  }
+  
+  //MIL << "Dependencies for resolvable " << resolvable_id << endl;
   sqlite3_bind_int64 ( _dependency_handle, 1, resolvable_id);
 
   RCDependencyType dep_type;
@@ -1016,6 +1030,8 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
   int rc;
   while ((rc = sqlite3_step( _dependency_handle)) == SQLITE_ROW)
   {
+    //MIL << "2 - Dependencies for resolvable " << resolvable_id << endl;
+    
     try
     {
       dep_type = (RCDependencyType)sqlite3_column_int( _dependency_handle, 0);
@@ -1086,7 +1102,7 @@ DbSourceImpl::createDependencies (sqlite_int64 resolvable_id)
     }
   }
 
-  sqlite3_finalize ( _dependency_handle);
+  sqlite3_reset ( _dependency_handle);
   return deps;
 }
 

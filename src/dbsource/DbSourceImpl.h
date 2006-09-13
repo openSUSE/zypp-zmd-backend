@@ -74,7 +74,7 @@ class DbSourceImpl : public zypp::source::SourceImpl
 public:
   /** Default ctor */
   DbSourceImpl( DbSourceImplPolicy policy = DbSourceImplPolicy() );
-
+  ~DbSourceImpl();
 private:
   /** Ctor substitute.
    * Actually get the metadata.
