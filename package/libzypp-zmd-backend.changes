@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Sep 13 12:10:26 CEST 2006 - dmacvicar@suse.de
+
+- read patch and delta rpm information from database and add
+  the information to the resolvables. (#199434) 
+- r4123
+
+-------------------------------------------------------------------
 Mon Sep 11 19:10:55 CEST 2006 - dmacvicar@suse.de
 
 - Save delta and patch rpm informaton in zmd database
