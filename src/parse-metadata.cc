@@ -109,6 +109,8 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
     // clean up db if we fail here
     result = 1;
     
+    // FIXME add the smart algorithm here
+    db.emptyCatalog(catalog);
     db.writeStore( store, ResStatus::uninstalled, catalog.c_str(), owner );	// store all resolvables as 'uninstalled'
     result = 0;
   }
