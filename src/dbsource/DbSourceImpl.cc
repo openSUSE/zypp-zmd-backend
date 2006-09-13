@@ -649,10 +649,10 @@ DbSourceImpl::createPackages(void)
   if (delta_handle == NULL) return;
 
   sqlite3_stmt *patch_handle = create_patch_package_handle( _db );
-  if ( patch_handle = NULL ) return;
+  if ( patch_handle == NULL ) return;
   
   sqlite3_stmt *baseversion_handle = create_patch_package_baseversion_handle( _db );
-  if ( baseversion_handle = NULL ) return;
+  if ( baseversion_handle == NULL ) return;
   
   sqlite3_bind_text (handle, 1, _source.id().c_str(), -1, SQLITE_STATIC);
 

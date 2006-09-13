@@ -142,6 +142,9 @@ typedef enum {
 
 struct DBCatalogEntry
 {
+  DBCatalogEntry()
+  {}
+  
   DBCatalogEntry( const std::string & p_catalog, const std::string & p_name, const std::string & p_alias, const std::string & p_description )
       : catalog(p_catalog), name(p_name), alias(p_alias), description(p_description)
   {}

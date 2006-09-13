@@ -1257,6 +1257,8 @@ DbAccess::haveCatalog( const std::string & catalog )
 
 DBCatalogEntry DbAccess::getCatalogEntry( const std::string &catalog )
 {
+  // FIXME
+  return DBCatalogEntry();
 }
 
 /** insert catalog */
