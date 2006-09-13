@@ -4,6 +4,7 @@ Wed Sep 13 14:01:37 CEST 2006 - dmacvicar@suse.de
 - disable the automatic emptying of catalogs for query-files.
   parse-metadata and query-system still empty their catalogs.
   (#204422)
+- r4134
 
 -------------------------------------------------------------------
 Wed Aug  9 17:58:26 CEST 2006 - dmacvicar@suse.de
