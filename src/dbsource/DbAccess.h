@@ -202,8 +202,16 @@ public:
     /** empty catalog, remove all resolvables belonging to this catalog  */
     bool emptyCatalog( const char *catalog );
 
-    /** write resolvables from store to db */
-    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
+    /** write resolvables from store to db
+        resolvables: the store
+	status: indicator if the store is the 'system' catalog, so resolvables are installed
+	catalog: the catalog identifier (key for database)
+	owner: if its ZYPP type or YUM type
+	empty_catalog_before_write: true, if catalog should be emptied before write
+			this is usually needed for writes of complete stores, however when writing data for local .rpm files
+			('query-files' helper), this must not be done since the helper is called for every .rpm. (see bug #204422)
+      */
+    void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED, bool empty_catalog_before_write = true );
     /** write resolvables from pool to db */
     void writePool( const zypp::ResPool & pool, const char *catalog = NULL );
 

@@ -1120,7 +1120,7 @@ DbAccess::emptyCatalog( const char *catalog )
 // store
 
 void
-DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, Ownership owner )
+DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char *catalog, Ownership owner, bool empty_catalog_before_write )
 {
     XXX << "DbAccess::writeStore()" << endl;
 
@@ -1129,7 +1129,8 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
 	return;
     }
 
-    emptyCatalog( catalog );
+    if (empty_catalog_before_write)
+	emptyCatalog( catalog );
 
     Arch sysarch = getZYpp()->architecture();
 

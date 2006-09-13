@@ -348,7 +348,7 @@ sync_source( DbAccess & db, Source_Ref source )
 
 	DBG << "Source provides " << store.size() << " resolvables" << endl;
 
-	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str(), ZYPP_OWNED );	// store all resolvables
+	db.writeStore( store, ResStatus::uninstalled, source.alias().c_str(), ZYPP_OWNED, false );	// store all resolvables, but dont empty catalog
 #if 0
     }
 #endif
