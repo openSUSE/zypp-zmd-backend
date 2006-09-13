@@ -71,6 +71,7 @@ query_system ( ZYpp::Ptr zypp, const Pathname &rpm_prefix, const std::string &db
     return 1;
   }
 
+  db.emptyCatalog("@system");
   db.writeStore( zypp->target()->resolvables(), ResStatus::installed, "@system", ZYPP_OWNED );
   db.closeDb();
 

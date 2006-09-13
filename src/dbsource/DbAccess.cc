@@ -1454,7 +1454,7 @@ DbAccess::writeStore( const zypp::ResStore & store, ResStatus status, const char
     return;
   }
 
-  emptyCatalog( catalog );
+  //emptyCatalog( catalog );
 
   Arch sysarch = getZYpp()->architecture();
 
