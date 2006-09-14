@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 14 10:52:08 CEST 2006 - mvidner@suse.cz
+
+- Fixed a typo that made parse-metadata abort on --type=zypp (#205659).
+
+-------------------------------------------------------------------
 Wed Sep 13 13:52:53 CEST 2006 - dmacvicar@suse.de
 
 - fix empty catalog semantics

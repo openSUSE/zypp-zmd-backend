@@ -332,7 +332,7 @@ main (int argc, char **argv)
     {
       MIL << "Zypp owned" << endl;
     }
-    if (owned_by == SYSTEM)
+    else if (owned_by == SYSTEM)
     {
       MIL << "owned by system" << endl;
     }
