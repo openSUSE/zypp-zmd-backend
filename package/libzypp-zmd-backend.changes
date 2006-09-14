@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Sep 14 12:44:39 CEST 2006 - schubi@suse.de
+
+- Revision 4144 
+
+-------------------------------------------------------------------
 Thu Sep 14 10:52:08 CEST 2006 - mvidner@suse.cz
 
 - Fixed a typo that made parse-metadata abort on --type=zypp (#205659).
