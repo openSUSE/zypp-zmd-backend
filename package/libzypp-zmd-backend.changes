@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Oct  2 19:18:32 CEST 2006 - dmacvicar@suse.de
+
+- disable wrting patch and delta rpm information to the database.
+  will enable later 
+- r4218
+
+-------------------------------------------------------------------
 Thu Sep 14 12:44:39 CEST 2006 - schubi@suse.de
 
 - Revision 4144 
