@@ -777,15 +777,16 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
   sqlite3_bind_int( handle, 10, pkg->sourceMediaNr() );
 
   rc = sqlite3_step( handle);
-  sqlite3_reset( handle);
-
+  
   if (rc != SQLITE_DONE)
   {
     ERR << "Error adding package to SQL: " << sqlite3_errmsg (_db) << endl;
     return -1;
   }
   sqlite_int64 package_rowid = sqlite3_last_insert_rowid (_db);
+  sqlite3_reset( handle);
 
+#if 0
   // access package implementation to get delta and patch rpm info
   detail::ResImplTraits<Package::Impl>::constPtr pipp( detail::ImplConnect::resimpl( pkg ) );
 
@@ -806,7 +807,7 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
       writePatchPackage ( package_rowid, *it );
     }
   }
-
+#endif
   return package_rowid;
 }
 
@@ -834,7 +835,6 @@ DbAccess::writePatchPackage (sqlite_int64 package_id, const PatchRpm &patch_pkg 
   sqlite3_bind_int( handle, 6, patch_pkg.buildtime() );
 
   rc = sqlite3_step( handle);
-  sqlite3_reset( handle);
 
   if (rc != SQLITE_DONE)
   {
@@ -849,14 +849,16 @@ DbAccess::writePatchPackage (sqlite_int64 package_id, const PatchRpm &patch_pkg 
     writePatchPackageBaseversion( rowid, *it );
   }
 
+  sqlite3_reset( handle);
   return rowid;
 }
 
 sqlite_int64
 DbAccess::writePatchPackageBaseversion(sqlite_int64 patch_package_id, const PatchRpm::BaseVersion &baseversion )
 {
+  MIL << "writing " << baseversion << std::endl;
   int rc;
-  sqlite3_stmt *handle = _insert_patch_package_handle;
+  sqlite3_stmt *handle = _insert_patch_package_baseversion_handle;
 
   sqlite3_bind_int64( handle, 1, patch_package_id);
 
@@ -872,14 +874,16 @@ DbAccess::writePatchPackageBaseversion(sqlite_int64 patch_package_id, const Patc
   }
 
   rc = sqlite3_step( handle);
-  sqlite3_reset( handle);
-
+  
   if (rc != SQLITE_DONE)
   {
     ERR << "Error adding patch package baseversion to SQL: " << sqlite3_errmsg (_db) << endl;
     return -1;
   }
   sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
+  
+  sqlite3_reset( handle);
+
   return rowid;
 }
 
@@ -893,39 +897,93 @@ DbAccess::writeDeltaPackage (sqlite_int64 package_id, const DeltaRpm &delta_pkg 
   int rc;
   sqlite3_stmt *handle = _insert_delta_package_handle;
 
-  sqlite3_bind_int64( handle, 1, package_id);
+  //  "INSERT INTO delta_packages "
+    //    1           2         3         4         5              6
+  //  " ( package_id, media_nr, location, checksum, download_size, build_time"
+    //    7                     8                     9                     10                  11                    12
+  //  "  , baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time, baseversion_sequence_info ) "
+  //  " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+  
+  MIL << "Delta: " << std::endl;
+  MIL << package_id << " " << delta_pkg.location().medianr() << " " << delta_pkg.location().filename().asString() << std::endl;
+  
+  try {
+    rc = sqlite3_bind_int64( handle, 1, package_id);
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    // on media location data
+    rc = sqlite3_bind_int( handle, 2, delta_pkg.location().medianr() );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    rc = sqlite3_bind_text( handle, 3, delta_pkg.location().filename().asString().c_str(), -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    std::string checksum_encoded_string = delta_pkg.location().checksum().type() + ":" + delta_pkg.location().checksum().checksum();
+    
+    // this segfaults
+    rc = sqlite3_bind_text( handle, 4, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    rc = sqlite3_bind_int( handle, 5, (int)  delta_pkg.location().downloadsize() );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    // delta rpm own data
+    rc = sqlite3_bind_int( handle, 6, (int) delta_pkg.buildtime() );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+  
+    // base version data
+    rc = sqlite3_bind_text( handle, 7, delta_pkg.baseversion().edition().version().c_str(), -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    rc = sqlite3_bind_text( handle, 8, delta_pkg.baseversion().edition().release().c_str(), -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    if (delta_pkg.baseversion().edition().epoch() == Edition::noepoch)
+    {
+      rc = sqlite3_bind_int( handle, 9, 0);
+      if ( rc != SQLITE_OK )
+        ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    }
+    else
+    {
+      rc = sqlite3_bind_int( handle, 9, (int)  delta_pkg.baseversion().edition().epoch() );
+      if ( rc != SQLITE_OK )
+        ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    }
+    checksum_encoded_string = delta_pkg.baseversion().checksum().type() + ":" + delta_pkg.baseversion().checksum().checksum();
+    rc = sqlite3_bind_text( handle, 10, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    rc = sqlite3_bind_int( handle, 11, (int)  delta_pkg.baseversion().buildtime() );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
+    
+    rc = sqlite3_bind_text( handle, 12, delta_pkg.baseversion().sequenceinfo().c_str() , -1, SQLITE_STATIC );
+    if ( rc != SQLITE_OK )
+      ZYPP_THROW(Exception(sqlite3_errmsg(_db)));
 
-  // on media location data
-  sqlite3_bind_int( handle, 2, delta_pkg.location().medianr() );
-  sqlite3_bind_text( handle, 3, delta_pkg.location().filename().asString().c_str(), -1, SQLITE_STATIC );
-  std::string checksum_encoded_string = delta_pkg.location().checksum().type() + ":" + delta_pkg.location().checksum().checksum();
-  sqlite3_bind_text( handle, 4, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
-  sqlite3_bind_int( handle, 5, delta_pkg.location().downloadsize() );
-
-  // delta rpm own data
-  sqlite3_bind_int( handle, 6, delta_pkg.buildtime() );
-
-  // base version data
-  sqlite3_bind_text( handle, 7, delta_pkg.baseversion().edition().version().c_str(), -1, SQLITE_STATIC );
-  sqlite3_bind_text( handle, 8, delta_pkg.baseversion().edition().release().c_str(), -1, SQLITE_STATIC );
-  if (delta_pkg.baseversion().edition().epoch() == Edition::noepoch)
-  {
-    sqlite3_bind_int( handle, 9, 0);
   }
-  else
+  catch ( const Exception &e )
   {
-    sqlite3_bind_int( handle, 9, delta_pkg.baseversion().edition().epoch() );
+    ERR << "Error adding delta package to SQL: " << e.msg() << endl;
+    return -1;
   }
-  checksum_encoded_string = delta_pkg.baseversion().checksum().type() + ":" + delta_pkg.baseversion().checksum().checksum();
-  sqlite3_bind_text( handle, 10, checksum_encoded_string.c_str() , -1, SQLITE_STATIC );
-  sqlite3_bind_int( handle, 11, delta_pkg.baseversion().buildtime() );
-  sqlite3_bind_text( handle, 12, delta_pkg.baseversion().sequenceinfo().c_str() , -1, SQLITE_STATIC );
-
+   
+  
   //FIXME add build time data
 
 
   rc = sqlite3_step( handle);
-  sqlite3_reset( handle);
 
   if (rc != SQLITE_DONE)
   {
@@ -933,7 +991,7 @@ DbAccess::writeDeltaPackage (sqlite_int64 package_id, const DeltaRpm &delta_pkg 
     return -1;
   }
   sqlite_int64 rowid = sqlite3_last_insert_rowid (_db);
-
+  sqlite3_reset( handle);
   return rowid;
 }
 
