@@ -944,8 +944,8 @@ DbAccess::writeDeltaPackage (sqlite_int64 package_id, const DeltaRpm &delta_pkg 
   //  "  , baseversion_version, baseversion_release, baseversion_epoch, baseversion_checksum, baseversion_build_time, baseversion_sequence_info ) "
   //  " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
   
-  MIL << "Delta: " << std::endl;
-  MIL << package_id << " " << delta_pkg.location().medianr() << " " << delta_pkg.location().filename().asString() << std::endl;
+  //MIL << "Delta: " << std::endl;
+  //MIL << package_id << " " << delta_pkg.location().medianr() << " " << delta_pkg.location().filename().asString() << std::endl;
   
   try {
     rc = sqlite3_bind_int64( handle, 1, package_id);
