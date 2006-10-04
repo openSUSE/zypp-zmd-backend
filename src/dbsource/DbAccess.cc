@@ -831,7 +831,7 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
   std::list<DeltaRpm> deltas = pipp->deltaRpms();
   if ( ! deltas.empty() )
   {
-    DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << deltas.size() << " delta rpms" << std::endl;
+    //DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << deltas.size() << " delta rpms" << std::endl;
     for ( std::list<DeltaRpm>::const_iterator it = deltas.begin(); it != deltas.end(); ++it )
     {
       writeDeltaPackage ( package_rowid, *it );
@@ -842,7 +842,7 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
   std::list<PatchRpm> patches = pipp->patchRpms();
   if ( ! patches.empty() )
   {
-    DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << patches.size() << " patch rpms" << std::endl;
+    //DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << patches.size() << " patch rpms" << std::endl;
     for ( std::list<PatchRpm>::const_iterator it = patches.begin(); it != patches.end(); ++it )
     {
       writePatchPackage ( package_rowid, *it );
