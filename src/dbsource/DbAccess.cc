@@ -269,6 +269,7 @@ DbAccess::DbAccess( const std::string & dbfile_r )
     , _insert_pattern_handle( NULL )
     , _insert_product_handle( NULL )
     , _insert_dep_handle( NULL )
+    , _update_catalog_checksum_handle( NULL )
 {
   MIL << "DbAccess::DbAccess(" << dbfile_r << ")" << endl;
 }
@@ -467,6 +468,15 @@ prepare_dep_insert (sqlite3 *db)
   return prepare_handle( db, query );
 }
 
+static sqlite3_stmt *
+prepare_catalog_checksum_update(sqlite3 *db)
+{
+  string query (
+    "UPDATE catalogs "
+    "SET checksum =?, timestamp =? WHERE id=?");
+  return prepare_handle( db, query );
+}
+    
 bool
 DbAccess::prepareWrite(void)
 {
@@ -547,6 +557,12 @@ DbAccess::prepareWrite(void)
     goto cleanup;
   }
 
+  _update_catalog_checksum_handle = prepare_catalog_checksum_update(_db);
+  if ( _update_catalog_checksum_handle == NULL )
+  {
+    goto cleanup;
+  }
+  
   result = true;
 
 cleanup:
@@ -641,6 +657,27 @@ DbAccess::commit(void)
 {
   if (_db)
     sqlite3_exec (_db, "COMMIT", NULL, NULL, NULL);
+}
+
+
+void
+DbAccess::updateCatalogChecksum( const std::string &catalog, const std::string &checksum, const zypp::Date &timestamp )
+{
+  int rc;
+  sqlite3_stmt *handle = _update_catalog_checksum_handle;
+  
+  rc = sqlite3_bind_text( handle, 1, checksum.c_str(), -1, SQLITE_STATIC );	// checksum
+  rc = sqlite3_bind_int( handle, 2, timestamp);						// type (provides, requires, ...)
+  rc = sqlite3_bind_text( handle, 3, catalog.c_str(), -1, SQLITE_STATIC );	// id
+  
+  rc = sqlite3_step( handle);
+  sqlite3_reset( handle);
+
+  if (rc != SQLITE_DONE)
+  {
+    ERR << "Error updating catalog checksum and timestamp: " << sqlite3_errmsg (_db) << endl;
+  }
+  return;
 }
 
 //----------------------------------------------------------------------------
@@ -786,28 +823,31 @@ DbAccess::writePackage( sqlite_int64 id, Package::constPtr pkg, Ownership owner 
   sqlite_int64 package_rowid = sqlite3_last_insert_rowid (_db);
   sqlite3_reset( handle);
 
-#if 0
+
   // access package implementation to get delta and patch rpm info
   detail::ResImplTraits<Package::Impl>::constPtr pipp( detail::ImplConnect::resimpl( pkg ) );
 
-  // save patch rpms
-  if ( ! pipp->deltaRpms().empty() )
+  // save delta rpms
+  std::list<DeltaRpm> deltas = pipp->deltaRpms();
+  if ( ! deltas.empty() )
   {
-    for ( std::list<DeltaRpm>::const_iterator it = pipp->deltaRpms().begin(); it != pipp->deltaRpms().end(); ++it )
+    DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << deltas.size() << " delta rpms" << std::endl;
+    for ( std::list<DeltaRpm>::const_iterator it = deltas.begin(); it != deltas.end(); ++it )
     {
       writeDeltaPackage ( package_rowid, *it );
     }
   }
-
-  // save delta rpms
-  if ( ! pipp->patchRpms().empty() )
+  
+  // save patch rpms
+  std::list<PatchRpm> patches = pipp->patchRpms();
+  if ( ! patches.empty() )
   {
-    for ( std::list<PatchRpm>::const_iterator it = pipp->patchRpms().begin(); it != pipp->patchRpms().end(); ++it )
+    DBG << "Package " << pkg->name() << " " << pkg->edition() << " contains " << patches.size() << " patch rpms" << std::endl;
+    for ( std::list<PatchRpm>::const_iterator it = patches.begin(); it != patches.end(); ++it )
     {
       writePatchPackage ( package_rowid, *it );
     }
   }
-#endif
   return package_rowid;
 }
 
@@ -856,7 +896,7 @@ DbAccess::writePatchPackage (sqlite_int64 package_id, const PatchRpm &patch_pkg 
 sqlite_int64
 DbAccess::writePatchPackageBaseversion(sqlite_int64 patch_package_id, const PatchRpm::BaseVersion &baseversion )
 {
-  MIL << "writing " << baseversion << std::endl;
+  //MIL << "writing " << baseversion << std::endl;
   int rc;
   sqlite3_stmt *handle = _insert_patch_package_baseversion_handle;
 
@@ -1496,7 +1536,6 @@ DbAccess::emptyCatalog( const std::string &catalog )
 
   return (rc == SQLITE_DONE);
 }
-
 
 //----------------------------------------------------------------------------
 // store

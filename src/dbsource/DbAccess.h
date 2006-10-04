@@ -185,6 +185,8 @@ private:
   sqlite3_stmt *_insert_product_handle;
   sqlite3_stmt *_insert_dep_handle;
 
+  sqlite3_stmt *_update_catalog_checksum_handle;
+  
   void commit();
 
   sqlite_int64 writeResObject( zypp::ResObject::constPtr obj, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
@@ -202,7 +204,6 @@ private:
 
   void writeDependencies( sqlite_int64 id, zypp::Resolvable::constPtr res);
   void writeDependency( sqlite_int64 pkg_id, RCDependencyType type, const zypp::CapSet & capabilities);
-
   bool prepareWrite( void );
 
 public:
@@ -241,7 +242,8 @@ public:
   void writeStore( const zypp::ResStore & resolvables, zypp::ResStatus status, const char *catalog = NULL, Ownership owner = ZYPP_OWNED );
   /** write resolvables from pool to db */
   void writePool( const zypp::ResPool & pool, const char *catalog = NULL );
-
+  void updateCatalogChecksum( const std::string &catalog, const std::string &checksum, const zypp::Date &timestamp );
+  
 private:
   friend std::ostream & operator<<( std::ostream & str, const DbAccess & obj );
   /** Stream output. */
