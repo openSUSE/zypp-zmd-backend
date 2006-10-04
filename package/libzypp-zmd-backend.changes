@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Oct  4 18:07:37 CEST 2006 - dmacvicar@suse.de
+
+- reenable patch and delta rpms metadata writing
+- update catalog checksums
+- r4222 
+
+-------------------------------------------------------------------
 Mon Oct  2 19:18:32 CEST 2006 - dmacvicar@suse.de
 
 - disable wrting patch and delta rpm information to the database.
