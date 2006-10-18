@@ -88,6 +88,22 @@ query_pool( ZYpp::Ptr Z, const string & filter, const string & catalog)
       exit( 1 );
     }
   }
+    
+  // add resolvables from the system
+  if ( filter != FILTER_ALL )
+  {
+    ResStore items;
+    for (ResStore::resfilter_const_iterator it = Z->target()->byKindBegin(kind); it != Z->target()->byKindEnd(kind); ++it)
+    {
+      items.insert(*it);
+    }
+    Z->addResolvables( items, true );
+  }
+  else
+  {
+    // no filter, just add themm all
+    Z->addResolvables( Z->target()->resolvables(), true );
+  }
 
   // add all non-installed (cached sources) resolvables to the pool
   // remark: If only the systems resolvables should be shown (catalog == "@system")
@@ -155,7 +171,7 @@ main (int argc, char **argv)
   KeyRingCallbacks keyring_callbacks;
   DigestCallbacks digest_callbacks;
 
-  Target_Ptr target = backend::initTarget( Z, false );
+  Target_Ptr target = backend::initTarget( Z, "/" );
 
   query_pool( Z, filter, catalog );
 
