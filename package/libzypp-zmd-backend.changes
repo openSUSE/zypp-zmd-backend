@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Oct 18 12:10:47 CEST 2006 - dmacvicar@suse.de
+
+- query-pool products @system does not show installed
+  products. (target is not autoloaded in zypp 2.4)
+  (#213261)
+- r4324 
+
+-------------------------------------------------------------------
 Wed Oct  4 18:11:37 CEST 2006 - dmacvicar@suse.de
 
 - less debug
