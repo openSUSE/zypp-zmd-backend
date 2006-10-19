@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Oct 19 12:31:08 CEST 2006 - dmacvicar@suse.de
+
+- rpath for gettext. Patch by Andreas Schwab 
+
+-------------------------------------------------------------------
 Wed Oct 18 12:10:47 CEST 2006 - dmacvicar@suse.de
 
 - query-pool products @system does not show installed
