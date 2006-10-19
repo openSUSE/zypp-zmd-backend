@@ -50,9 +50,6 @@ sed -i '/devel\//d' configure.ac
 cp /usr/share/gettext/config.rpath .
 autoreconf --force --install --symlink --verbose
 
-mv configure.ac x
-grep -v devel/ x > configure.ac
-autoreconf --force --install --symlink --verbose
 %{?suse_update_config:%{suse_update_config -f}}
 ./configure --prefix=%{prefix} --libdir=%{_libdir} --mandir=%{_mandir} --disable-static
 make %{?jobs:-j %jobs}
