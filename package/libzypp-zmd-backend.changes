@@ -1,7 +1,7 @@
 -------------------------------------------------------------------
-Thu Oct 19 12:31:08 CEST 2006 - dmacvicar@suse.de
+Thu Oct 19 12:31:08 CEST 2006 - schwab@suse.de
 
-- rpath for gettext. Patch by Andreas Schwab 
+- Make sure config.rpath is present.
 
 -------------------------------------------------------------------
 Wed Oct 18 12:10:47 CEST 2006 - dmacvicar@suse.de
