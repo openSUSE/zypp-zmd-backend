@@ -35,7 +35,6 @@ DbPatchImpl::DbPatchImpl (Source_Ref source_r)
     : _source (source_r)
     , _reboot_needed( false )
     , _affects_pkg_manager( false )
-    , _interactive( false )
 {}
 
 /**
@@ -50,7 +49,7 @@ DbPatchImpl::DbPatchImpl (Source_Ref source_r)
 	"       installed, local, patch_id, status,"
 	//      12             13        14
 	"       creation_time, category, reboot,"
-	//      15       16
+	//      15       16 (removed)
 	"       restart, interactive"
  */
 
@@ -75,7 +74,6 @@ DbPatchImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
 
   _reboot_needed = (sqlite3_column_int( handle, 14 ) != 0);
   _affects_pkg_manager = (sqlite3_column_int( handle, 15 ) != 0);
-  _interactive = (sqlite3_column_int( handle, 16 ) != 0);
 
   return;
 }
@@ -121,11 +119,6 @@ bool DbPatchImpl::reboot_needed() const
 bool DbPatchImpl::affects_pkg_manager() const
 {
   return _affects_pkg_manager;
-}
-/** Is the patch installation interactive? (does it need user input?) */
-bool DbPatchImpl::interactive() const
-{
-  return _interactive;
 }
 
 /////////////////////////////////////////////////////////////////

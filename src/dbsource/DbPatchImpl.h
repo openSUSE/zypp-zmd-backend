@@ -52,29 +52,11 @@ public:
   virtual bool affects_pkg_manager() const;
   /** */
   virtual ByteCount size() const;
-
-  /** Is the patch installation interactive? (does it need user input?) */
-  virtual bool interactive() const;
-
+  
   /** The list of all atoms building the patch */
   virtual AtomList all_atoms() const
   {
     return AtomList();
-  }
-  /** The list of those atoms which have not been installed */
-  virtual AtomList not_installed_atoms() const
-  {
-    return AtomList();
-  }
-
-// TODO check necessarity of functions below
-  virtual void mark_atoms_to_freshen(bool freshen)
-  {
-    return;
-  }
-  virtual bool any_atom_selected() const
-  {
-    return false;
   }
 
 protected:
@@ -85,7 +67,6 @@ protected:
   std::string _category;
   bool _reboot_needed;
   bool _affects_pkg_manager;
-  bool _interactive;
   ByteCount _size_installed;
   ByteCount _size_archive;
 

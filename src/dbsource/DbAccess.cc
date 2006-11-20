@@ -382,10 +382,10 @@ prepare_patch_insert (sqlite3 *db)
     //			    3
     "                           creation_time,"
     //			    4       5        6
-    "                           reboot, restart, interactive,"
+    "                           reboot, restart,"
     //			    7        8
     "                           summary, description) "
-    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+    "VALUES (?, ?, ?, ?, ?, ?, ?)"
     "");
 
   return prepare_handle( db, query );
@@ -1129,9 +1129,8 @@ DbAccess::writePatch (sqlite_int64 id, Patch::constPtr patch )
   sqlite3_bind_int64( handle, 3, patch->timestamp() );
   sqlite3_bind_int( handle, 4, patch->reboot_needed() ? 1 : 0 );
   sqlite3_bind_int( handle, 5, patch->affects_pkg_manager() ? 1 : 0 );
-  sqlite3_bind_int( handle, 6, patch->interactive() ? 1 : 0 );
-  sqlite3_bind_text( handle, 7, patch->summary().c_str(), -1, SQLITE_STATIC );
-  sqlite3_bind_text( handle, 8, desc2str(patch->description()).c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 6, patch->summary().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 7, desc2str(patch->description()).c_str(), -1, SQLITE_STATIC );
 
   rc = sqlite3_step( handle);
   sqlite3_reset( handle);
