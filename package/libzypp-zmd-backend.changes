@@ -1,4 +1,17 @@
 -------------------------------------------------------------------
+Mon Nov 20 11:58:10 CET 2006 - dmacvicar@suse.de
+
+- Patch 'interactive' is not a fix property but a calculated value.
+  It should not be serialized and not stored in the sqlite db.
+  PatchImplIf will provide an imoplementation, so there should
+  be no more need to overload it in derived classes.
+- removed Patch:: methods not longer in zypp
+  not_installed_atoms
+  mark_atoms_to_freshen
+  any_atom_selected
+- r4623 
+
+-------------------------------------------------------------------
 Thu Oct 19 12:31:08 CEST 2006 - schwab@suse.de
 
 - Make sure config.rpath is present.
