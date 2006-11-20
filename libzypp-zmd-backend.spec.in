@@ -25,9 +25,9 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildRequires:  dejagnu gcc-c++ sqlite-devel
 
 # API Changes in zypp 2.1
-BuildRequires: libzypp-devel >= 2.1.0
-BuildRequires: libzypp >= 2.1.0
-Requires: libzypp >= 2.1.0
+BuildRequires: libzypp-devel >= 2.8.1
+BuildRequires: libzypp >= 2.8.1
+Requires: libzypp >= 2.8.1
 
 Source:         zmd-backend-%{version}.tar.bz2
 Prefix:         /usr
