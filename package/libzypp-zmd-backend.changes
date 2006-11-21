@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 21 22:34:08 CET 2006 - dmacvicar@suse.de
+
+- use sqlite-zmd instead of sqlite3
+- r4653 
+
+-------------------------------------------------------------------
 Mon Nov 20 11:58:10 CET 2006 - dmacvicar@suse.de
 
 - Patch 'interactive' is not a fix property but a calculated value.
