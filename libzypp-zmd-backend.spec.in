@@ -22,7 +22,7 @@ Provides:       zmd-librc-backend
 Obsoletes:      zmd-librc-backend
 Autoreqprov:    on
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-BuildRequires:  dejagnu gcc-c++ sqlite-devel
+BuildRequires:  dejagnu gcc-c++ sqlite-zmd sqlite-zmd-devel
 
 # API Changes in zypp 2.1
 BuildRequires: libzypp-devel >= 2.8.1
