@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Sat Nov 25 12:23:34 CET 2006 - kkaempf@suse.de
+
+- adapt requestMedia callback (#223726)
+- pass RPM_OPT_FLAGS to configure (#223730)
+- r4675
+
+-------------------------------------------------------------------
 Tue Nov 21 22:34:08 CET 2006 - dmacvicar@suse.de
 
 - use sqlite-zmd instead of sqlite3
