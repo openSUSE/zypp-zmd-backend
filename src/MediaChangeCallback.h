@@ -43,7 +43,7 @@ namespace ZyppRecipients {
 	{
 	}
 
-	virtual Action requestMedia( zypp::Source_Ref source, unsigned mediumNr, zypp::media::MediaChangeReport::Error error, std::string description )
+	virtual Action requestMedia( zypp::Source_Ref source, unsigned mediumNr, zypp::media::MediaChangeReport::Error error, const std::string & description )
 	{
 	    _media_nr = mediumNr;
 	    _description = description;
