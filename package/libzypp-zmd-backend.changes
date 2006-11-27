@@ -3,7 +3,7 @@ Mon Nov 27 17:52:29 CET 2006 - dmacvicar@suse.de
 
 - replace spaces for underscores in product name at reading
 - require libzypp 2.8.7
-- r4690 
+- r4692
 
 -------------------------------------------------------------------
 Sat Nov 25 12:23:34 CET 2006 - kkaempf@suse.de
