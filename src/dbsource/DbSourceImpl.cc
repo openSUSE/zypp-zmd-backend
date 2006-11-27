@@ -908,6 +908,10 @@ DbSourceImpl::createProducts(void)
 
       sqlite_int64 id = sqlite3_column_int64( handle, 0 );
       name = (const char *) sqlite3_column_text( handle, 1 );
+      
+      // replace spaces to underscore in name
+      std::replace(name.begin(), name.end(), ' ', '_');
+      
       string version ((const char *) sqlite3_column_text( handle, 2 ));
       string release ((const char *) sqlite3_column_text( handle, 3 ));
       unsigned epoch = sqlite3_column_int( handle, 4 );
