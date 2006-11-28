@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Nov 28 22:35:10 CET 2006 - kkaempf@suse.de
+
+- honor licenseToConfirm in patch (#224192)
+- r4701
+
+-------------------------------------------------------------------
 Mon Nov 27 17:52:29 CET 2006 - dmacvicar@suse.de
 
 - replace spaces for underscores in product name at reading
