@@ -14,6 +14,7 @@
 #include <zypp/base/Exception.h>
 #include <zypp/base/Algorithm.h>
 
+#include <zypp/CapFactory.h>
 #include <zypp/ResPool.h>
 #include <zypp/ResFilters.h>
 #include <zypp/CapFilters.h>
@@ -32,10 +33,27 @@ using namespace zypp;
 #include "dbsource/DbSources.h"
 
 typedef enum {
-    PACKAGE_OP_REMOVE  = 0,
-    PACKAGE_OP_INSTALL = 1,
-    PACKAGE_OP_UPGRADE = 2		// unused
+   /**
+    * This operations means removing a resolvable
+    * (Installed)
+    */
+     PACKAGE_OP_REMOVE  = 0,
+    /**
+     * This operations means intalling a resolvable
+     * by specific version or the lastest available
+     */
+     PACKAGE_OP_INSTALL = 1,
+    /**
+     * Currently unused
+     */
+    PACKAGE_OP_UPGRADE = 2,
+    /**
+     * This operations means intalling a resolvable
+     * by specifiying a provides.
+     */
+    PACKAGE_OP_INSTALL_BEST = 3
 } PackageOpType;
+
 
 using namespace std;
 using namespace zypp;
@@ -45,6 +63,18 @@ using solver::detail::ResolverContext_Ptr;
 typedef std::set<PoolItem> PoolItemSet;
 
 //-----------------------------------------------------------------------------
+
+void pool_install_best( const Resolvable::Kind &kind, const std::string &name )
+{
+  // as documented in ResPool::setAdditionalFoo
+  CapSet capset;
+  capset.insert (CapFactory().parse( kind, name));
+  // The user is setting this capablility
+  ResPool::AdditionalCapSet aCapSet;
+  aCapSet[ResStatus::USER] = capset;
+  getZYpp()->pool().setAdditionalRequire( aCapSet );
+  //item.status().setToBeInstalled( ResStatus::USER );
+}
 
 struct CopyTransaction
 {
@@ -71,6 +101,9 @@ struct CopyTransaction
 		case PACKAGE_OP_UPGRADE:
 		    item.status().setToBeInstalled( ResStatus::USER );
 		    break;
+    case PACKAGE_OP_INSTALL_BEST:
+        pool_install_best( item.resolvable()->kind(), item.resolvable()->name() );
+		    break;
 		default:
 		    ERR << "Ignoring unknown action " << _action << endl;
 		    break;
@@ -81,8 +114,6 @@ struct CopyTransaction
 	return true;		// continue looking
     }
 };
-
-
 
 //
 // read all transactions from the transactions table and
