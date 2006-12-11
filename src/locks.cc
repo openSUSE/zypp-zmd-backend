@@ -22,6 +22,7 @@ lockItem ( const CapAndItem &cai_r )
   MIL << "Locking " << cai_r.item << "(matched by " << cai_r.cap << ")" << endl;
   PoolItem_Ref item(cai_r.item);
   item.status().setLock( true, ResStatus::USER);
+  return true;
 }
 
 int
