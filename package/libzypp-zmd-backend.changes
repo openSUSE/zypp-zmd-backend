@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Dec 11 11:42:31 CET 2006 - dmacvicar@suse.de
+
+- automatically select sqlite-zmd or sqlite (to compile in
+  10.2 and SLES10 sp1)
+- r4778 
+
+-------------------------------------------------------------------
 Mon Nov 27 17:52:29 CET 2006 - dmacvicar@suse.de
 
 - replace spaces for underscores in product name at reading
