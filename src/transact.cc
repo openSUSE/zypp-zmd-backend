@@ -182,6 +182,9 @@ main (int argc, char **argv)
     if (dry_run) policy.dryRun( true );
     if (nosignature) policy.rpmNoSignature( true );
 
+    // we dont need to reload rpm database after commit
+    myPolicy.syncPoolAfterCommit( false );
+    
     ZYppCommitResult zres = God->commit( policy );
 
     // removals aren't counted in zres._result, only installs are
