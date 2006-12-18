@@ -183,7 +183,7 @@ main (int argc, char **argv)
     if (nosignature) policy.rpmNoSignature( true );
 
     // we dont need to reload rpm database after commit
-    myPolicy.syncPoolAfterCommit( false );
+    policy.syncPoolAfterCommit( false );
     
     ZYppCommitResult zres = God->commit( policy );
 

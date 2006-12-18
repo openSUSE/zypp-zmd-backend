@@ -7,6 +7,7 @@
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>
+#include <zypp/VendorAttr.h>
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
 
@@ -22,6 +23,7 @@ using namespace zypp;
 #include "KeyRingCallbacks.h"
 
 #include "transactions.h"
+#include "locks.h"
 #include <zypp/solver/detail/ResolverInfo.h>
 
 using solver::detail::ResolverInfo_Ptr;
@@ -76,6 +78,10 @@ main (int argc, char **argv)
     if (!db.openDb(false))
 	return 1;
 
+    // we honor zmd locks, so disable autoprotecton of 
+    // foreign vendors
+    zypp::VendorAttr::disableAutoProtect();
+    
     ZYpp::Ptr God = backend::getZYpp( true );
     KeyRingCallbacks keyring_callbacks;
     DigestCallbacks digest_callbacks;
@@ -93,13 +99,16 @@ main (int argc, char **argv)
 	MIL << "Catalog " << it->id() << " contributing " << store.size() << " resolvables" << endl;
 	God->addResolvables( store, (it->id() == "@system") );
     }
-
+ 
 // update-status is supposed to do this
 // but resolvables dont have a status yet
     God->resolver()->establishPool();
 
     // now the pool is complete, add transactions
-
+    
+   // read locks first
+   int result = read_locks (God->pool(), db.db());
+    
     int removals = 0;	// unused here
     IdItemMap transacted_items;	// unused here
 
