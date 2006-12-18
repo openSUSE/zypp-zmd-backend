@@ -1,9 +1,11 @@
 -------------------------------------------------------------------
-Tue Dec 12 18:47:46 CET 2006 - dmacvicar@suse.de
+Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
 
-- don't take 30 seconds to re-read the rpm database if 
+- fate #301735: package locking supporting full wildcards
+  only catalogs and importance missing.
+- don't take 30 seconds to re-read the rpm database if
   the helper will just exit after commit. (#228186)
-- r4779
+- r4806 
 
 -------------------------------------------------------------------
 Mon Dec 11 11:42:31 CET 2006 - dmacvicar@suse.de
