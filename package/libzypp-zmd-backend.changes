@@ -5,7 +5,8 @@ Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
   only catalogs and importance missing.
 - don't take 30 seconds to re-read the rpm database if
   the helper will just exit after commit. (#228186)
-- r4806 
+- version 7.1.1.0_0.6
+- r4808 
 
 -------------------------------------------------------------------
 Mon Dec 11 11:42:31 CET 2006 - dmacvicar@suse.de
