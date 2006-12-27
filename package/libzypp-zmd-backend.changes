@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Wed Dec 27 17:05:29 CET 2006 - dmacvicar@suse.de
+
+- restore locks everywhere we use the solver. required for
+  fate #301735
+- warn if a patch has empty do_script
+- r4824 
+
+-------------------------------------------------------------------
 Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
 
 - fate #301735: package locking supporting full wildcards
