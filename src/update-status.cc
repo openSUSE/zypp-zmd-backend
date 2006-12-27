@@ -10,6 +10,7 @@
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>
+#include <zypp/VendorAttr.h>
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
 
@@ -22,6 +23,8 @@
 #include "KeyRingCallbacks.h"
 
 #include <zypp/solver/detail/ResolverInfo.h>
+
+#include "locks.h"
 
 using namespace std;
 using namespace zypp;
@@ -162,8 +165,11 @@ main (int argc, char **argv)
   if (!db.openDb(false))
     return 1;
 
+  // we honor zmd locks, so disable autoprotecton of 
+  // foreign vendors
+  zypp::VendorAttr::disableAutoProtect();  
+  
   // start ZYPP
-
   ZYpp::Ptr God = backend::getZYpp( true );
   KeyRingCallbacks keyring_callbacks;
   DigestCallbacks digest_callbacks;
@@ -183,6 +189,9 @@ main (int argc, char **argv)
     God->addResolvables( store, (it->id() == "@system") );
   }
 
+  // read locks first
+  int result = read_locks (God->pool(), db.db());  
+  
   bool success = God->resolver()->establishPool();
 
   MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
