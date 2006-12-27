@@ -561,6 +561,9 @@ DbSourceImpl::createScripts(void)
       string do_script( (const char *)sqlite3_column_text( handle, 10 ) );
       string undo_script( (const char *)sqlite3_column_text( handle, 11 ) );
 
+      if ( do_script.empty() )
+        WAR << "Script with empty do_script ????" << endl;
+      
       detail::ResImplTraits<DbScriptImpl>::Ptr impl( new DbScriptImpl( _source, do_script, undo_script, id ) );
 
       // Collect basic Resolvable data
