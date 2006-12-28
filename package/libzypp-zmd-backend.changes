@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Dec 28 12:36:43 CET 2006 - dmacvicar@suse.de
+
+- Fix a typo that made scripts being ignored after being
+  retrieved from the database.
+- r4826 
+
+-------------------------------------------------------------------
 Wed Dec 27 17:05:29 CET 2006 - dmacvicar@suse.de
 
 - restore locks everywhere we use the solver. required for
