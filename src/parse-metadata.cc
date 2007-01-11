@@ -37,6 +37,7 @@
 #include <zypp/Source.h>
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
+#include <zypp/base/Sysconfig.h>
 
 using namespace std;
 using namespace zypp;
@@ -52,6 +53,9 @@ using namespace zypp;
 #include "dbsource/utils.h"
 #include "dbsource/DbAccess.h"
 #include "KeyRingCallbacks.h"
+
+#define SWMAN_PATH "/etc/sysconfig/sw_management"
+#define SWMAN_ZMD2ZYPP_TAG "SYNC_ZMD_TO_ZYPP"
 
 //----------------------------------------------------------------------------
 static SourceManager_Ptr manager;
@@ -261,11 +265,19 @@ parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string 
     if (result != 0)
       goto finish;
 
-    // See bug #168739 
+    // See bug #168739
 
-    if (owner == ZMD_OWNED)
+    bool sync_all_sources = false;
+    map<string,string> data = zypp::base::sysconfig::read( SWMAN_PATH );
+    map<string,string>::const_iterator it = data.find( SWMAN_ZMD2ZYPP_TAG );
+    if (it != data.end())
+      sync_all_sources = (it->second == "always");
+
+    if (!sync_all_sources && owner == ZMD_OWNED)
     {
-      MIL << "Owner is ZMD, *not* adding to zypp" << endl;
+      MIL << "*not* adding to zypp - SYNC_ZMD_TO_ZYPP in"
+       " /etc/sysconfig/sw_management is not set to 'always' "
+       " and owner is ZMD" << endl;
       goto finish;
     }
 
