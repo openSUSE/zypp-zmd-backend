@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Jan 22 13:22:09 CET 2007 - kkaempf@suse.de
+
+- fix locks (#236686)
+  resolve-dependencies: pass functor reference to iterators
+  transactions: honor and report locks when reading transactions
+- r4886
+
+-------------------------------------------------------------------
 Thu Jan 11 14:11:21 CET 2007 - jkupec@suse.cz
 
 - adding source also to zypp if  SYNC_ZMD_TO_ZYPP="always"
