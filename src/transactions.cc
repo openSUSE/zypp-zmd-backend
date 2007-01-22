@@ -167,8 +167,10 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 	invokeOnEach( pool.byNameBegin( obj->name() ),
 		      pool.byNameEnd( obj->name() ),
 		      functor::functorRef<bool,PoolItem> (info) );
-	if (info.affected)
+	if (info.affected) {
 	    items[id] = info.affected;
+	    DBG << "#" << id << ": " << info.affected << endl;
+	}
 	else
 	    ERR << "Item matching id " << id << " not found" << endl;
 
