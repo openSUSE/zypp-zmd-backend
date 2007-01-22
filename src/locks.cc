@@ -24,13 +24,14 @@ using namespace zypp;
 
 struct NameMatchCollectorFunc
 {
+  set<string> matches;
+
   bool operator()( const PoolItem &item )
   {
-    matches.insert(item.resolvable()->name());
+    MIL << "Pool item match number " << matches.size() << ": " << item << endl;
+    matches.insert( item.resolvable()->name() );
     return true;
   }
-  
-  set<string> matches;
 };
 
 // taken from zypper
@@ -90,18 +91,6 @@ struct ItemLockerFunc
   string _lock_str;
 };
 
-bool
-lockItem ( const CapAndItem &cai_r )
-{
-  PoolItem_Ref item(cai_r.item);
-  if ( item.status().isInstalled() )
-  {
-    MIL << "Locking installed " << cai_r.item << "(matched by " << cai_r.cap << ")" << endl;
-    item.status().setLock( true, ResStatus::USER);
-  }
-  return true;
-}
-
 int
 read_locks (const ResPool & pool, sqlite3 *db)
 {
@@ -109,6 +98,7 @@ read_locks (const ResPool & pool, sqlite3 *db)
 
     sqlite3_stmt *handle = NULL;
 
+    //                          0     1        2        3      4     5         6        7     8           9               10
     const char  *sql = "SELECT id, name, version, release, epoch, arch, relation, catalog, glob, importance, importance_gteq FROM locks";
     int rc = sqlite3_prepare (db, sql, -1, &handle, NULL);
     if (rc != SQLITE_OK)
@@ -174,6 +164,7 @@ read_locks (const ResPool & pool, sqlite3 *db)
       
       // create regex object
       string regstr(wildcards2regex(name));
+      MIL << "regstr '" << regstr << "'" << endl;
       try
       {
         reg.assign(regstr, flags);
@@ -181,12 +172,14 @@ read_locks (const ResPool & pool, sqlite3 *db)
       catch (regex_error & e)
       {
         ERR << "locks: " << regstr << " is not a valid regular expression: \"" << e.what() << "\"" << endl;
-        ERR << "This is a bug, please file a bug report against libzypp-backend" << endl;
+        ERR << "This is a bug, please file a bug report against libzypp-zmd-backend" << endl;
         // ignore this lock and continue
         continue;
       }
-      
-      invokeOnEach(pool.begin(), pool.end(), Match(reg), nameMatchFunc);
+
+      invokeOnEach( pool.begin(), pool.end(), Match(reg), nameMatchFunc );
+
+      MIL << "Found " << nameMatchFunc.matches.size() << " matches." << endl;
       // now we have all the names matching
       
       // for each name matching try to match a capability
@@ -200,6 +193,7 @@ read_locks (const ResPool & pool, sqlite3 *db)
         try
         {
           Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, matched_name, rel, edition );
+	  MIL << "Locking capability " << capability << endl;
           forEachMatchIn( pool, Dep::PROVIDES, capability, lockItemFunc );
         }
         catch ( const Exception &e )
