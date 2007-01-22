@@ -5,6 +5,7 @@
  */
 
 #include <set>
+#include <sstream>
 #include "transactions.h"
 
 #include <zypp/ZYpp.h>
@@ -64,7 +65,8 @@ typedef std::set<PoolItem> PoolItemSet;
 
 //-----------------------------------------------------------------------------
 
-void pool_install_best( const Resolvable::Kind &kind, const std::string &name )
+static void
+pool_install_best( const Resolvable::Kind &kind, const std::string &name )
 {
   // as documented in ResPool::setAdditionalFoo
   CapSet capset;
@@ -76,15 +78,59 @@ void pool_install_best( const Resolvable::Kind &kind, const std::string &name )
   //item.status().setToBeInstalled( ResStatus::USER );
 }
 
+
+// check if pool item is locked
+static bool
+check_lock( PoolItem_Ref item )
+{
+    return item.status().isLocked();
+}
+
+
+static string
+item_to_string( PoolItem_Ref item )
+{
+    ostringstream os;
+    if (!item) return "";
+
+    if (item->kind() != ResTraits<zypp::Package>::kind)
+        os << item->kind() << ':';
+    os  << item->name() << '-' << item->edition();
+    if (item->arch() != "") {
+        os << '.' << item->arch();
+    }
+    return os.str();
+}
+
+// complain about locked pool item
+static bool
+is_locked( PoolItem_Ref item, PackageOpType action )
+{
+    char *action_s = "";
+    switch( action ) {
+	case PACKAGE_OP_REMOVE: action_s = "removed"; break;
+	case PACKAGE_OP_INSTALL: action_s = "installed"; break;
+	case PACKAGE_OP_UPGRADE: action_s = "upgraded"; break;
+	default: return true;	// don't honor locks on undefined actions
+    }
+
+    cerr << "1|" << item_to_string( item ) << " is locked and cannot be " << action_s << endl;
+    ERR << item << " is locked and cannot be " << action_s << endl;
+    return false;
+}
+
+
 struct CopyTransaction
 {
     ResObject::constPtr _obj;
     PackageOpType _action;
     PoolItem_Ref affected;
+    bool locked;
 
     CopyTransaction( ResObject::constPtr obj, PackageOpType action )
 	: _obj( obj )
 	, _action( action )
+	, locked( false )
     { }
 
     bool operator()( PoolItem_Ref item )
@@ -93,12 +139,15 @@ struct CopyTransaction
 	{
 	    switch (_action) {
 		case PACKAGE_OP_REMOVE:
+		    if (check_lock( item )) { locked = true; return is_locked( item, _action ); }
 		    item.status().setToBeUninstalled( ResStatus::USER );
 		    break;
 		case PACKAGE_OP_INSTALL:
+		    if (check_lock( item )) { locked = true; return is_locked( item, _action ); }
 		    item.status().setToBeInstalled( ResStatus::USER );
 		    break;
 		case PACKAGE_OP_UPGRADE:
+		    if (check_lock( item )) { locked = true; return is_locked( item, _action ); }
 		    item.status().setToBeInstalled( ResStatus::USER );
 		    break;
     case PACKAGE_OP_INSTALL_BEST:
@@ -167,6 +216,10 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 	invokeOnEach( pool.byNameBegin( obj->name() ),
 		      pool.byNameEnd( obj->name() ),
 		      functor::functorRef<bool,PoolItem> (info) );
+
+	if (info.locked)
+	    return -1;
+
 	if (info.affected) {
 	    items[id] = info.affected;
 	    DBG << "#" << id << ": " << info.affected << endl;
