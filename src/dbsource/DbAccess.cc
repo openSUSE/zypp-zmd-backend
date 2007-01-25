@@ -1281,6 +1281,15 @@ DbAccess::writeResObject( ResObject::constPtr obj, ResStatus status, const char 
   else if (patch != NULL)
   {
     sqlite3_bind_text( handle, 11, patch->category().c_str(), -1, SQLITE_STATIC );
+    license = patch->licenseToConfirm();
+    if (license.empty())
+    {
+      sqlite3_bind_text( handle, 12, NULL, -1, SQLITE_STATIC );
+    }
+    else
+    {
+      sqlite3_bind_text( handle, 12, license.c_str(), -1, SQLITE_STATIC );
+    }
   }
   else if (product != NULL)
   {
