@@ -5,7 +5,7 @@ Thu Jan 25 14:19:12 CET 2007 - schubi@suse.de
 - Prefer less transactions ( amount of updated/install/delete packages)
   than highest version
 - Both changes for bug #238087
-- Revision 4913
+- Revision 4917
 - Version 7.1.1.0_0.7     
 
 -------------------------------------------------------------------
