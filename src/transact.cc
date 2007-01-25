@@ -156,7 +156,8 @@ main (int argc, char **argv)
   IdItemMap items;
 
   int removals = 0;
-  int count = read_transactions (God->pool(), db.db(), dbs, removals, items);
+  bool have_best_package = false;
+  int count = read_transactions( God->pool(), db.db(), dbs, removals, items, have_best_package );
   if (count < 0)
   {
     cerr << "1|Reading transactions failed." << endl;

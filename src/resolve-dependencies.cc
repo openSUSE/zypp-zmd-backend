@@ -112,7 +112,9 @@ main (int argc, char **argv)
     int removals = 0;	// unused here
     IdItemMap transacted_items;	// unused here
 
-    int count = read_transactions (God->pool(), db.db(), dbs, removals, transacted_items);
+    bool have_best_package = false;
+
+    int count = read_transactions( God->pool(), db.db(), dbs, removals, transacted_items, have_best_package );
     if (count < 0)
 	return 1;
 
@@ -126,7 +128,7 @@ main (int argc, char **argv)
 	count = 1;					// dont exit early
     }
     else if (count > 0) {
-	success = God->resolver()->resolvePool();
+	success = God->resolver()->resolvePool( have_best_package );
     }
 
     if (count > 0) {			// if we really did something

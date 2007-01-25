@@ -172,7 +172,7 @@ struct CopyTransaction
 // return the number of removals in removals
 
 int
-read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources, int & removals, IdItemMap & items)
+read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources, int & removals, IdItemMap & items, bool & have_best_package )
 {
     MIL << "read_transactions" << endl;
 
@@ -205,6 +205,9 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 
 	if (action == PACKAGE_OP_REMOVE)
 	    ++removals;
+
+	if (action == PACKAGE_OP_INSTALL_BEST)
+	    have_best_package = true;
 
 	// now we have the ResObject, but for setting the status we need
 	//  the corresponding PoolItem
