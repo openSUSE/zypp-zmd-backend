@@ -128,6 +128,7 @@ main (int argc, char **argv)
 	count = 1;					// dont exit early
     }
     else if (count > 0) {
+	God->resolver()->setPreferHighestVersion( false ); // prefer results with less transactions
 	success = God->resolver()->resolvePool( have_best_package );
     }
 
