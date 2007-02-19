@@ -1,4 +1,70 @@
 -------------------------------------------------------------------
+Mon Feb 19 16:52:36 CET 2007 - dmacvicar@suse.de
+
+- copy to trunk
+- build with cmake
+- Version 7.1.1.0_1.0
+- r5048
+
+-------------------------------------------------------------------
+Thu Jan 25 14:19:12 CET 2007 - schubi@suse.de
+
+- Trying ALL possibilities while solving dependencies.
+- Prefer less transactions ( amount of updated/install/delete packages)
+  than highest version
+- Both changes for bug #238087
+- Revision 4917
+- Version 7.1.1.0_0.7     
+
+-------------------------------------------------------------------
+Mon Jan 22 13:22:09 CET 2007 - kkaempf@suse.de
+
+- fix locks (#236686)
+  resolve-dependencies: pass functor reference to iterators
+  transactions: honor and report locks when reading transactions
+- r4886
+
+-------------------------------------------------------------------
+Thu Jan 11 14:11:21 CET 2007 - jkupec@suse.cz
+
+- adding source also to zypp if  SYNC_ZMD_TO_ZYPP="always"
+  in /etc/sysconfig/sw_management (part of feature #301822: Change
+  recognition on NCC related tasks)
+- r4845
+
+-------------------------------------------------------------------
+Thu Dec 28 12:36:43 CET 2006 - dmacvicar@suse.de
+
+- Fix a typo that made scripts being ignored after being
+  retrieved from the database.
+- r4826 
+
+-------------------------------------------------------------------
+Wed Dec 27 17:05:29 CET 2006 - dmacvicar@suse.de
+
+- restore locks everywhere we use the solver. required for
+  fate #301735
+- warn if a patch has empty do_script
+- r4824 
+
+-------------------------------------------------------------------
+Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
+
+- fate #301735: package locking supporting full wildcards
+  only catalogs and importance missing.
+- don't take 30 seconds to re-read the rpm database if
+  the helper will just exit after commit. (#228186)
+- version 7.1.1.0_0.6
+- r4808 
+
+-------------------------------------------------------------------
+Mon Dec 11 11:42:31 CET 2006 - dmacvicar@suse.de
+
+- automatically select sqlite-zmd or sqlite (to compile in
+  10.2 and SLES10 sp1)
+- r4778 
+
+-------------------------------------------------------------------
 Tue Nov 28 22:35:10 CET 2006 - kkaempf@suse.de
 
 - honor licenseToConfirm in patch (#224192)

@@ -42,7 +42,9 @@ DbScriptImpl::DbScriptImpl (Source_Ref source_r, std::string do_script, std::str
     , _do_script( do_script )
     , _undo_script( undo_script )
     , _zmdid( zmdid )
-{}
+{
+  //MIL << "creating db-script with do-script: " << endl << _do_script << endl;
+}
 
 Source_Ref
 DbScriptImpl::source() const
@@ -53,7 +55,7 @@ DbScriptImpl::source() const
 Pathname
 DbScriptImpl::do_script() const
 {
-  if ( ! _do_script.empty() )
+  if ( _do_script.empty() )
     return Pathname();
 
   if ( !_tmp_do_script )
@@ -71,13 +73,14 @@ DbScriptImpl::do_script() const
   }
   st << _do_script << endl;
   st.close();
+  
   return pth;
 }
 
 Pathname
 DbScriptImpl::undo_script() const
 {
-  if ( ! _undo_script.empty() )
+  if ( _undo_script.empty() )
     return Pathname();
 
   if ( !_tmp_undo_script )

@@ -9,6 +9,7 @@
 
 #include <zypp/ZYpp.h>
 #include <zypp/ZYppFactory.h>
+#include <zypp/VendorAttr.h>
 #include <zypp/base/Logger.h>
 #include <zypp/base/Exception.h>
 #include <zypp/media/MediaException.h>
@@ -26,6 +27,7 @@ using namespace zypp;
 #include "dbsource/DbAccess.h"
 #include "dbsource/DbSources.h"
 
+#include "locks.h"
 #include "transactions.h"
 #include <zypp/solver/detail/ResolverInfo.h>
 
@@ -122,8 +124,11 @@ main (int argc, char **argv)
   if (!db.openDb(false))
     return 1;
 
+  // we honor zmd locks, so disable autoprotecton of 
+  // foreign vendors
+  zypp::VendorAttr::disableAutoProtect();
+    
   // start ZYPP
-
   ZYpp::Ptr God = backend::getZYpp();
   KeyRingCallbacks keyring_callbacks;
   DigestCallbacks digest_callbacks;
@@ -144,12 +149,15 @@ main (int argc, char **argv)
     God->addResolvables( store, (it->id() == "@system") );
   }
 
+  // read locks first
+  read_locks (God->pool(), db.db());
+  
   // now the pool is complete, add transactions
-
   IdItemMap items;
 
   int removals = 0;
-  int count = read_transactions (God->pool(), db.db(), dbs, removals, items);
+  bool have_best_package = false;
+  int count = read_transactions( God->pool(), db.db(), dbs, removals, items, have_best_package );
   if (count < 0)
   {
     cerr << "1|Reading transactions failed." << endl;
@@ -182,6 +190,9 @@ main (int argc, char **argv)
     if (dry_run) policy.dryRun( true );
     if (nosignature) policy.rpmNoSignature( true );
 
+    // we dont need to reload rpm database after commit
+    policy.syncPoolAfterCommit( false );
+    
     ZYppCommitResult zres = God->commit( policy );
 
     // removals aren't counted in zres._result, only installs are
