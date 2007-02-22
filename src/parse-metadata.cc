@@ -135,7 +135,7 @@ sync_source( DbAccess & db, Source_Ref source, const string & catalog, const Url
 }
 
 static int
-parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string &p_path, const std::string &p_url, const std::string &p_catalog )
+parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string &p_url, const std::string &p_path, const std::string &p_catalog )
 {
   DbAccess db( p_dbfile );		// the zmd.db
 
@@ -242,7 +242,15 @@ parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string 
 
     try
     {
-      if (owner == ZMD_OWNED) {		// use zmd downloaded metadata:
+      if (owner == ZMD_OWNED)
+      {	// use zmd downloaded metadata:
+        MIL << "ZMD owned: " << pathurl << " " << catalog << endl;
+        
+        if ( ! ( ( pathurl.getScheme() == "file" ) || ( pathurl.getScheme() == "dir" ) ) )
+        {
+          ZYPP_THROW(Exception("ZMD Owned cache is not local. ZMD bug. (sheme: " + pathurl.getScheme() + ")" ));
+        }
+        
         source = SourceFactory().createFrom( pathurl, Pathname(), catalog, Pathname() );
         // zmd provided the data locally, 'source' has a local path, pass the real uri to sync_source
         result = sync_source( db, source, catalog, uri, owner );
@@ -266,7 +274,6 @@ parse_metadata( Ownership owner, const std::string &p_dbfile, const std::string 
       goto finish;
 
     // See bug #168739
-
     bool sync_all_sources = false;
     map<string,string> data = zypp::base::sysconfig::read( SWMAN_PATH );
     map<string,string>::const_iterator it = data.find( SWMAN_ZMD2ZYPP_TAG );
