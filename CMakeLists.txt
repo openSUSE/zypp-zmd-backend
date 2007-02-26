@@ -5,7 +5,8 @@ PROJECT(libzypp-zmd-backend)
 ####################################################################
 
 # where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
-SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules )
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+SET(CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/share/cmake/Modules ${CMAKE_MODULE_PATH})
 
 INCLUDE(${CMAKE_SOURCE_DIR}/VERSION.cmake)
 SET ( VERSION "${ZMD_VERSION}_${BACKEND_VERSION}" )

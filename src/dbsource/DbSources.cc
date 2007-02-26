@@ -75,8 +75,6 @@ DbSources::createDummy( const Url & url, const string & catalog )
     DbSourceImpl *impl = new DbSourceImpl ();
     impl->factoryCtor( mediaid, Pathname(), catalog, "", false, false );
     impl->setId( catalog );
-    impl->setZmdName( catalog );
-    impl->setZmdDescription ( catalog );
     impl->setPriority( 0 );
     impl->setSubscribed( true );
 
@@ -232,8 +230,6 @@ DbSources::sources( bool zypp_restore, bool refresh )
       impl->factoryCtor( mediaid, Pathname(), alias, "", false, false );
       impl->setId( id );
       impl->setUrl( url );
-      impl->setZmdName( name );
-      impl->setZmdDescription ( desc );
       impl->setPriority( priority );
       impl->setSubscribed( subscribed != 0 );
 
