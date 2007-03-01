@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Mar  1 12:46:27 CET 2007 - dmacvicar@suse.de
+
+- rug no longer installs multiple packages
+  (#239347)
+- r5146
+
+-------------------------------------------------------------------
 Mon Feb 19 16:52:36 CET 2007 - dmacvicar@suse.de
 
 - copy to trunk
