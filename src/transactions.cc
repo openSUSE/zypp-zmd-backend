@@ -65,20 +65,6 @@ typedef std::set<PoolItem> PoolItemSet;
 
 //-----------------------------------------------------------------------------
 
-static void
-pool_install_best( const Resolvable::Kind &kind, const std::string &name )
-{
-  // as documented in ResPool::setAdditionalFoo
-  CapSet capset;
-  capset.insert (CapFactory().parse( kind, name));
-  // The user is setting this capablility
-  ResPool::AdditionalCapSet aCapSet;
-  aCapSet[ResStatus::USER] = capset;
-  getZYpp()->pool().setAdditionalRequire( aCapSet );
-  //item.status().setToBeInstalled( ResStatus::USER );
-}
-
-
 // check if pool item is locked
 static bool
 check_lock( PoolItem_Ref item )
@@ -135,11 +121,14 @@ struct CopyTransaction
   PackageOpType _action;
   PoolItem_Ref affected;
   bool locked;
-
-  CopyTransaction( ResObject::constPtr obj, PackageOpType action )
+  // additional requires
+  ResPool::AdditionalCapSet _aCapSet;
+  
+  CopyTransaction( ResObject::constPtr obj, PackageOpType action, ResPool::AdditionalCapSet aCapSet )
       : _obj( obj )
       , _action( action )
       , locked( false )
+      , _aCapSet(aCapSet)
   { }
 
   bool operator()( PoolItem_Ref item )
@@ -184,6 +173,13 @@ struct CopyTransaction
     }
     return true;		// continue looking
   }
+  
+  void
+  pool_install_best( const Resolvable::Kind &kind, const std::string &name )
+  {
+    // The user is setting this capablility
+    _aCapSet[ResStatus::USER].insert (CapFactory().parse( kind, name));
+  }
 };
 
 //
@@ -211,6 +207,8 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 
   removals = 0;
 
+  ResPool::AdditionalCapSet aCapSet;
+  
   while ((rc = sqlite3_step (handle)) == SQLITE_ROW)
   {
     int id;
@@ -239,12 +237,15 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
     // So loop over the pool (over items with the same name)
     //  and find the PoolItem which refers to the ResObject
 
-    CopyTransaction info( obj, action );
-
+    CopyTransaction info( obj, action, aCapSet );
+    
     invokeOnEach( pool.byNameBegin( obj->name() ),
                   pool.byNameEnd( obj->name() ),
                   functor::functorRef<bool,PoolItem> (info) );
-
+    aCapSet = info._aCapSet;
+    
+    MIL << "Additional requirements: " << info._aCapSet[ResStatus::USER] << std::endl;
+    
     if (info.locked)
       return -1;
 
@@ -258,6 +259,9 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
 
     ++count;
   }
+
+  // set pool additional requires
+  getZYpp()->pool().setAdditionalRequire( aCapSet );
 
   sqlite3_finalize (handle);
 
