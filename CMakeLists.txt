@@ -20,6 +20,7 @@ ENDIF ( DEFINED  LIB )
 MESSAGE(STATUS "Libraries will be installed in ${LIB_INSTALL_DIR}" )
 
 INCLUDE(${CMAKE_SOURCE_DIR}/VERSION.cmake)
+SET( PACKAGE "libzypp-zmd-backend" )
 SET ( VERSION "${ZMD_VERSION}_${BACKEND_VERSION}" )
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "libzypp backend for ZenWorks daemon")
