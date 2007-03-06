@@ -2,7 +2,7 @@
 Tue Mar  6 11:30:18 CET 2007 - dmacvicar@suse.de
 
 - fix lib install dir on 64 bit systems 
-- r5161
+- r5167
 
 -------------------------------------------------------------------
 Thu Mar  1 12:46:27 CET 2007 - dmacvicar@suse.de
