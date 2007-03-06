@@ -16,6 +16,7 @@ SET( dbsource_SRCS
 )
 
 ADD_LIBRARY(zmd-backend SHARED ${dbsource_SRCS})
+SET_TARGET_PROPERTIES( zmd-backend PROPERTIES VERSION "0.0.0" )
 
 # System libraries
 TARGET_LINK_LIBRARIES(zmd-backend ${ZYPP_LIBRARY} )
