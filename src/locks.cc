@@ -16,6 +16,7 @@
 #include "zypp/PoolItem.h"
 #include "zypp/CapFactory.h"
 #include "zypp/CapMatchHelper.h"
+#include "zypp/capability/Capabilities.h"
 
 #undef ZYPP_BASE_LOGGER_LOGGROUP
 #define ZYPP_BASE_LOGGER_LOGGROUP "locks"
@@ -169,9 +170,17 @@ read_locks (const ResPool & pool, sqlite3 *db)
       try
       {
         Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, glob_str );
-        rel = capability.op();
-        edition = capability.edition();
-        name = capability.index();
+        if ( capability::VersionedCap::constPtr vercap = capability::asKind<capability::VersionedCap>(capability) )
+        {
+          rel = vercap->op();
+          edition = vercap->edition();
+          name = vercap->index();
+        }
+        else
+        {
+          ERR << "Not a versioned capability in: [" << glob_str << "] skipping" << std::endl;
+          continue;
+        }
       }
       catch ( const Exception &e )
       {

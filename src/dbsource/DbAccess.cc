@@ -18,6 +18,7 @@
 #include "zypp/Source.h"
 #include "zypp/detail/ImplConnect.h"
 #include "zypp/source/PackageDelta.h"
+#include "zypp/capability/Capabilities.h"
 #include "DbAccess.h"
 
 IMPL_PTR_TYPE(DbAccess);
@@ -704,18 +705,30 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
     sqlite3_bind_int( handle, 2, type);						// type (provides, requires, ...)
     sqlite3_bind_text( handle, 3, iter->index().c_str(), -1, SQLITE_STATIC );	// tag
 
-    Edition edition = iter->edition();
-    string version = edition.version();
-    string release = edition.release();
+    Edition edition;
+    string version;
+    string release;
+    Rel op;
+    if ( capability::VersionedCap::constPtr vercap = capability::asKind<capability::VersionedCap>(*iter) )
+    {
+      edition = vercap->edition();
+      version = edition.version();
+      release = edition.release();
+    }
+    else
+    {
+      edition = Edition::noedition;
+      op = Rel::NONE;
+    }
 
-    if (iter->op() != Rel::NONE							// operator and edition given ?
-        && iter->op() != Rel::ANY
+    if ( op != Rel::NONE							// operator and edition given ?
+        && op != Rel::ANY
         && edition != Edition::noedition)
     {
       sqlite3_bind_text( handle, 4, version.c_str(), -1, SQLITE_STATIC );	// version
       sqlite3_bind_text( handle, 5, release.c_str(), -1, SQLITE_STATIC );	// release
       Edition::epoch_t epoch = edition.epoch();
-      if (epoch != Edition::noepoch)
+      if ( epoch != Edition::noepoch )
       {
         sqlite3_bind_int( handle, 6, epoch);						// epoch
       }
@@ -724,7 +737,7 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
         sqlite3_bind_int( handle, 6, 0);
       }
       sqlite3_bind_int( handle, 7, -1);							// arch
-      sqlite3_bind_int( handle, 8, Rel2Rc( iter->op() ));					// operation (==, <, <=, ...)
+      sqlite3_bind_int( handle, 8, Rel2Rc( op ));					// operation (==, <, <=, ...)
     }
     else
     {

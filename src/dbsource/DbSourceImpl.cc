@@ -684,7 +684,7 @@ DbSourceImpl::createPackages(void)
       sqlite3_bind_int64 (delta_handle, 1, id );
       while ((delta_rc = sqlite3_step (delta_handle)) == SQLITE_ROW)
       {
-        zypp::source::OnMediaLocation on_media;
+        zypp::OnMediaLocation on_media;
         on_media.medianr( sqlite3_column_int( delta_handle, 1 ) );
         on_media.filename( Pathname((const char *) sqlite3_column_text( delta_handle, 2 )) );
         
@@ -728,7 +728,7 @@ DbSourceImpl::createPackages(void)
       {
         sqlite_int64 patch_package_id = sqlite3_column_int64( patch_handle, 0 );
         
-        zypp::source::OnMediaLocation on_media;
+        zypp::OnMediaLocation on_media;
         on_media.medianr( sqlite3_column_int( patch_handle, 1 ) );
         on_media.filename( Pathname((const char *) sqlite3_column_text( patch_handle, 2 )) );
         
