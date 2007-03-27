@@ -3,7 +3,7 @@ Tue Mar 27 11:34:56 CEST 2007 - dmacvicar@suse.de
 
 - provide a fake query-system
   (#256399) zmd stops working after update
-- r5259
+- r5262
 
 -------------------------------------------------------------------
 Thu Mar  1 12:43:32 CET 2007 - dmacvicar@suse.de
