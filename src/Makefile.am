@@ -22,6 +22,8 @@ bin_PROGRAMS =	\
 	update-status		\
 	transact
 
+EXTRA_DIST = query-system.sh
+
 zypp_sources_SOURCES = zypp-sources.cc
 service_delete_SOURCES = service-delete.cc
 query_pool_SOURCES = query-pool.cc
