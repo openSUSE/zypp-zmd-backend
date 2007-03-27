@@ -65,7 +65,12 @@ make %{?jobs:-j %jobs}
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
-install -m 644 logrotate_zmd_backend  $RPM_BUILD_ROOT/etc/logrotate.d/zmd-backend
+install -m 755 logrotate_zmd_backend  $RPM_BUILD_ROOT/etc/logrotate.d/zmd-backend
+
+# bug 256399 - zmd stops working after update
+# we install a fake query system as the solution
+install -m 644 src/query-system.sh  $RPM_BUILD_ROOT/%{_libdir}/zmd/query-system
+
 # Create filelist with translatins
 #%{find_lang} zypp
 
