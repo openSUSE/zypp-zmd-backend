@@ -414,7 +414,9 @@ prepare_product_insert (sqlite3 *db)
     //			      1
     "INSERT INTO product_details (resolvable_id, "
     //			      2        3
-    "                             summary, description) "
+    "                             summary, description,"
+    //                            4                  5                     6                     7
+    "                             distribution_name, distribution_version, distribution_release, distribution_epoch"
     "VALUES (?, ?, ?)"
     "");
 
@@ -1188,6 +1190,14 @@ DbAccess::writeProduct (sqlite_int64 id, Product::constPtr product )
   sqlite3_bind_text( handle, 2, product->summary().c_str(), -1, SQLITE_STATIC );
   sqlite3_bind_text( handle, 3, desc2str(product->description()).c_str(), -1, SQLITE_STATIC );
 
+  sqlite3_bind_text( handle, 4, product->distributionName().c_str(), -1, SQLITE_STATIC );
+  
+  Edition dist_edition = product->distributionEdition();
+  
+  sqlite3_bind_text( handle, 5, dist_edition.version().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_text( handle, 6, dist_edition.release().c_str(), -1, SQLITE_STATIC );
+  sqlite3_bind_int( handle, 7, dist_edition.epoch() );
+  
   rc = sqlite3_step( handle);
   sqlite3_reset( handle);
 

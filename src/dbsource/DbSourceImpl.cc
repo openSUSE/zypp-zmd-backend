@@ -37,6 +37,7 @@
 
 using namespace std;
 using namespace zypp;
+using namespace zypp::source;
 
 static CheckSum encoded_string_to_checksum( const std::string &encoded )
 {
@@ -385,8 +386,8 @@ create_product_handle (sqlite3 *db)
     "SELECT id, name, version, release, epoch, arch, "
     //      6               7
     "       installed_size, catalog,"
-    //      8          9      10      11
-    "       installed, local, status, category "
+    //      8          9      10      11        12, 13, 14, 15
+    "       installed, local, status, category, distribution_name, distribution_version, distribution_release, distribution_epoch "
     "FROM products "
     "WHERE catalog = ?";
 
@@ -684,7 +685,7 @@ DbSourceImpl::createPackages(void)
       sqlite3_bind_int64 (delta_handle, 1, id );
       while ((delta_rc = sqlite3_step (delta_handle)) == SQLITE_ROW)
       {
-        zypp::source::OnMediaLocation on_media;
+        OnMediaLocation on_media;
         on_media.medianr( sqlite3_column_int( delta_handle, 1 ) );
         on_media.filename( Pathname((const char *) sqlite3_column_text( delta_handle, 2 )) );
         
@@ -728,7 +729,7 @@ DbSourceImpl::createPackages(void)
       {
         sqlite_int64 patch_package_id = sqlite3_column_int64( patch_handle, 0 );
         
-        zypp::source::OnMediaLocation on_media;
+        OnMediaLocation on_media;
         on_media.medianr( sqlite3_column_int( patch_handle, 1 ) );
         on_media.filename( Pathname((const char *) sqlite3_column_text( patch_handle, 2 )) );
         

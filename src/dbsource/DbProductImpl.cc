@@ -46,12 +46,32 @@ DbProductImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
 {
   _zmdid = id;
 
-  // 1-5: nvra, see DbSourceImpl
-  // 6: status (don't care, its recomputed anyways)
-  // 7: category
+  //      0   1     2        3        4      5
+  //     id, name, version, release, epoch, arch
+  //      6               7
+  //      installed_size, catalog,"
+  //      8          9      10      11        12, 13, 14, 15
+  //   installed, local, status, category, distribution_name, distribution_version, distribution_release, distribution_epoch "
+  
   const char * text = ((const char *) sqlite3_column_text( handle, 7 ));
   if (text != NULL)
     _category = text;
+
+  const char *dist_name = 0;
+  const char *dist_ver = 0;
+  const char *dist_rel = 0;
+  const char *dist_epoch = 0;
+  
+  dist_name = (const char *) sqlite3_column_text( handle, 12 );
+  dist_ver = (const char *) sqlite3_column_text( handle, 13 );
+  dist_rel = (const char *) sqlite3_column_text( handle, 14 );
+  dist_epoch = (const char *) sqlite3_column_int( handle, 15 );
+  
+  if ( dist_name && dist_ver && dist_rel && dist_epoch )
+  {
+    _distribution_name = dist_name;
+    _distribution_edition = Edition( dist_ver, dist_rel, dist_epoch);
+  }
 
   return;
 }
@@ -104,6 +124,15 @@ Url DbProductImpl::releaseNotesUrl() const
   return _releaseNotesUrl;
 }
 
+std::string DbProductImpl::distributionName() const
+{
+  return _distribution_name;
+}
+
+Edition DbProductImpl::distributionEdition() const
+{
+  return _distribution_edition;
+}
 
 /////////////////////////////////////////////////////////////////
 } // namespace zypp

@@ -52,6 +52,8 @@ public:
   /** */
   virtual ZmdId zmdid() const;
 
+  virtual std::string distributionName() const;
+  virtual Edition distributionEdition() const;
 protected:
   TranslatedText _summary;
   TranslatedText _description;
@@ -61,6 +63,9 @@ protected:
   Label _vendor;
   Label _displayName;
   Url _releaseNotesUrl;
+  
+  std::string _distribution_name;
+  Edition _distribution_edition;
 };
 /////////////////////////////////////////////////////////////////
 } // namespace zypp
