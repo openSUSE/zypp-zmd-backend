@@ -411,13 +411,13 @@ static sqlite3_stmt *
 prepare_product_insert (sqlite3 *db)
 {
   string query (
-    //			      1
+    //				      1
     "INSERT INTO product_details (resolvable_id, "
-    //			      2        3
+    //				      2        3
     "                             summary, description,"
     //                            4                  5                     6                     7
-    "                             distribution_name, distribution_version, distribution_release, distribution_epoch"
-    "VALUES (?, ?, ?)"
+    "                             distribution_name, distribution_version, distribution_release, distribution_epoch)"
+    " VALUES (?, ?, ?, ?, ?, ?, ?)"
     "");
 
   return prepare_handle( db, query );
