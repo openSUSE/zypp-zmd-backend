@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Thu Apr 12 14:47:36 CEST 2007 - dmacvicar@suse.de
+
+- save and retrieve dist-name and dist-edition to db
+  (#260755)
+- r5357
+
+-------------------------------------------------------------------
 Tue Mar 27 16:27:18 CEST 2007 - dmacvicar@suse.de
 
 - fix permission of query-system
