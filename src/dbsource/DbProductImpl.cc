@@ -57,22 +57,16 @@ DbProductImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
   if (text != NULL)
     _category = text;
 
-  const char *dist_name = 0;
-  const char *dist_ver = 0;
-  const char *dist_rel = 0;
-  const char *dist_epoch = 0;
+  const char *dist_name = reinterpret_cast<const char *>(sqlite3_column_text( handle, 12 ));
+  const char *dist_ver = reinterpret_cast<const char *>(sqlite3_column_text( handle, 13 ));
+  const char *dist_rel = reinterpret_cast<const char *>(sqlite3_column_text( handle, 14 ));
+  int dist_epoch = sqlite3_column_int( handle, 15 );
   
-  dist_name = (const char *) sqlite3_column_text( handle, 12 );
-  dist_ver = (const char *) sqlite3_column_text( handle, 13 );
-  dist_rel = (const char *) sqlite3_column_text( handle, 14 );
-  dist_epoch = (const char *) sqlite3_column_int( handle, 15 );
+#define CHECKED_STRING(X)  ( (X == NULL) ? "" : X )
   
-  if ( dist_name && dist_ver && dist_rel && dist_epoch )
-  {
-    _distribution_name = dist_name;
-    _distribution_edition = Edition( dist_ver, dist_rel, dist_epoch);
-  }
-
+  _distribution_name = CHECKED_STRING(dist_name);
+  _distribution_edition = Edition( CHECKED_STRING(dist_ver), CHECKED_STRING(dist_rel), dist_epoch);
+  
   return;
 }
 

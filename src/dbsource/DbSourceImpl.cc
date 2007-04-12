@@ -932,6 +932,7 @@ DbSourceImpl::createProducts(void)
       Product::Ptr product = detail::makeResolvableFromImpl( dataCollect, impl );
       _store.insert( product );
       XXX << "Product[" << id << "] " << *product << endl;
+      MIL << "Product created with dist: " << product->distributionName() << " | " <<  product->distributionEdition() << endl;
       if ( _idmap != 0)
         (*_idmap)[id] = product;
     }
