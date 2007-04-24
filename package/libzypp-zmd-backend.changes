@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 24 16:33:25 CEST 2007 - dmacvicar@suse.de
+
+- (#174396) write patch license to the db
+- r5439 
+
+-------------------------------------------------------------------
 Wed Sep 13 14:01:37 CEST 2006 - dmacvicar@suse.de
 
 - disable the automatic emptying of catalogs for query-files.
