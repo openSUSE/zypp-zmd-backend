@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Tue Apr 24 16:33:25 CEST 2007 - dmacvicar@suse.de
+
+- (#174396) write patch license to the db
+- r5490
+
+-------------------------------------------------------------------
 Wed Jul  5 21:50:08 CEST 2006 - kkaempf@suse.de
 
 - check error value of rpm transaction before reporting error 
