@@ -16,7 +16,7 @@ License:        GPL
 Group:          System/Management
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 Autoreqprov:    on
-Requires:       libzypp >= 1.3.1
+Requires:       libzypp >= %( echo `rpm -q --queryformat '%{VERSION}-%{RELEASE}' libzypp`)
 Provides:       zmd-backend
 Provides:       zmd-librc-backend
 Obsoletes:      zmd-librc-backend
