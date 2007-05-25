@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Fri May 25 13:56:21 CEST 2007 - dmacvicar@suse.de
+
+- license was not reset in statements. Better set it at
+  ResObject level. Fixes having messages, atoms and scripts
+  with licenses to confirm. (#174396)
+- r5630 
+
+-------------------------------------------------------------------
 Tue Apr 24 16:33:25 CEST 2007 - dmacvicar@suse.de
 
 - (#174396) write patch license to the db
