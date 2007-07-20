@@ -704,7 +704,7 @@ DbAccess::writeDependency( sqlite_int64 res_id, RCDependencyType type, const zyp
 
     sqlite3_bind_int64( handle, 1, res_id);						// who issues the dependency
     sqlite3_bind_int( handle, 2, type);						// type (provides, requires, ...)
-    sqlite3_bind_text( handle, 3, iter->index().c_str(), -1, SQLITE_STATIC );	// tag
+    sqlite3_bind_text( handle, 3, iter->name().c_str(), -1, SQLITE_STATIC );	// tag
 
     Edition edition = iter->edition();
     string version = edition.version();

@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Fri Jul 20 13:14:19 CEST 2007 - ma@suse.de
+
+- Use capability name, not index, when storing capabilities. (#288422)
+- version 7.1.1.0_0.9
+
+-------------------------------------------------------------------
 Thu Apr 12 14:47:36 CEST 2007 - dmacvicar@suse.de
 
 - save and retrieve dist-name and dist-edition to db
@@ -9,7 +15,7 @@ Thu Apr 12 14:47:36 CEST 2007 - dmacvicar@suse.de
 Tue Mar 27 16:27:18 CEST 2007 - dmacvicar@suse.de
 
 - fix permission of query-system
-- r5264 
+- r5264
 
 -------------------------------------------------------------------
 Tue Mar 27 11:34:56 CEST 2007 - dmacvicar@suse.de
@@ -30,7 +36,7 @@ Thu Feb 22 14:28:52 CET 2007 - dmacvicar@suse.de
 
 - NU Sources work again. Requires updated ZMD.
   (#233681)
-- r5067 
+- r5067
 - version 7.1.1.0_0.8
 
 -------------------------------------------------------------------
@@ -41,7 +47,7 @@ Thu Jan 25 14:19:12 CET 2007 - schubi@suse.de
   than highest version
 - Both changes for bug #238087
 - Revision 4917
-- Version 7.1.1.0_0.7     
+- Version 7.1.1.0_0.7
 
 -------------------------------------------------------------------
 Mon Jan 22 13:22:09 CET 2007 - kkaempf@suse.de
@@ -64,7 +70,7 @@ Thu Dec 28 12:36:43 CET 2006 - dmacvicar@suse.de
 
 - Fix a typo that made scripts being ignored after being
   retrieved from the database.
-- r4826 
+- r4826
 
 -------------------------------------------------------------------
 Wed Dec 27 17:05:29 CET 2006 - dmacvicar@suse.de
@@ -72,7 +78,7 @@ Wed Dec 27 17:05:29 CET 2006 - dmacvicar@suse.de
 - restore locks everywhere we use the solver. required for
   fate #301735
 - warn if a patch has empty do_script
-- r4824 
+- r4824
 
 -------------------------------------------------------------------
 Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
@@ -82,14 +88,14 @@ Mon Dec 18 13:26:38 CET 2006 - dmacvicar@suse.de
 - don't take 30 seconds to re-read the rpm database if
   the helper will just exit after commit. (#228186)
 - version 7.1.1.0_0.6
-- r4808 
+- r4808
 
 -------------------------------------------------------------------
 Mon Dec 11 11:42:31 CET 2006 - dmacvicar@suse.de
 
 - automatically select sqlite-zmd or sqlite (to compile in
   10.2 and SLES10 sp1)
-- r4778 
+- r4778
 
 -------------------------------------------------------------------
 Tue Nov 28 22:35:10 CET 2006 - kkaempf@suse.de
@@ -115,7 +121,7 @@ Sat Nov 25 12:23:34 CET 2006 - kkaempf@suse.de
 Tue Nov 21 22:34:08 CET 2006 - dmacvicar@suse.de
 
 - use sqlite-zmd instead of sqlite3
-- r4653 
+- r4653
 
 -------------------------------------------------------------------
 Mon Nov 20 11:58:10 CET 2006 - dmacvicar@suse.de
@@ -128,7 +134,7 @@ Mon Nov 20 11:58:10 CET 2006 - dmacvicar@suse.de
   not_installed_atoms
   mark_atoms_to_freshen
   any_atom_selected
-- r4623 
+- r4623
 
 -------------------------------------------------------------------
 Thu Oct 19 12:31:08 CEST 2006 - schwab@suse.de
@@ -141,32 +147,32 @@ Wed Oct 18 12:10:47 CEST 2006 - dmacvicar@suse.de
 - query-pool products @system does not show installed
   products. (target is not autoloaded in zypp 2.4)
   (#213261)
-- r4324 
+- r4324
 
 -------------------------------------------------------------------
 Wed Oct  4 18:11:37 CEST 2006 - dmacvicar@suse.de
 
 - less debug
-- r4224 
+- r4224
 
 -------------------------------------------------------------------
 Wed Oct  4 18:07:37 CEST 2006 - dmacvicar@suse.de
 
 - reenable patch and delta rpms metadata writing
 - update catalog checksums
-- r4222 
+- r4222
 
 -------------------------------------------------------------------
 Mon Oct  2 19:18:32 CEST 2006 - dmacvicar@suse.de
 
 - disable wrting patch and delta rpm information to the database.
-  will enable later 
+  will enable later
 - r4218
 
 -------------------------------------------------------------------
 Thu Sep 14 12:44:39 CEST 2006 - schubi@suse.de
 
-- Revision 4144 
+- Revision 4144
 
 -------------------------------------------------------------------
 Thu Sep 14 10:52:08 CEST 2006 - mvidner@suse.cz
@@ -177,7 +183,7 @@ Thu Sep 14 10:52:08 CEST 2006 - mvidner@suse.cz
 Wed Sep 13 13:52:53 CEST 2006 - dmacvicar@suse.de
 
 - fix empty catalog semantics
-- r4131 
+- r4131
 
 -------------------------------------------------------------------
 Wed Sep 13 13:02:25 CEST 2006 - dmacvicar@suse.de
@@ -191,7 +197,7 @@ Wed Sep 13 13:02:25 CEST 2006 - dmacvicar@suse.de
 Wed Sep 13 12:10:26 CEST 2006 - dmacvicar@suse.de
 
 - read patch and delta rpm information from database and add
-  the information to the resolvables. (#199434) 
+  the information to the resolvables. (#199434)
 - r4123
 
 -------------------------------------------------------------------
@@ -212,20 +218,20 @@ Thu Sep  7 14:51:54 CEST 2006 - dmacvicar@suse.de
 Thu Sep  7 12:31:14 CEST 2006 - dmacvicar@suse.de
 
 - Get rid of helpers find-file, package-files, and query-files.
-  ( fate: #300916 ) 
+  ( fate: #300916 )
 - r4098
 
 -------------------------------------------------------------------
 Wed Aug 30 11:34:08 CEST 2006 - dmacvicar@suse.de
 
 - compile fixes for new zypp keyring callbacks
-- r4055 
+- r4055
 
 -------------------------------------------------------------------
 Mon Aug 28 14:13:46 CEST 2006 - dmacvicar@suse.de
 
 - adapt to zypp 2.1.0 Keyring callbacks
-- r4039 
+- r4039
 
 -------------------------------------------------------------------
 Tue Aug 22 13:25:14 CEST 2006 - dmacvicar@suse.de
@@ -242,7 +248,7 @@ Wed Aug  9 17:16:52 CEST 2006 - dmacvicar@suse.de
 -------------------------------------------------------------------
 Wed Aug  9 11:48:58 CEST 2006 - dmacvicar@suse.de
 
-- adapt to new zypp target initialization 
+- adapt to new zypp target initialization
 
 -------------------------------------------------------------------
 Tue Aug  1 12:25:39 CEST 2006 - kkaempf@suse.de

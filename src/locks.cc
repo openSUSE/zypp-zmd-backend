@@ -171,7 +171,7 @@ read_locks (const ResPool & pool, sqlite3 *db)
         Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, glob_str );
         rel = capability.op();
         edition = capability.edition();
-        name = capability.index();
+        name = capability.name();
       }
       catch ( const Exception &e )
       {
