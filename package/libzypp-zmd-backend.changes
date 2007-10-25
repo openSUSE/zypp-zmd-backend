@@ -1,4 +1,13 @@
 -------------------------------------------------------------------
+Thu Oct 25 16:03:03 CEST 2007 - duncan@suse.de
+
+- Add zmd-solver-testcase binary which allows for easy generation of
+  solver testcases from zmd.db during development and afterwards
+  during maintainance.
+- SP2 branch version will be 7.1.1.0_2.x
+- version 7.1.1.0_2.0
+
+-------------------------------------------------------------------
 Fri Jul 20 13:14:19 CEST 2007 - ma@suse.de
 
 - Use capability name, not index, when storing capabilities. (#288422)

@@ -20,6 +20,7 @@ bin_PROGRAMS =	\
 	service-delete		\
 	parse-metadata		\
 	update-status		\
+	zmd-solver-testcase \
 	transact
 
 EXTRA_DIST = query-system.sh
@@ -31,4 +32,4 @@ resolve_dependencies_SOURCES = resolve-dependencies.cc transactions.cc transacti
 transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h MediaChangeCallback.h MessageResolvableReportCallback.h KeyRingCallbacks.h  locks.cc locks.h
 parse_metadata_SOURCES = parse-metadata.cc KeyRingCallbacks.h
 update_status_SOURCES = update-status.cc  locks.cc locks.h
-
+zmd_solver_testcase_SOURCES = zmd-solver-testcase.cc transactions.cc transactions.h locks.cc locks.h
