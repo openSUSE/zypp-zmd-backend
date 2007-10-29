@@ -32,8 +32,8 @@ getZYpp( bool readonly )
     }
     catch (Exception & excpt_r) {
 	ZYPP_CAUGHT (excpt_r);
-	cerr << "1|A transaction is already in progress." << endl;
-	cout << "A transaction is already in progress." << endl;
+	cerr << "1|" << excpt_r.asUserString() << endl;
+	cout << excpt_r.asUserString() << endl;
 	exit(1);
     }
     return Z;

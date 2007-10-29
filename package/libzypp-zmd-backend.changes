@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Mon Oct 29 17:33:06 CET 2007 - aschnell@suse.de
+
+- report message of ZYppFactoryException (bug #191147)
+
+-------------------------------------------------------------------
 Thu Oct 25 16:03:03 CEST 2007 - duncan@suse.de
 
 - Add zmd-solver-testcase binary which allows for easy generation of
