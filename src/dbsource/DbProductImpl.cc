@@ -53,7 +53,7 @@ DbProductImpl::readHandle( sqlite_int64 id, sqlite3_stmt *handle )
   //      8          9      10      11        12, 13, 14, 15
   //   installed, local, status, category, distribution_name, distribution_version, distribution_release, distribution_epoch "
   
-  const char * text = ((const char *) sqlite3_column_text( handle, 7 ));
+  const char * text = ((const char *) sqlite3_column_text( handle, 11 ));
   if (text != NULL)
     _category = text;
 

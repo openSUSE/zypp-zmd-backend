@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 08 10:15:30 CET 2007 - aschnell@suse.de
+
+- Fixed retrieval of product category from zmd db (bug #263852)
+
+-------------------------------------------------------------------
 Mon Oct 29 17:33:06 CET 2007 - aschnell@suse.de
 
 - report message of ZYppFactoryException (bug #191147)
