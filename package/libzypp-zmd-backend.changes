@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Thu Nov 15 16:35:28 CET 2007 - aschnell@suse.de
+
+- fixed saving of atoms (bug #325625)
+
+-------------------------------------------------------------------
 Thu Nov 08 10:15:30 CET 2007 - aschnell@suse.de
 
 - Fixed retrieval of product category from zmd db (bug #263852)

@@ -822,6 +822,39 @@ DbSourceImpl::createPatches(void)
                          createDependencies (id ) );
 
       Patch::Ptr patch = detail::makeResolvableFromImpl( dataCollect, impl );
+
+      // see bug #325625
+      const CapSet & capset = patch->dep(Dep::REQUIRES);
+      for (CapSet::const_iterator it1 = capset.begin(); it1 != capset.end(); it1++) {
+
+	  if (!isKind<capability::NamedCap>(*it1))
+	      continue;
+
+	  if (it1->op() != Rel::EQ)
+	      continue;
+
+	  if ((it1->refers() != ResTraits<Atom>::kind) &&
+	      (it1->refers() != ResTraits<Script>::kind) &&
+	      (it1->refers() != ResTraits<Message>::kind))
+	      continue;
+
+	  for (ResStore::const_iterator it2 = _store.begin(); it2 != _store.end(); it2++) {
+
+	      if (it1->refers() != (*it2)->kind())
+		  continue;
+
+	      if ((it1->name() != (*it2)->name()) ||
+		  (it1->edition() != (*it2)->edition()))
+		  continue;
+
+	      if (patch->source() != (*it2)->source())
+		  continue;
+
+	      impl->add_atom(*it2);
+
+	  }
+      }
+
       _store.insert( patch );
       XXX << "Patch[" << id << "] " << *patch << endl;
       if ( _idmap != 0)

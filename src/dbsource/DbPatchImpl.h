@@ -56,7 +56,12 @@ public:
   /** The list of all atoms building the patch */
   virtual AtomList all_atoms() const
   {
-    return AtomList();
+    return _atom_list;
+  }
+
+  void add_atom(ResObject::Ptr atom)
+  {
+    _atom_list.push_back(atom);
   }
 
 protected:
@@ -69,8 +74,7 @@ protected:
   bool _affects_pkg_manager;
   ByteCount _size_installed;
   ByteCount _size_archive;
-
-
+  AtomList _atom_list;
 };
 /////////////////////////////////////////////////////////////////
 } // namespace zypp
