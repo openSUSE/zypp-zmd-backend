@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Wed Dec  5 11:09:02 CET 2007 - dmacvicar@suse.de
+
+- Close db before commit and reopen after
+  needed for feature #302930
+- 7.1.1.0_2.12
+
+-------------------------------------------------------------------
 Thu Nov 15 16:35:28 CET 2007 - aschnell@suse.de
 
 - fixed saving of atoms (bug #325625)

@@ -180,6 +180,9 @@ main (int argc, char **argv)
 
   int result = 0;
 
+  // close the db before commit
+  db.closeDb();
+
   try
   {
     PoolItemList x,y,z;
@@ -252,6 +255,9 @@ main (int argc, char **argv)
 
   // 'finish' transaction progress
   cout << "4" << endl;
+
+  if (!db.openDb(false))
+    return 1;
 
   // now drop those transactions which are already committed
 
