@@ -99,11 +99,8 @@ struct ItemLockerFunc
   bool operator()( const CapAndItem &cai_r )
   {
     PoolItem_Ref item(cai_r.item);
-    if ( item.status().isInstalled() )
-    {
-      MIL << "Locking installed " << cai_r.item << "(matched by " << _lock_str << ")" << endl;
-      item.status().setLock( true, ResStatus::USER);
-    }
+    item.status().setLock( true, ResStatus::USER);
+    MIL << "Locking " << cai_r.item << "(matched by " << _lock_str << ")" << endl;
     return true;
   }
 

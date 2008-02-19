@@ -121,6 +121,7 @@ main (int argc, char **argv)
     MIL << "Processing " << count << " transactions" << endl;
 
     God->resolver()->setForceResolve( true );
+    MIL << "setForceResolve (true)" << endl;
 
     bool success = true;
     if (argc == 3) {
@@ -132,15 +133,21 @@ main (int argc, char **argv)
 	success = God->resolver()->resolvePool( have_best_package );
     }
 
+    for (typeof (God->pool().byNameBegin("fake-test-a")) it = God->pool().byNameBegin("fake-test-a");
+	 it != God->pool().byNameEnd("fake-test-a"); it++)
+    {
+	MIL << *it << endl;
+    }
+
     if (count > 0) {			// if we really did something
 
 	MIL << "Solver " << (success?"was":"NOT") << " successful" << endl;
 
 	solver::detail::ResolverContext_Ptr context = God->resolver()->context();
-	if (context == NULL) {
-	    MIL << "Nothing to transact" << endl;
-        }
-	else if (success) {
+	//if (context == NULL) {
+	//    MIL << "Nothing to transact" << endl;
+       // }
+	/*else*/ if (success) {
 	    success = write_transactions( God->pool(), db.db(), context );
 	}
 	else {

@@ -91,7 +91,7 @@ item_to_string( PoolItem_Ref item )
 
 // complain about locked pool item
 static bool
-is_locked( PoolItem_Ref item, PackageOpType action )
+complain_if_locked( PoolItem_Ref item, PackageOpType action )
 {
   char *action_s = "";
   switch ( action )
@@ -109,8 +109,8 @@ is_locked( PoolItem_Ref item, PackageOpType action )
     return true;	// don't honor locks on undefined actions
   }
 
-  cerr << "1|" << item_to_string( item ) << " is locked and cannot be " << action_s << endl;
-  ERR << item << " is locked and cannot be " << action_s << endl;
+  //cerr << "1|" << item_to_string( item ) << " is locked and cannot be " << action_s << endl;
+  ERR << item << " is locked and cannot be " << action_s << " (ignoring in transaction)" << endl;
   return false;
 }
 
@@ -120,14 +120,12 @@ struct CopyTransaction
   ResObject::constPtr _obj;
   PackageOpType _action;
   PoolItem_Ref affected;
-  bool locked;
   // additional requires
   ResPool::AdditionalCapSet _aCapSet;
   
   CopyTransaction( ResObject::constPtr obj, PackageOpType action, ResPool::AdditionalCapSet aCapSet )
       : _obj( obj )
       , _action( action )
-      , locked( false )
       , _aCapSet(aCapSet)
   { }
 
@@ -140,29 +138,32 @@ struct CopyTransaction
       case PACKAGE_OP_REMOVE:
         if (check_lock( item ))
         {
-          locked = true;
-          return is_locked( item, _action );
+          return complain_if_locked( item, _action );
         }
-        item.status().setToBeUninstalled( ResStatus::USER );
+	else
+          item.status().setToBeUninstalled( ResStatus::APPL_HIGH );
         break;
       case PACKAGE_OP_INSTALL:
         if (check_lock( item ))
         {
-          locked = true;
-          return is_locked( item, _action );
+          return complain_if_locked( item, _action );
         }
-        item.status().setToBeInstalled( ResStatus::USER );
+	else
+          item.status().setToBeInstalled( ResStatus::APPL_HIGH );
         break;
       case PACKAGE_OP_UPGRADE:
         if (check_lock( item ))
         {
-          locked = true;
-          return is_locked( item, _action );
+          return complain_if_locked( item, _action );
         }
-        item.status().setToBeInstalled( ResStatus::USER );
+	else
+	{
+          item.status().setToBeInstalled( ResStatus::APPL_HIGH );
+	}
         break;
       case PACKAGE_OP_INSTALL_BEST:
         pool_install_best( item.resolvable()->kind(), item.resolvable()->name() );
+	return true;
         break;
       default:
         ERR << "Ignoring unknown action " << _action << endl;
@@ -178,7 +179,7 @@ struct CopyTransaction
   pool_install_best( const Resolvable::Kind &kind, const std::string &name )
   {
     // The user is setting this capablility
-    _aCapSet[ResStatus::USER].insert (CapFactory().parse( kind, name));
+    _aCapSet[ResStatus::APPL_HIGH].insert (CapFactory().parse( kind, name));
   }
 };
 
@@ -244,10 +245,12 @@ read_transactions (const ResPool & pool, sqlite3 *db, const DbSources & sources,
                   functor::functorRef<bool,PoolItem> (info) );
     aCapSet = info._aCapSet;
     
-    MIL << "Additional requirements: " << info._aCapSet[ResStatus::USER] << std::endl;
+    MIL << "Additional requirements (USER): " << info._aCapSet[ResStatus::USER] << std::endl;
+    MIL << "Additional requirements (APPL_HIGH): " << info._aCapSet[ResStatus::APPL_HIGH] << std::endl;
     
-    if (info.locked)
-      return -1;
+    // wth is this?
+    //if (info.locked)
+    //  return -1;
 
     if (info.affected)
     {
@@ -317,6 +320,12 @@ dep_get_package_info (ResolverContext_Ptr context, PoolItem_Ref item)
 bool
 write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageOpType op_type, ResolverContext_Ptr context)
 {
+  if (context == NULL)
+  {
+    MIL << "Nothing to transact" << endl;
+    return true;
+  }
+
   int rc = SQLITE_DONE;
 
   for (PoolItemSet::const_iterator iter = objects.begin(); iter != objects.end(); ++iter)
@@ -324,12 +333,20 @@ write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageO
 
     PoolItem item = *iter;
 
-    // only write those items back which were set by solver (#154976)
-    if (!item.status().isBySolver())
+    if ( check_lock(item) )
     {
-      DBG << "Skipping " << item << endl;
+      cerr << "1|" << item_to_string( item ) << " is locked." << endl;
+      WAR << "Skipping " << item << " (locked)" << endl;
       continue;
     }
+
+
+    // only write those items back which were set by solver (#154976)
+    //if (!item.status().isBySolver())
+    //{
+    //  DBG << "Skipping " << item << endl;
+    //  continue;
+    //}
 
     string details = dep_get_package_info( context, *iter );
 
@@ -358,12 +375,25 @@ write_transactions (const ResPool & pool, sqlite3 *db, ResolverContext_Ptr conte
 {
   MIL << "write_transactions" << endl;
 
+  // start a transaction
+  sqlite3_exec(db, "begin;", NULL, NULL, NULL);
+  // drop all transactions
+  sqlite3_exec(db, "delete from transactions;", NULL, NULL, NULL);
+
+  if (context == NULL)
+  {
+    MIL << "Nothing to transact" << endl;
+    sqlite3_exec(db, "commit;", NULL, NULL, NULL);
+    return true;
+  }
+
   sqlite3_stmt *handle = NULL;
   const char *sql = "INSERT INTO transactions (action, id, details) VALUES (?, ?, ?)";
   int rc = sqlite3_prepare( db, sql, -1, &handle, NULL );
   if (rc != SQLITE_OK)
   {
     ERR << "Can not prepare transaction insertion clause: " << sqlite3_errmsg (db) << endl;
+    sqlite3_exec(db, "rollback;", NULL, NULL, NULL);
     return false;
   }
   PoolItemSet install_set;
@@ -393,6 +423,8 @@ write_transactions (const ResPool & pool, sqlite3 *db, ResolverContext_Ptr conte
 
   sqlite3_finalize( handle );
 
+  // commit the result
+  sqlite3_exec(db, "commit;", NULL, NULL, NULL);
   return result;
 }
 
