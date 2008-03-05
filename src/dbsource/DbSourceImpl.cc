@@ -996,7 +996,7 @@ target2kind( RCDependencyTarget dep_target )
     kind = ResTraits<Package>::kind;
     break;
   case RC_DEP_TARGET_SCRIPT:
-    kind = ResTraits<Package>::kind;
+    kind = ResTraits<Script>::kind;
     break;
   case RC_DEP_TARGET_MESSAGE:
     kind = ResTraits<Message>::kind;

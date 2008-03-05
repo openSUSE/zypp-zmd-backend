@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Wed Mar 05 16:18:41 CET 2008 - aschnell@suse.de
+
+- fixed kind for scripts (bnc #365232)
+
+-------------------------------------------------------------------
 Tue Feb 19 11:34:33 CET 2008 - dmacvicar@suse.de
 
 - avoid upgrading locked packages 
