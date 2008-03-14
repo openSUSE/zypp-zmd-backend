@@ -1,4 +1,9 @@
 -------------------------------------------------------------------
+Fri Mar 14 16:41:20 CET 2008 - dmacvicar@suse.de
+
+- fix crash reading locks (bnc #298299)
+
+-------------------------------------------------------------------
 Wed Mar 05 16:18:41 CET 2008 - aschnell@suse.de
 
 - fixed kind for scripts (bnc #365232)
