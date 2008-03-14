@@ -147,7 +147,11 @@ read_locks (const ResPool & pool, sqlite3 *db)
       if (catalog)
          catalog_str = catalog;
 
-      string glob_str = reinterpret_cast<const char*>(sqlite3_column_text( handle, 8));
+      const char *glob = reinterpret_cast<const char*>(sqlite3_column_text( handle, 8));
+      string glob_str;
+      if (glob)
+          glob_str = glob;
+      
       //int importance = sqlite3_column_int( handle, 9);
       //int  importance_gteq = sqlite3_column_int( handle, 10);
 
