@@ -1,4 +1,10 @@
 -------------------------------------------------------------------
+Wed Mar 26 11:03:16 CET 2008 - dmacvicar@suse.de
+
+- remove query-system from package, not needed anymore
+  (bnc #370914)
+
+-------------------------------------------------------------------
 Fri Mar 14 16:41:20 CET 2008 - dmacvicar@suse.de
 
 - fix crash reading locks (bnc #298299)
