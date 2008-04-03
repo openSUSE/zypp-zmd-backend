@@ -1,4 +1,16 @@
 -------------------------------------------------------------------
+Thu Apr  3 14:59:15 CEST 2008 - dmacvicar@suse.de
+
+- correct non-sense behavor described in bnc #373563 where
+  if you have an older package installed, best-package approach
+  will do nothing if you try to install it by name with when a
+  newer version is available.
+  for the case of best-package, if there is a old version installed
+  and the requirement is by name only, we look the highest installed
+  version and add that as a requirement with > relation.
+- 7.1.1.0_2.15
+
+-------------------------------------------------------------------
 Wed Mar 26 11:03:16 CET 2008 - dmacvicar@suse.de
 
 - remove query-system from package, not needed anymore

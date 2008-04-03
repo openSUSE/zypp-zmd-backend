@@ -19,6 +19,7 @@
 #include <zypp/ResPool.h>
 #include <zypp/ResFilters.h>
 #include <zypp/CapFilters.h>
+#include <zypp/CapMatchHelper.h>
 
 #include <zypp/solver/detail/ResolverContext.h>
 #include <zypp/solver/detail/ResolverInfo.h>
@@ -174,12 +175,64 @@ struct CopyTransaction
     }
     return true;		// continue looking
   }
+
+  struct GreaterInstalledEdition
+  {
+    GreaterInstalledEdition()
+	: installed_count(0)
+    {}
+
+    bool operator()( const CapAndItem &cai_r )
+    {
+      PoolItem_Ref item(cai_r.item);
+      if ( item.status().isInstalled() )
+      {
+	  installed_count++;
+	  // found an installed item
+	  if ( item->edition() >= edition )
+	  {
+	      MIL << "installed " << item << " is newer" << endl;
+	      edition = item->edition();
+	  }
+      }
+      return true;
+    }
+
+    Edition edition;
+    bool installed_count;
+  };
+
   
   void
   pool_install_best( const Resolvable::Kind &kind, const std::string &name )
   {
-    // The user is setting this capablility
-    _aCapSet[ResStatus::APPL_HIGH].insert (CapFactory().parse( kind, name));
+      if ( name.empty() )
+      {
+	cerr << "1|" << "Got empty requirement." << endl;
+	exit(1);
+      }
+      
+     // The user is setting this capablility
+      Capability cap = CapFactory().parse( kind, name );
+
+      // if we have a installed item, we want to inject a requirement that
+      // see what is the greatest installed edition
+      GreaterInstalledEdition gieftor;
+      
+      forEachMatchIn( getZYpp()->pool(), Dep::PROVIDES, cap, functor::functorRef<bool, const CapAndItem &>(gieftor) );
+      if ( gieftor.installed_count > 0 )
+      {
+	  // only add requirement > installed edition if the given capability has
+	  // no relation already
+	  if ( cap.op() == Rel::NONE )
+	  {
+	      // recreate the capability to be > gratest installed edition so
+	      // the requirement dont say "satisfied" if an old version is installed
+	      cap = CapFactory().parse( kind, name, Rel::GT, gieftor.edition );
+	  }	  
+      }
+     
+     _aCapSet[ResStatus::APPL_HIGH].insert (cap);
   }
 };
 
@@ -328,6 +381,12 @@ write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageO
 
   int rc = SQLITE_DONE;
 
+  if ( objects.size() == 0 )
+  {
+      WAR << "nothing to write, empty transaction set" << endl;
+  }
+  
+
   for (PoolItemSet::const_iterator iter = objects.begin(); iter != objects.end(); ++iter)
   {
 
@@ -353,7 +412,8 @@ write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageO
     sqlite3_bind_int( handle, 1, (int) op_type );
     sqlite3_bind_int( handle, 2, iter->resolvable()->zmdid() );
     sqlite3_bind_text( handle, 3, details.c_str(), -1, SQLITE_STATIC );
-
+    MIL << "writing transacton for " << *iter << endl;
+    
     rc = sqlite3_step( handle );
     sqlite3_reset( handle );
   }
@@ -400,14 +460,16 @@ write_transactions (const ResPool & pool, sqlite3 *db, ResolverContext_Ptr conte
   PoolItemSet remove_set;
 
   context->foreachInstall( insert_item, &install_set);
-  MIL << "foreachInstall" << endl;
+  MIL << "Items to install:" << endl;
   print_set( install_set );
   context->foreachUninstall( insert_item, &remove_set);
-  MIL << "foreachUninstall" << endl;
+  MIL << "Items to uninstall:" << endl;
   print_set( remove_set );
   context->foreachUpgrade( insert_item_pair, &install_set);
-  MIL << "foreachUpgrade" << endl;
+  MIL << "Items to upgrade:" << endl;
   print_set( install_set );
+
+  MIL << "now writing back to database..." << endl;  
 
   bool result;
   result = write_resobject_set( handle, install_set, PACKAGE_OP_INSTALL, context );
