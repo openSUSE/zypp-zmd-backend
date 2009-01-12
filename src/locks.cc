@@ -107,11 +107,67 @@ struct ItemLockerFunc
   string _lock_str;
 };
 
+// parses an edition from a valid handle
+Edition edition_from_handle( sqlite3_stmt *handle, int vercol, int relcol, int epochcol )
+{
+    const char *ver = 0;
+    const char *rel = 0;
+    int epoch = 0;
+    
+    ver = reinterpret_cast<const char*>(sqlite3_column_text( handle, vercol));
+    rel = reinterpret_cast<const char*>(sqlite3_column_text( handle, relcol));
+    epoch = sqlite3_column_int( handle, epochcol);
 
-//
-// read 'locks' table, evaluate 'glob' column, assign locks to pool
-//
+    if ( ver )
+    {
+        if ( rel )
+        {
+            if ( epoch )
+                return Edition(ver, rel, epoch);
+            else
+                return Edition(ver, rel);
+        }
+        else
+        {
+            return Edition(ver);
+        }        
+    }
+    
+    return Edition::noedition;
+}
 
+/**
+ * read 'locks' table, evaluate 'glob' column, assign locks to pool
+ *  
+ * There are 3 ways to add locks in zmd.
+ * 
+ *  - Just by package name
+ *  - package name with regular expression
+ *  - package name with version-release
+ *  e.g I have added 3 locks like this
+ *  # rug la zmd
+ *  # rug la 'zmd*'
+ *  # rug la 'zmd' '=' '7.3.0.0-15.2'
+ *
+ *  # rug ll
+ *  # | Name               | Catalog | Importance
+ *  --+--------------------+---------+-----------
+ *  1 | zmd                | (any)   | (any)
+ *  2 | zmd*               | (any)   | (any)
+ *  3 | zmd = 7.3.0.0-15.2 | (any)   | (any)
+ *
+ *  Now if you see the locks table in zmd.db, this is how the 3 locks are stored.
+ *  sqlite> select name,version,release,relation,glob from locks;
+ *
+ *  name | version | release | relation | glob
+ *       |         |         | 0        | zmd
+ *       |         |         | 0        | zmd*
+ *  zmd  | 7.3.0.0 |  15.2   | 1        |
+ * 
+ *  For name and regular expression locks, the entry goes into the glob field of
+ *  the table where was for name-relation-version lock, the glob field is empty.
+ *  The entries go into name,version,release and relation fields.
+ */
 int
 read_locks (const ResPool & pool, sqlite3 *db)
 {
@@ -134,23 +190,40 @@ read_locks (const ResPool & pool, sqlite3 *db)
 
     while ((rc = sqlite3_step (handle)) == SQLITE_ROW)
     {
+      const char *buffer = 0;
+      Rel rel;
+      Edition edition;
+      string name;
+      Arch arch;
+      
       // we dont need this data yet
-      //string name_str = reinterpret_cast<const char*>(sqlite3_column_text( handle, 1));
-      //string version_str = reinterpret_cast<const char*>(sqlite3_column_text( handle, 2));
-      //string release_str = reinterpret_cast<const char*>(sqlite3_column_text( handle, 3));
-      //int epoch = sqlite3_column_int( handle, 4);
-      //int arch_id = sqlite3_column_int( handle, 5);
-      //RCResolvableRelation rc_rel = (RCResolvableRelation) sqlite3_column_int( handle, 6);
+      buffer = reinterpret_cast<const char*>(sqlite3_column_text( handle, 1));
+      if (buffer)
+          name = buffer;
 
-      const char *catalog = reinterpret_cast<const char*>(sqlite3_column_text( handle, 7));
-      string catalog_str;
-      if (catalog)
-         catalog_str = catalog;
+      // pass columns numbers
+      try {
+          edition = edition_from_handle( handle, 2, 3, 4 );
+      }
+      catch ( const Edition &e )
+      {
+          // if the edition was invalid, then log and continue
+          ERR << "invalid edition" << endl;
+          continue;
+      }
 
-      const char *glob = reinterpret_cast<const char*>(sqlite3_column_text( handle, 8));
-      string glob_str;
-      if (glob)
-          glob_str = glob;
+      rel = DbAccess::Rc2Rel( (RCResolvableRelation) sqlite3_column_int( handle, 6 ) );
+      arch = DbAccess::Rc2Arch( (RCArch) sqlite3_column_int( handle, 5 ) );
+
+      buffer = reinterpret_cast<const char*>(sqlite3_column_text( handle, 7));
+      string catalog;
+      if (buffer)
+         catalog = buffer;
+
+      buffer = reinterpret_cast<const char*>(sqlite3_column_text( handle, 8));
+      string glob;
+      if (buffer)
+          glob = buffer;
       
       //int importance = sqlite3_column_int( handle, 9);
       //int  importance_gteq = sqlite3_column_int( handle, 10);
@@ -163,26 +236,59 @@ read_locks (const ResPool & pool, sqlite3 *db)
       // got a new capability for matching wildcard to use with the capability match
       // helpers
 
-      Rel rel;
-      Edition edition;
-      string name;
 
       try
       {
-        Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, glob_str );
-        rel = capability.op();
-        edition = capability.edition();
-        name = capability.name();
+        Capability capability;        
+
+        // first scenario is that glob has the capability so we need to parse the
+        // glob capability and extract the name and operator from there.
+        if ( ! glob.empty() )
+        {
+            MIL << "Lock for '" << glob << "'" << endl;
+            
+            // If there is a glob, ZMD does not support relations and edition, however
+            // we parse them anyway. It wont hurt, as rug won't accept getting that
+            // lock in the db.
+            try
+            {    
+                // We only use this capability to extract the components of the
+                // string expression
+                capability = cap_factory.parse( ResTraits<zypp::Package>::kind, glob );
+                rel = capability.op();
+                edition = capability.edition();
+                name = capability.name();
+            }
+            catch ( const Exception &e )
+            {
+                ERR << "Can't parse capability in: " << glob << " (" << e.msg() << std::endl;
+                ZYPP_RETHROW(e);
+            }
+        }
+        else
+        {
+            // in the non-glob case, we have already read name, rel and edition from the
+            // database.
+
+            // if glob is empty, then the name must be there or we can't do
+            // anything
+            if ( name.empty() )
+                ZYPP_THROW(Exception("lock has both glob and name empty!"));
+        }
+        
       }
       catch ( const Exception &e )
       {
-        ERR << "Can't parse capability in: " << glob_str << " (" << e.msg() << ") skipping" << std::endl;
-        continue;
+          ERR << "Can't parse lock!!, skipping" << std::endl;
+          continue;
       }
 
       // Operator NONE is not allowed in Capability
       if (rel == Rel::NONE) rel = Rel::ANY;
 
+      // Now that we have the name (which may be a wildcard), the relation
+      // and the edition, we need to expand the wildcard. So we
+      // convert the wildcard to a regexp and expand it to matching names.
       NameMatchCollectorFunc nameMatchFunc;
 
       // regex flags
@@ -195,42 +301,43 @@ read_locks (const ResPool & pool, sqlite3 *db)
       MIL << "regstr '" << regstr << "'" << endl;
       try
       {
-        reg.assign( regstr, flags );
+          reg.assign( regstr, flags );
       }
       catch (regex_error & e)
       {
-        ERR << "locks: " << regstr << " is not a valid regular expression: \"" << e.what() << "\"" << endl;
-        ERR << "This is a bug, please file a bug report against libzypp-zmd-backend" << endl;
-        // ignore this lock and continue
-        continue;
+          ERR << "locks: " << regstr << " is not a valid regular expression: \"" << e.what() << "\"" << endl;
+          ERR << "This is a bug, please file a bug report against libzypp-zmd-backend" << endl;
+          // ignore this lock and continue
+          continue;
       }
 
+      // Now that the wildcard is a regexp, lets collect all items matching the regexp.
       invokeOnEach( pool.begin(), pool.end(), Match(reg), functor::functorRef<bool, const PoolItem &>(nameMatchFunc) );
 
       MIL << "Found " << nameMatchFunc.matches.size() << " matches." << endl;
 
       // now we have all the names matching
-
       // for each name matching try to match a capability
+      ItemLockerFunc lockItemFunc( glob );
 
-      ItemLockerFunc lockItemFunc( glob_str );
-
+      // for every name in the set of matched names, combine it with the original relation 
+      // and edition and match items in the pool, which is the final match set.
       for ( set<string>::const_iterator it = nameMatchFunc.matches.begin(); it != nameMatchFunc.matches.end(); ++it )
       {
-        string matched_name = *it;
-
-        try
-        {
-          Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, matched_name, rel, edition );
-	  MIL << "Locking capability " << capability << endl;
-          forEachMatchIn( pool, Dep::PROVIDES, capability, functor::functorRef<bool, const CapAndItem &>(lockItemFunc) );
-        }
-        catch ( const Exception &e )
-        {
-          ERR << "Invalid lock: " << e.msg() << std::endl;
-        }
-        ++count;
-
+          string matched_name = *it;
+          try
+          {   
+              Capability capability = cap_factory.parse( ResTraits<zypp::Package>::kind, matched_name, rel, edition );
+              MIL << "Locking capability " << capability << endl;
+              // for each match, lock the item.
+              forEachMatchIn( pool, Dep::PROVIDES, capability, functor::functorRef<bool, const CapAndItem &>(lockItemFunc) );
+          }
+          catch ( const Exception &e )
+          {
+              ERR << "Invalid lock: " << e.msg() << std::endl;
+          }
+          ++count;
+          
       }
     }
 
