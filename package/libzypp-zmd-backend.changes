@@ -1,4 +1,11 @@
 -------------------------------------------------------------------
+Mon Jan 12 14:02:10 CET 2009 - dmacvicar@suse.de
+
+- support locks not defined by globs but by package name
+  (bnc #447460)
+- 7.1.1.0_2.16
+
+-------------------------------------------------------------------
 Thu Apr  3 14:59:15 CEST 2008 - dmacvicar@suse.de
 
 - correct non-sense behavor described in bnc #373563 where
