@@ -21,6 +21,7 @@ bin_PROGRAMS =	\
 	parse-metadata		\
 	update-status		\
 	zmd-solver-testcase \
+	zmd-list-locks \
 	transact
 
 zypp_sources_SOURCES = zypp-sources.cc
@@ -31,3 +32,4 @@ transact_SOURCES = transact.cc transactions.cc transactions.h RpmCallbacks.h Med
 parse_metadata_SOURCES = parse-metadata.cc KeyRingCallbacks.h
 update_status_SOURCES = update-status.cc  locks.cc locks.h
 zmd_solver_testcase_SOURCES = zmd-solver-testcase.cc transactions.cc transactions.h locks.cc locks.h
+zmd_list_locks_SOURCES = zmd-list-locks.cc locks.cc locks.h
