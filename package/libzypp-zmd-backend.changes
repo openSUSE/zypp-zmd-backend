@@ -1,4 +1,12 @@
 -------------------------------------------------------------------
+Mon Dec 20 13:51:33 UTC 2010 - dmacvicar@suse.de
+
+- if the solver returns a (wrong) transaction to install a
+  package that is already installed, skip it.
+  (bnc #649705)
+- 7.1.1.0_2.17
+
+-------------------------------------------------------------------
 Mon Jan 12 14:02:10 CET 2009 - dmacvicar@suse.de
 
 - support locks not defined by globs but by package name
@@ -36,8 +44,8 @@ Wed Mar 05 16:18:41 CET 2008 - aschnell@suse.de
 -------------------------------------------------------------------
 Tue Feb 19 11:34:33 CET 2008 - dmacvicar@suse.de
 
-- avoid upgrading locked packages 
-  (bnc #298022) 
+- avoid upgrading locked packages
+  (bnc #298022)
 - 7.1.1.0_2.13
 
 -------------------------------------------------------------------
