@@ -370,6 +370,27 @@ dep_get_package_info (ResolverContext_Ptr context, PoolItem_Ref item)
 } /* dep_get_package_info */
 
 
+// functor to find same item
+struct DuplicateFinder
+{
+  PoolItem_Ref _item;
+  bool _found;
+ 
+  DuplicateFinder(PoolItem_Ref item) 
+    : _item(item), _found(false)
+  {}
+
+  bool operator()( PoolItem_Ref pi )
+  {
+    if ( compareByNVRA( pi.resolvable(), _item.resolvable()) == 0 )
+    {
+      _found = true;
+      return false;
+    }
+    return true;
+  }
+};
+
 bool
 write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageOpType op_type, ResolverContext_Ptr context)
 {
@@ -399,6 +420,20 @@ write_resobject_set( sqlite3_stmt *handle, const PoolItemSet & objects, PackageO
       continue;
     }
 
+    // if the item will be installed, make sure the same item
+    // is not already installed
+    if ( op_type == PACKAGE_OP_INSTALL )
+    {
+       DuplicateFinder dup(item);
+       zypp::invokeOnEach( getZYpp()->pool().begin(), getZYpp()->pool().end(),
+                           zypp::resfilter::ByInstalled(),
+                           zypp::functor::functorRef<bool,PoolItem> (dup) );
+       if ( dup._found )
+       {
+         WAR << "Skipping already installed" << item << endl;
+         continue;
+       }
+    }
 
     // only write those items back which were set by solver (#154976)
     //if (!item.status().isBySolver())
